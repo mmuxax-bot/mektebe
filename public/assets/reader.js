@@ -1,4 +1,4 @@
-import { $, esc, t, fmt, catalog, api, saveLast, lastRead, markHTML, toast, bookName } from "./common.js";
+import { $, esc, t, lang, fmt, catalog, api, saveLast, lastRead, markHTML, toast, bookName } from "./common.js";
 
 const id = decodeURIComponent((location.pathname.match(/^\/kitab\/([^/?#]+)/) || [])[1] || new URLSearchParams(location.search).get("b") || "");
 const qs = new URLSearchParams(location.search);
@@ -29,6 +29,13 @@ if (!b) {
 document.title = `${b.ar} — Nibras Library`;
 $("#ttl").innerHTML = `${esc(b.ar)}`;
 $("#ttl").title = bookName(b);
+// hədis kitabı: çap / nömrələmə qeydi (başlığın altında kiçik sətir)
+if (b.edNote) {
+  const e = $("#edn");
+  e.textContent = b.edNote[lang] || b.edNote.az;
+  e.dir = lang === "ar" ? "rtl" : "ltr";
+  e.hidden = false;
+}
 $("#ptot").textContent = "/ " + fmt(b.pages);
 $("#pin").max = b.pages;
 

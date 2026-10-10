@@ -213,10 +213,10 @@ async function rawMajmu(q) {
     },
   };
 }
-async function rawHd(q, b) {
+async function rawHd(q, b, nar) {
   const idx = await HD.__loadIndex();
-  const r = await HD.searchHadith(q);
-  let list = r.list;
+  // rəvayətçi verilibsə: isnadında o olan hədislər (səhabə mövqeyi əvvəldə), mövzu ifadəsi ilə süzülmüş
+  let list = nar ? await HD.narratorIds(nar, q) : (await HD.searchHadith(q)).list;
   if (b) list = list.filter((g) => g >= b.first && g < b.first + b.pages);
   return {
     list,
@@ -311,11 +311,14 @@ function tier(seq, qt) {
 }
 
 /** Bir bölmədə bir ərəbcə ifadə ilə axtarış: ifadə > yaxınlıq > BM25 sırası, səhifələnmiş nəticələr və «Kitabda aç» linki. */
-async function runSection(sec, phrase, b, off, lim, radius = SNIP) {
-  const raw = await RAW[sec](phrase, b);
+async function runSection(sec, phrase, b, off, lim, radius = SNIP, nar = null) {
+  const raw = await RAW[sec](phrase, b, nar);
   const tk = raw.tok === "n" ? nTokens : hTokens;
   const sp = raw.tok === "n" ? nSpans : hSpans;
-  const qt = tk(phrase);
+  // yalnız rəvayətçi: sıra rəvayətçi sırasıdır (səhabə mövqeyi əvvəldə), vurğu adın üzərində
+  const narOnly = nar && !phrase;
+  const hlPhrase = narOnly ? nar.ar[0] : phrase;
+  const qt = tk(hlPhrase);
   const head = [];
   for (const [i, d] of raw.list.slice(0, RERANK).entries()) {
     const r = await raw.load(d);
@@ -330,7 +333,7 @@ async function runSection(sec, phrase, b, off, lim, radius = SNIP) {
   }
   // eyni dərəcədə: əvvəl uyğunluq sırası; nəhvdə məlumatdakı (sələf müəllifləri önə çəkilmiş) kitab sırası da az təsir edir
   const key = (r) => r.rank + (r.ord != null ? r.ord * 0.15 : 0);
-  head.sort((x, y) => y.tier - x.tier || y.tf - x.tf || key(x) - key(y));
+  if (!narOnly) head.sort((x, y) => y.tier - x.tier || y.tf - x.tf || key(x) - key(y));
   const total = raw.list.length - (Math.min(raw.list.length, RERANK) - head.length);
   const out = [];
   for (let k = off; k < Math.min(off + lim, total); k++) {
@@ -342,16 +345,16 @@ async function runSection(sec, phrase, b, off, lim, radius = SNIP) {
       r.tier = 0;
     }
     const { text, rank, ord, tf, ...rest } = r;
-    out.push({ ...rest, ...snippet(text, qt, sp, radius), url: `/kitab/${encodeURIComponent(r.book)}?p=${r.p}&q=${encodeURIComponent(phrase)}` });
+    out.push({ ...rest, ...snippet(text, qt, sp, radius), url: `/kitab/${encodeURIComponent(r.book)}?p=${r.p}&q=${encodeURIComponent(hlPhrase)}` });
   }
-  return { total, results: out, via: phrase, top: head.length ? head[0].tier : -1 };
+  return { total, results: out, via: hlPhrase, top: head.length ? head[0].tier : -1 };
 }
 
 /** Bir neçə ifadə variantını sınayır və ən yaxşısını seçir: əvvəl ən yüksək ifadə dərəcəsi, sonra variantın sırası (dəqiqdən ümumiyə). */
-async function bestSection(sec, cands, b, off, lim, radius = SNIP) {
+async function bestSection(sec, cands, b, off, lim, radius = SNIP, nar = null) {
   let best = null;
   for (const c of cands.slice(0, 4)) {
-    const r = await runSection(sec, c, b, off, lim, radius);
+    const r = await runSection(sec, c, b, off, lim, radius, nar);
     if (!r.total) continue;
     if (!best || r.top > best.top) best = r;
     if (best.top === 2) break;
@@ -383,6 +386,23 @@ function titleMatches(q) {
   return out;
 }
 
+// «Əbu Hureyrə namaz», «hadith of Ibn Umar about prayer», «حديث أبي هريرة في الصلاة»: hədis bölməsində rəvayətçi süzgəci.
+//   Mövzu sözü varsa ifadə variantları rəvayətçinin hədisləri içində axtarılır; heç nə tapılmasa adi axtarışa qayıdılır (null).
+async function narratorSection(q, b, off, lim) {
+  const nq = HD.narratorQuery(q);
+  if (!nq) return null;
+  let cands = [""];
+  if (nq.rest) {
+    const ex = expandQuery(nq.rest);
+    cands = candsFor("hadith", ex);
+    if (!cands.length && !ex.arabic) cands = [...ex.general, ...ex.names];
+    if (!cands.length) return null;
+  }
+  const r = await bestSection("hadith", cands, b, off, lim, SNIP, nq.nar);
+  if (!r.total) return null;
+  return { ...r, narrator: { id: nq.nar.id, name: nq.nar.name } };
+}
+
 /** Bir kitabda (book verilib) və ya bütün kitabxanada axtarış. q: ərəbcə söz/ifadə və ya az/tr/en/ru təbii sorğu. */
 export async function search(q, id = null, off = 0, lim = PER) {
   q = String(q || "").trim().slice(0, 200);
@@ -395,6 +415,10 @@ export async function search(q, id = null, off = 0, lim = PER) {
     const b = bookMeta(id);
     if (!b) return null;
     const sec = b.kind === "it" ? "ibn-taymiyyah" : b.kind === "majmu" ? "majmu" : b.kind === "hd" ? "hadith" : "nahw";
+    if (sec === "hadith") {
+      const nr = await narratorSection(q, b, off, lim);
+      if (nr) return { q, book: b.id, offset: off, ...meta, ...nr };
+    }
     let cands = candsFor(sec, ex);
     if (!cands.length && !ex.arabic) cands = [...ex.general, ...ex.nahw, ...ex.names];
     const r = await bestSection(sec, cands, b, off, lim);
@@ -403,7 +427,7 @@ export async function search(q, id = null, off = 0, lim = PER) {
   // bütün kitabxana: hər bölmədən ən uyğun nəticələr (sıra: İbn Teymiyyə, Məcmuul-fətava, hədis, nəhv)
   const per = Math.min(lim, 8);
   const order = ["ibn-taymiyyah", "majmu", "hadith", "nahw"];
-  const res = await Promise.all(order.map((sec) => bestSection(sec, candsFor(sec, ex), null, 0, per)));
+  const res = await Promise.all(order.map(async (sec) => (sec === "hadith" && (await narratorSection(q, null, 0, per))) || bestSection(sec, candsFor(sec, ex), null, 0, per)));
   const sections = order.map((id, i) => ({ id, ...res[i] }));
   return { q, total: sections.reduce((a, s) => a + s.total, 0), ...meta, books: ex.arabic ? [] : titleMatches(q), sections };
 }

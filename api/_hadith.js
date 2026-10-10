@@ -11,6 +11,8 @@ import { norm, stem, tokens, tokenSpans } from "./_hadith/tok.js";
 import { LOADERS, SHARD } from "./_hadith/loaders.js";
 import { sentenceStart, sentenceEnd } from "./_excerpt.js";
 import { topicAlts } from "./_fatawa/topicmatch.js";
+import { editionLine } from "./_hadith/edition.js";
+import { detectNarrator, narratorDocs } from "./_hadith/narr.js";
 
 export const PAGE = 5; // bir mesajda göstərilən hədis sayı
 export const MAX_LIST = 800; // bundan çox uyğunluq: siyahı verilmir, dəqiqləşdirmə istənir
@@ -260,6 +262,8 @@ export function excerpt(text, termSet) {
 // ---------------------------------------------------------------- mətnlər (yalnız ümumi çərçivə; hədis özü tərcümə olunmur)
 const T = {
   az: {
+    narr: (n, q, c) => (q ? `${n} rəvayəti, «${q}» mövzusu: ${c} hədis.` : `${n} rəvayəti: ${c} hədis.`),
+    narrNone: (n, q) => `${n} rəvayətində «${q}» üzrə hədis tapılmadı. Başqa mövzu sözü yaz.`,
     found: (q, n) => `«${q}» üzrə Kütübü-sittədə ${n} hədis tapıldı.`,
     foundNum: (q, n) => `${q}: ${n} hədis.`,
     range: (a, b, n) => `${a}–${b} / ${n} göstərilir.`,
@@ -276,6 +280,8 @@ const T = {
     ended: "Başqa hədis qalmayıb. Yeni axtarış üçün söz və ya ifadə yaz.",
   },
   tr: {
+    narr: (n, q, c) => (q ? `${n} rivayeti, «${q}» konusu: ${c} hadis.` : `${n} rivayeti: ${c} hadis.`),
+    narrNone: (n, q) => `${n} rivayetinde «${q}» için hadis bulunamadı. Başka bir konu kelimesi yazın.`,
     found: (q, n) => `«${q}» için Kütüb-i Sitte'de ${n} hadis bulundu.`,
     foundNum: (q, n) => `${q}: ${n} hadis.`,
     range: (a, b, n) => `${a}–${b} / ${n} gösteriliyor.`,
@@ -292,6 +298,8 @@ const T = {
     ended: "Başka hadis kalmadı. Yeni arama için kelime veya ifade yazın.",
   },
   en: {
+    narr: (n, q, c) => (q ? `Narrated by ${n}, topic «${q}»: found ${c} hadith(s).` : `Narrated by ${n}: ${c} hadith(s).`),
+    narrNone: (n, q) => `No hadith narrated by ${n} found for «${q}». Try another topic word.`,
     found: (q, n) => `${n} hadith(s) found in the Six Books for «${q}».`,
     foundNum: (q, n) => `${q}: ${n} hadith(s).`,
     range: (a, b, n) => `Showing ${a}–${b} of ${n}.`,
@@ -308,6 +316,8 @@ const T = {
     ended: "No more hadith. Write another word or phrase to search again.",
   },
   ru: {
+    narr: (n, q, c) => (q ? `Передал ${n}, тема «${q}» — найдено хадисов: ${c}.` : `Передал ${n}: хадисов ${c}.`),
+    narrNone: (n, q) => `Хадисов от ${n} по теме «${q}» не найдено. Напишите другое слово темы.`,
     found: (q, n) => `По запросу «${q}» в Кутуб ас-Ситта найдено хадисов: ${n}.`,
     foundNum: (q, n) => `${q}: хадисов ${n}.`,
     range: (a, b, n) => `Показаны ${a}–${b} из ${n}.`,
@@ -324,6 +334,8 @@ const T = {
     ended: "Других хадисов нет. Напишите другое слово или фразу для нового поиска.",
   },
   ar: {
+    narr: (n, q, c) => (q ? `من رواية ${n} في «${q}»: ${c} حديثًا.` : `من رواية ${n}: ${c} حديثًا.`),
+    narrNone: (n, q) => `لم يُعثر على حديث من رواية ${n} في «${q}». جرّب كلمة أخرى.`,
     found: (q, n) => `تم العثور على ${n} حديثًا في الكتب الستة عن «${q}».`,
     foundNum: (q, n) => `${q}: ${n} حديثًا.`,
     range: (a, b, n) => `المعروض ${a}–${b} من ${n}.`,
@@ -666,10 +678,14 @@ export function parseHadithQuery(message) {
   if (nq) return { mode: "n", book: nq.book, num: nq.num };
   const plain = raw.replace(/[\u064B-\u065F\u0670\u0640]/g, "");
   const cue = CUE_AR.test(norm(plain).replace(/احاديث/, "احاديث")) || CUE_AR.test(plain) || CUE_LAT.test(foldLat(raw)) || CUE_RU.test(raw);
+  const guard = QURAN_AR.test(plain) || QURAN_LAT.test(raw) || QURAN_LAT.test(foldLat(raw)) || QURAN_RU.test(raw) || NAHW_AR.test(plain) || isLexicalQuestion(raw) || LEX_AR.test(plain);
+  // rəvayətçi (+ mövzu): «Əbu Hureyrə namaz hədisi», «hadith of Ibn Umar about prayer», «حديث أبي هريرة في الصلاة»
+  if (!guard) {
+    const nr = parseNarratorQuery(raw, cue);
+    if (nr) return nr;
+  }
   if (!cue) return null;
-  if (QURAN_AR.test(plain) || QURAN_LAT.test(raw) || QURAN_LAT.test(foldLat(raw)) || QURAN_RU.test(raw)) return null;
-  if (NAHW_AR.test(plain)) return null;
-  if (isLexicalQuestion(raw) || LEX_AR.test(plain)) return null;
+  if (guard) return null;
   // dırnaq içi mətn
   let phrase = "";
   const qm = raw.match(/[«"“„'‘]([^«»"“”„'‘’]{2,200})[»"”“’']/);
@@ -711,6 +727,67 @@ export function parseHadithQuery(message) {
   return alts && alts.length > 1 ? { mode: "q", phrase, alts } : { mode: "q", phrase };
 }
 
+// rəvayətçi sorğusunda mövzu sayılmayan sözlər
+const NAR_FILLER = /^(?:h[ae]dis\S*|hadith\S*|hadees\S*|ahadis\S*|ehadis\S*|r[ie]vay[ae]t\S*|rawa\S*|riwaya\S*|narrat\S*|transmit\S*|reported|by|of|from|the|a|an|on|about|regarding|concerning|haqqinda|haqqindaki|barasinda|barede|barada|hakkinda|hakkindaki|uzerine|ot|o|ob|obo|pro|peredal\S*|peredan\S*|rasskaz\S*|so\s*slov\S*|etdiyi|etdikleri|etdigi|ettigi|ettikleri|eden|edilen|edilmis|olan|butun|all|list|siyahi\S*|goster\S*|gostar\S*|ver|verin|tap|tapin|axtar\S*|ara|bul|show|find|give|search|me|hz|hezret\S*|hazrat|hazret\S*|ra|radiyallahu|anhu|anha|anhuma|ve|and|ile|da|de|ne|var|mi|mu|sahih|sehih|sahabe|sahabi|companion|imam|vse|все|i|и|и|по|теме|tema|movzu\S*|konu\S*|about|qeyd|bir|iki|uc|ucun|icin|for)$/;
+const AR_NAR_FILL = /^(?:حديث|الحديث|احاديث|أحاديث|الأحاديث|رواية|روايه|روايات|مرويات|روى|رواه|عن|من|في|حول|بشأن|بخصوص|ما|ورد|ابحث|بحث|اريد|أريد|اعطني|أعطني|اذكر|لي)$/;
+const NAR_TOPIC = [[/(?:^|\s)(?:fitn\S*|smut\S*)/, "الفتن"]];
+function narratorRest(raw, d) {
+  const orig = raw.split(/\s+/).filter(Boolean);
+  const drop = new Set(d.words);
+  const bare = (w) => w.replace(/[\u064B-\u065F\u0670\u0640]/g, "").replace(/^[«"“'(]+|[»"”'),.:;!?؟،]+$/g, "");
+  // «رضي الله عنه/عنها/عنهما» duası mövzu deyil
+  for (let i = 0; i + 2 < orig.length; i++) if (bare(orig[i]) === "رضي" && bare(orig[i + 1]) === "الله" && /^عن(?:ه|ها|هما|هم)$/.test(bare(orig[i + 2]))) [i, i + 1, i + 2].forEach((k) => drop.add(k));
+  return orig
+    .map((w, i) => (drop.has(i) ? "" : bare(w).replace(/[﵁﵂﵃﵄]/g, "")))
+    .filter((w) => w && !(/[\u0621-\u064A]/.test(w) ? AR_NAR_FILL.test(w) : NAR_FILLER.test(foldLat(w).replace(/[^a-z]/g, ""))));
+}
+/** Kitabxana axtarışı üçün: {nar, rest} (rest = mövzu sözləri) və ya null */
+export function narratorQuery(q) {
+  const raw = String(q || "").replace(/\s+/g, " ").trim();
+  const d = detectNarrator(raw);
+  if (!d || d.about) return null;
+  if (d.nar.weak && !d.multi && !(CUE_AR.test(raw) || CUE_LAT.test(foldLat(raw)) || CUE_RU.test(raw))) return null;
+  return { nar: d.nar, rest: narratorRest(raw, d).join(" ") };
+}
+function parseNarratorQuery(raw, cue) {
+  const d = detectNarrator(raw);
+  if (!d || d.about) return null;
+  if (d.nar.weak && !cue) return null;
+  const rest = narratorRest(raw, d);
+  let alts = [];
+  if (rest.length) {
+    const txt = rest.join(" ");
+    if (/[\u0621-\u064A]/.test(txt)) {
+      const runs = txt.match(AR_RUN) || [];
+      const ws = runs.map((r) => r.trim()).filter((r) => /[\u0621-\u064A]{2}/.test(r)).join(" ").split(/\s+/).filter(Boolean);
+      while (ws.length && LEAD_AR.has(norm(ws[0]))) ws.shift();
+      const ph = ws.join(" ");
+      if (ph && tokens(ph).length) alts = [ph];
+      if (/[A-Za-z\u0400-\u04FF]/.test(txt.replace(AR_RUN, ""))) return null;
+    } else {
+      const ph = phraseTopic(txt);
+      const tp = topicTerms(txt);
+      const list = [];
+      // yalnız rəvayətçi rejimində əlavə mövzu sözləri (adi hədis sorğularının cavabı dəyişməsin deyə burada)
+      const ft = foldLat(txt);
+      for (const [re, ar] of NAR_TOPIC) if (re.test(ft)) list.push(ar);
+      if (ph) list.push(ph);
+      if (tp.length >= 2) list.push(tp.join(" "));
+      list.push(...tp);
+      try {
+        list.push(...topicAlts(txt, { fuzzy: true }).alts.flatMap((a) => a.split("/").map((x) => x.trim())));
+      } catch {
+        /* lüğət yüklənmədi */
+      }
+      alts = [...new Set(list.filter(Boolean))];
+    }
+    if (!alts.length) return null;
+  }
+  if (!alts.length && !cue) return null;
+  if (alts.length && !cue && !d.multi) return null;
+  return { mode: "r", nar: d.nar, alts };
+}
+
 /** Cümləvi (yalnız ərəbcə) uzun mesaj: hədisin dəqiq ifadəsi ola bilər */
 export function parseBareArabic(message) {
   const raw = String(message || "").replace(/\s+/g, " ").trim();
@@ -727,7 +804,7 @@ export function parseBareArabic(message) {
 // ---------------------------------------------------------------- cavab
 const b64u = (s) => Buffer.from(s, "utf8").toString("base64url");
 const unb64u = (s) => Buffer.from(s, "base64url").toString("utf8");
-const CTX_RE = /^::ctx:: hadith (q|n) (\d+) (\w+) (\S+)$/m;
+const CTX_RE = /^::ctx:: hadith (q|n|r) (\d+) (\w+) (\S+)$/m;
 
 function block(h, i, n, termSet, lang) {
   const m = BOOK_META[h.bookId];
@@ -735,7 +812,7 @@ function block(h, i, n, termSet, lang) {
   const lines = [`::tafsir hadith::`, `::tl:: ${i}/${n} · ${m.author} · رقم ${asciiDigits(h.no)}`];
   for (const ln of ex.text.split("\n")) if (ln.trim()) lines.push(ln);
   if (ex.cut) lines.push("::tv:: " + tx(lang).cut);
-  lines.push("::src:: " + sourceLine(h), "::src:: " + gradeLine(h), "::/tafsir::");
+  lines.push("::src:: " + sourceLine(h), "::src:: " + gradeLine(h), "::src:: " + editionLine(h.bookId, lang), "::/tafsir::");
   return lines.join("\n");
 }
 
@@ -743,7 +820,7 @@ async function render({ mode, key, ids, offset, total, exact, lang, head }) {
   const idx = await loadIndex();
   const t = tx(lang);
   const slice = ids.slice(offset, offset + PAGE);
-  const termSet = new Set(mode === "q" ? tokens(key) : []);
+  const termSet = new Set(mode === "q" ? tokens(key) : mode === "r" ? tokens(key.slice(key.indexOf("|") + 1)) : []);
   const out = [];
   if (head) out.push(head);
   const a = offset + 1;
@@ -780,6 +857,32 @@ async function runQuery(phrase, lang, { bare = false } = {}) {
     } else return t.broad(q, list.length);
   } else if (r.terms.length >= 2 && r.exact > 0 && r.exact < list.length) head += " " + t.exactNote(r.exact);
   return render({ mode: "q", key: q, ids: list, offset: 0, total: list.length, exact: r.exact, lang, head });
+}
+
+// rəvayətçi (+ mövzu) üzrə hədislər: mövzu siyahısı rəvayətçinin isnadda olduğu hədislərlə süzülür, səhabə mövqeyi əvvəldə
+export async function narratorIds(nar, phrase) {
+  const idx = await loadIndex();
+  const nd = await narratorDocs(idx, nar, async (d) => (await getHadith(idx, d)).text);
+  if (!phrase) return nd.list;
+  const r = await searchHadith(phrase);
+  const ids = r.list.filter((d) => nd.tier.has(d));
+  const t1 = ids.filter((d) => nd.tier.get(d) === 1);
+  return t1.concat(ids.filter((d) => nd.tier.get(d) !== 1));
+}
+const narName = (nar, lang) => (nar.name && (nar.name[lang] || nar.name.az)) || nar.id;
+async function runNarrator(q, lang) {
+  const t = tx(lang);
+  const n = narName(q.nar, lang);
+  if (!q.alts.length) {
+    const ids = await narratorIds(q.nar, "");
+    if (!ids.length) return t.none(n);
+    return render({ mode: "r", key: q.nar.id + "|", ids, offset: 0, total: ids.length, exact: 0, lang, head: t.narr(n, "", ids.length) });
+  }
+  for (const ph of q.alts.slice(0, 6)) {
+    const ids = await narratorIds(q.nar, ph);
+    if (ids.length) return render({ mode: "r", key: q.nar.id + "|" + ph, ids, offset: 0, total: ids.length, exact: 0, lang, head: t.narr(n, ph, ids.length) });
+  }
+  return t.narrNone(n, q.alts[0]);
 }
 
 async function numberIds(book, num) {
@@ -820,7 +923,14 @@ async function moreReply(message, hist) {
   let ids;
   let exact = 0;
   let total;
-  if (mode === "n") {
+  if (mode === "r") {
+    const k = key.indexOf("|");
+    const { NARRATORS } = await import("./_hadith/narrators.js");
+    const nar = NARRATORS.find((x) => x.id === key.slice(0, k));
+    if (!nar) return null;
+    ids = await narratorIds(nar, key.slice(k + 1));
+    total = ids.length;
+  } else if (mode === "n") {
     const [book, num] = key.split(":");
     ids = await numberIds(book, Number(num));
     total = ids.length;
@@ -852,6 +962,7 @@ export async function hadithReply(message, hist) {
   const lang = toLang(message);
   if (q.mode === "usage") return tx(lang).usage;
   if (q.mode === "n") return runNumber(q.book, q.num, lang);
+  if (q.mode === "r") return runNarrator(q, lang);
   if (q.alts) {
     // mövzu lüğətindən bir neçə variant: nəticəsi olan və çox geniş olmayan ilk variant
     let fallback = null;
