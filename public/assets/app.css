@@ -435,45 +435,16 @@ div.hit .s { display: block; }
 .bookhit small { color: var(--muted); font-size: 12.5px; }
 .srcs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; } .srcs .sl { width: 100%; font-size: 12.5px; color: var(--muted); } .srcs .openb { margin-top: 0; }
 
-/* ---------- faza 6: Quran əsas kartı + daşma qoruması */
-.qfeat-wrap { margin-top: 56px; }
-.qfeat { position: relative; display: flex; align-items: center; gap: 34px; padding: 30px 36px; border-radius: 26px; color: var(--text); overflow: hidden; max-width: 100%;
-  background: radial-gradient(80% 120% at 0% 0%, rgba(212, 175, 95, 0.22), transparent 60%), radial-gradient(70% 100% at 100% 100%, rgba(79, 140, 255, 0.14), transparent 65%), linear-gradient(180deg, #121a2e, #0a0f1d);
-  border: 1px solid rgba(212, 175, 95, 0.4); box-shadow: 0 24px 60px -28px rgba(212, 175, 95, 0.35), inset 0 0 0 1px rgba(212, 175, 95, 0.08); transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s; }
-.qfeat::after { content: ""; position: absolute; inset: 8px; border-radius: 20px; border: 1px dashed rgba(212, 175, 95, 0.18); pointer-events: none; }
-.qfeat:hover { transform: translateY(-3px); border-color: rgba(212, 175, 95, 0.7); box-shadow: 0 30px 70px -28px rgba(212, 175, 95, 0.5); }
-.qmus { flex: 0 0 auto; width: 150px; padding: 7px; border-radius: 10px 14px 14px 10px; background: linear-gradient(135deg, #5a2f12, #2e170a); box-shadow: 0 18px 30px -12px rgba(0, 0, 0, 0.7), inset 0 0 0 2px rgba(212, 175, 95, 0.6); transition: transform 0.3s; }
-.qfeat:hover .qmus { transform: rotate(-2deg) translateY(-4px); }
-.qpage { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; height: 176px; border-radius: 6px; padding: 10px; background: radial-gradient(circle at 50% 50%, #fbf4e2, #efe0bb); box-shadow: inset 0 0 0 3px #efe0bb, inset 0 0 0 4px rgba(122, 75, 20, 0.55), inset 0 0 0 7px #efe0bb, inset 0 0 0 8px rgba(122, 75, 20, 0.35); }
-.qpage b { font-family: "Amiri", var(--ar); font-size: 25px; line-height: 1.5; color: #6b3d10; text-align: center; }
-.qorn { width: 54px; height: 10px; background: radial-gradient(circle, #b8893a 2.5px, transparent 3px) center / 12px 10px repeat-x; opacity: 0.8; }
-.qbody { flex: 1; min-width: 0; }
-.qfeat h2 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.3px; color: transparent; background: linear-gradient(180deg, #f6e4ae, #c9a24f); -webkit-background-clip: text; background-clip: text; }
-.qfeat p { margin: 0; color: var(--muted); font-size: 15.5px; line-height: 1.55; }
-.qpills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-.qpills span { padding: 5px 12px; border-radius: 999px; font-size: 13px; color: #ead59a; background: rgba(212, 175, 95, 0.1); border: 1px solid rgba(212, 175, 95, 0.3); white-space: nowrap; }
-.qcta { margin-top: 18px; color: #e6cf8f; }
-.qfeat:hover .qcta svg { transform: translateX(4px); }
-[dir="rtl"] .qfeat:hover .qcta svg { transform: scaleX(-1) translateX(4px); }
-.home .qfeat-wrap + .secgrid { margin-top: 24px; }
+/* ---------- faza 6: daşma qoruması */
+.seccard h2, .seccard p, .rt, .bookhit b { overflow-wrap: anywhere; }
 /* daşma qoruması: bütün enlərdə (320–1280) heç nə ekrandan çıxmasın */
 .secgrid > *, .seccard, .sbody, .sfoot, .resume > *, .searchbar.big, .stats { min-width: 0; max-width: 100%; }
-.seccard h2, .seccard p, .qfeat h2, .qfeat p, .resume-card b, .bookhit b { overflow-wrap: anywhere; }
 .sfoot { flex-wrap: wrap; }
 .searchbar.big input { min-width: 0; text-overflow: ellipsis; }
 .searchbar.big .btn { flex: 0 0 auto; }
 .foot { overflow-wrap: anywhere; }
 @media (max-width: 1024px) and (min-width: 761px) { .home .secgrid { gap: 16px; } .seccard { padding: 26px 20px 22px; } }
 @media (max-width: 760px) {
-  .qfeat-wrap { margin-top: 40px; }
-  .home .qfeat-wrap + .secgrid { margin-top: 16px; }
-  .qfeat { flex-direction: column; text-align: center; gap: 18px; padding: 26px 20px 24px; }
-  .qmus { width: 124px; }
-  .qpage { height: 146px; }
-  .qpage b { font-size: 21px; }
-  .qfeat h2 { font-size: 24px; }
-  .qfeat p { font-size: 14.5px; }
-  .qpills { justify-content: center; }
 }
 @media (max-width: 360px) {
   .airy { padding-left: 14px; padding-right: 14px; }
@@ -484,9 +455,45 @@ div.hit .s { display: block; }
   .searchbar.big .btn { padding: 10px 13px; }
   .searchbar.big .sicon { display: none; }
 }
-@media (prefers-reduced-motion: reduce) { .qfeat, .qmus, .qcta svg { transition: none; } .qfeat:hover, .qfeat:hover .qmus { transform: none; } }
-.home .qfeat { animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-.qfeat .cta.qcta { font-size: 14px; width: auto; height: auto; padding: 0; background: none; border-radius: 0; color: #e6cf8f; }
-.qfeat-wrap, .home .secgrid { width: 100%; }
 @media (min-width: 761px) { .home .seccard { flex-direction: column; align-items: stretch; gap: 0; } .home .seccard .fanbox { width: 150px; height: 140px; margin: 0 0 12px; } .home .seccard .sic { position: absolute; top: 24px; inset-inline-end: 24px; margin: 0; } }
 @media (min-width: 761px) and (max-width: 1024px) { .home .seccard .fanbox { width: 120px; height: 120px; } .home .seccard .fan, .home .seccard .fan .cover { width: 72px; } .home .seccard .fan.f0 { left: 24px; } .home .seccard .fan.f2 { left: 46px; } }
+
+/* ---------- faza 7: 4 bərabər bölmə kartı (Quran ilk) + yığcam «Davam et» sırası */
+.home .secgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: none; }
+@media (max-width: 1024px) { .home .secgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .home .secgrid { grid-template-columns: 1fr; } }
+@media (min-width: 1025px) { .home .seccard { padding: 26px 22px 22px; } .home .seccard h2 { font-size: 20px; } .home .seccard .fanbox { width: 130px; height: 132px; } .home .seccard .fan, .home .seccard .fan .cover { width: 78px; } .home .seccard .fan.f0 { left: 26px; } .home .seccard .fan.f2 { left: 52px; } }
+.seccard[data-s="quran"] { --c1: 212, 175, 95; --c2: 240, 214, 150; border-color: rgba(212, 175, 95, 0.35); }
+.seccard[data-s="quran"] .sic { background: rgba(212, 175, 95, 0.16); color: #e6cf8f; }
+.mcov { background: linear-gradient(135deg, #6a3814, #33180a); color: #f6e4ae; }
+.mcov::before { border-color: rgba(240, 210, 140, 0.75); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.18), inset 0 0 0 4px rgba(240, 210, 140, 0.4); }
+.mcov::after { border-color: rgba(240, 210, 140, 0.9); background: rgba(240, 210, 140, 0.25); }
+.mcov .ct { font-family: "Amiri", var(--ar); font-size: 15px !important; line-height: 1.45; }
+.home .resume { display: block; margin: 34px auto 0; max-width: 900px; padding: 0; overflow: visible; }
+.home .resume:empty { display: none; }
+.rhead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; padding: 0 2px; }
+.rh { font-size: 12.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
+[dir="rtl"] .rh { letter-spacing: 0; text-transform: none; font-size: 14px; }
+.rclear { border: 0; background: none; padding: 0; font: inherit; font-size: 13px; color: var(--accent2, #8fb6ff); cursor: pointer; }
+.rclear:hover { text-decoration: underline; }
+.rchips { display: flex; gap: 8px; flex-wrap: wrap; }
+.rchip { display: inline-flex; align-items: center; min-width: 0; max-width: 100%; border-radius: 999px; background: rgba(15, 24, 48, 0.75); border: 1px solid var(--line); transition: border-color 0.2s; }
+.rchip:hover { border-color: rgba(79, 140, 255, 0.5); }
+.rchip a { display: inline-flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 4px 6px 14px; color: var(--text); }
+[dir="rtl"] .rchip a { padding: 6px 14px 6px 4px; }
+.rt { font-family: var(--ar); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; min-width: 0; }
+.rp { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.rx { flex: none; width: 26px; height: 26px; margin-inline-end: 4px; border: 0; border-radius: 50%; background: none; color: var(--muted); font-size: 17px; line-height: 1; cursor: pointer; }
+.rx:hover { background: rgba(255, 255, 255, 0.08); color: var(--text); }
+@media (max-width: 760px) {
+  .home .resume { margin-top: 26px; }
+  .rchips { flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .rchips::-webkit-scrollbar { display: none; }
+  .rchip { flex: 0 0 auto; scroll-snap-align: start; max-width: 82%; }
+  .rt { max-width: 150px; }
+}
+.home .seccard .sbody { display: flex; flex-direction: column; flex: 1; }
+.home .seccard .sfoot { margin-top: auto; }
+.home .seccard p { margin-bottom: 16px; }
+@media (min-width: 1025px) { .home .seccard .sfoot { flex-wrap: nowrap; } .home .seccard .scount { font-size: 12.5px; } .home .seccard .cta { font-size: 13px; } }
+@media (max-width: 760px) { .home .seccard p { margin-bottom: 0; } .home .seccard .sfoot { margin-top: 12px; } }

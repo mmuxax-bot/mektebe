@@ -1,4 +1,4 @@
-import { $, esc, t, fmt, header, footer, catalog, coverHTML, bookUrl, bookName, lastRead, api, SECTIONS, secTitle, secDesc, sectionUrl, sectionBooks, hitHTML } from "./common.js";
+import { $, esc, t, fmt, header, footer, catalog, coverHTML, bookUrl, bookName, lastRead, removeLast, clearLast, api, SECTIONS, secTitle, secDesc, sectionUrl, sectionBooks, hitHTML } from "./common.js";
 
 header("home");
 footer();
@@ -17,16 +17,25 @@ else {
   renderSections();
 }
 
-// «Davam et»: yalnız oxunan kitab varsa görünür
+// «Davam et»: bölmə kartlarından fərqli, yığcam bir sıra (çiplər); yalnız oxunan kitab varsa görünür
 function renderResume() {
   const items = Object.entries(lastRead()).filter(([id]) => cat.byId.has(id)).sort((a, b) => b[1].at - a[1].at).slice(0, 3);
-  $("#resume").innerHTML = items
+  const box = $("#resume");
+  if (!items.length) return (box.innerHTML = "");
+  const chips = items
     .map(([id, v]) => {
       const b = cat.byId.get(id);
-      return `<a class="resume-card" href="${bookUrl(b, v.p)}">${coverHTML(b, "mini")}<div><span>${esc(t("resumeTitle"))}</span><b>${esc(b.ar)}</b><span>${esc(t("lastRead", { p: fmt(v.p), n: fmt(b.pages) }))}</span></div><span class="btn sm">${esc(t("resume"))}</span></a>`;
+      const title = String(b.ar || "").split(" - ")[0];
+      return `<span class="rchip"><a href="${bookUrl(b, v.p)}"><bdi class="rt" lang="ar" dir="rtl">${esc(title)}</bdi><span class="rp">${esc(t("lastRead", { p: fmt(v.p), n: fmt(b.pages) }))}</span></a><button type="button" class="rx" data-id="${esc(id)}" aria-label="${esc(t("removeOne"))}" title="${esc(t("removeOne"))}">×</button></span>`;
     })
     .join("");
+  box.innerHTML = `<div class="rhead"><span class="rh">${esc(t("resume"))}</span><button type="button" class="rclear">${esc(t("clearAll"))}</button></div><div class="rchips">${chips}</div>`;
 }
+$("#resume").addEventListener("click", (e) => {
+  const x = e.target.closest(".rx");
+  if (x) { removeLast(x.dataset.id); return renderResume(); }
+  if (e.target.closest(".rclear")) { clearLast(); renderResume(); }
+});
 
 // 4 böyük bölmə kartı
 function renderSections() {
@@ -41,14 +50,16 @@ function renderSections() {
       return `<a class="seccard" data-s="${s.id}" href="${sectionUrl(s.id)}"><div class="fanbox">${fan}</div><div class="sbody"><div class="sic">${icon}</div><h2>${esc(secTitle(s.id))}</h2><p>${esc(secDesc(s.id))}</p><div class="sfoot"><span class="scount">${esc(count)}</span><span class="cta" aria-label="${esc(t("goSection"))}">${esc(t("goSection"))}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></div></div></a>`;
     })
     .join("");
-  $("#qfeat").innerHTML = quranCard();
+  $("#sections").insertAdjacentHTML("afterbegin", quranCard());
 }
 
-// Quran: bölmələrin üstündə tam enli, mushaf üslublu əsas kart (kitab kataloqundan ayrı: /quran)
+// Quran kartı: digər bölmə kartları ilə eyni komponent, ilk yerdə; qızılı vurğu və mushaf üz qabıqları (/quran)
 function quranCard() {
-  const pills = [t("surasN", { n: fmt(114) }), t("qAyahs", { n: fmt(6236) }), t("qTafsirs", { n: fmt(3) })].map((x) => `<span>${esc(x)}</span>`).join("");
+  const cov = (ar, i) => `<div class="fan f${i}"><div class="cover mini mcov"><div class="ct">${ar}</div></div></div>`;
+  const fan = cov("القرآن الكريم", 0) + cov("سورة البقرة", 1) + cov("سورة الكهف", 2);
+  const icon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2-1.5-5-2-8-1.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13C17 4 14 4.5 12 6Zm0 0v13"/></svg>`;
   const arrow = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>`;
-  return `<a class="qfeat" href="/quran"><div class="qmus" aria-hidden="true"><div class="qpage"><span class="qorn"></span><b lang="ar" dir="rtl">القرآن الكريم</b><span class="qorn"></span></div></div><div class="qbody"><h2>${esc(t("sec_quran"))}</h2><p>${esc(t("desc_quran"))}</p><div class="qpills">${pills}</div><span class="cta qcta">${esc(t("goSection"))}${arrow}</span></div></a>`;
+  return `<a class="seccard" data-s="quran" href="/quran"><div class="fanbox">${fan}</div><div class="sbody"><div class="sic">${icon}</div><h2>${esc(t("sec_quran"))}</h2><p>${esc(t("desc_quran"))}</p><div class="sfoot"><span class="scount">${esc(t("surasN", { n: fmt(114) }))}</span><span class="cta" aria-label="${esc(t("goSection"))}">${esc(t("goSection"))}${arrow}</span></div></div></a>`;
 }
 
 // bütün kitabxanada axtarış

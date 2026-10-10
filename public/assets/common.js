@@ -84,6 +84,15 @@ export function saveLast(id, p) {
   localStorage.setItem(KEY, JSON.stringify(Object.fromEntries(keep)));
 }
 
+export function removeLast(id) {
+  const all = lastRead();
+  delete all[id];
+  localStorage.setItem(KEY, JSON.stringify(all));
+}
+export function clearLast() {
+  localStorage.removeItem(KEY);
+}
+
 // snippet + hl -> HTML
 export function markHTML(s, hl = []) {
   let out = "";
