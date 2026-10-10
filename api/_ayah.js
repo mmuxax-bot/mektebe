@@ -175,21 +175,27 @@ SURA_NAMES_AR.forEach((nm, i) => {
 
 // Köməkçi: tək və ya çoxlu n-qram açarından surə tapmaq
 const SUFFIXES = ["sini", "ini", "ni", "si", "nin", "in", "ye", "ya", "dan", "den", "da", "de", "la", "le", "ler", "lar"];
+// əlavə (2026-10): təsirlik hal «Yasini / İxlası / Mülkü oxu» (kök ≥4 hərf), «-nu/-nun» (Hudu, Nuhun)
+const SUFFIXES_MORE = ["i", "u", "nu", "nun", "un", "yi", "yu", "dir", "dur"];
 function skelVariants(parts) {
   const out = [skel(parts.join(""))];
   const last = parts[parts.length - 1] || "";
   for (const suf of SUFFIXES) {
     if (last.endsWith(suf) && last.length - suf.length >= 3) out.push(skel(parts.slice(0, -1).join("") + last.slice(0, last.length - suf.length)));
   }
+  for (const suf of SUFFIXES_MORE) if (last.endsWith(suf) && last.length - suf.length >= 4) out.push(skel(parts.slice(0, -1).join("") + last.slice(0, last.length - suf.length)));
   return out;
 }
 function exactVariants(parts, loose) {
   const out = [exactKey(parts.join(""))];
   const last = parts[parts.length - 1] || "";
   if (loose) for (const suf of SUFFIXES) if (last.endsWith(suf) && last.length - suf.length >= 3) out.push(exactKey(parts.slice(0, -1).join("") + last.slice(0, last.length - suf.length)));
+  if (loose) for (const suf of SUFFIXES_MORE) if (last.endsWith(suf) && last.length - suf.length >= 4) out.push(exactKey(parts.slice(0, -1).join("") + last.slice(0, last.length - suf.length)));
   return out;
 }
 // loose=false: yalnız dəqiq yazılış (tək söz «sabah», «heç», «bunu» kimi adi sözlərə düşməsin); loose=true: skelet (yazılış fərqləri)
+// gündəlik sözlər: skelet uyğunlaşdırması da edilmir («hekayə yaz» -> Haqqa, «bunu oxu» -> Bəyyinə olmasın)
+const NOT_SURA_SKEL = new Set(["hekaye", "hekayeler", "hikaye", "hikayeler", "hikoye", "oyun", "oyunu", "oyunlar", "oyunlari", "oyna", "oyuna", "bunu", "sunu", "onu"]);
 function lookupLat(tokens, i, loose = true, maxN = 4) {
   for (let len = Math.min(maxN, tokens.length - i); len >= 1; len--) {
     const slice = tokens.slice(i, i + len);
@@ -203,6 +209,7 @@ function lookupLat(tokens, i, loose = true, maxN = 4) {
       }
     }
     if (!loose) continue;
+    if (slice.some((t) => NOT_SURA_SKEL.has(t))) continue;
     for (const c of cands) {
       for (const k of skelVariants(c)) {
         if (k.length < 4) continue;
@@ -309,7 +316,8 @@ const NOT_SURA_LAT = new Set(
    fiqh fikih fikhi fiqhi akida akide aqida aqeedah tevhid tawhid sunnet sunnah sunna bidet bidah
    sual sorgu cavab soru cevap question answer ruling rulings volume page cild cilt sehife sayfa
    islam islom iman imam alim alimler elm ilm dua zikr dhikr rehmet rahmet tovbe tevbe tawba
-   macmu majmu mecmu mejmu macmuu macmuk mecmua teymiyye taymiyyah taymiyya ibni`
+   macmu majmu mecmu mejmu macmuu macmuk mecmua teymiyye taymiyyah taymiyya ibni
+   hekaye hekayeler hikaye hikayeler hikoye oyun oyunu oyunlar oyunlari oyna oyuna bunu sunu onu`
     .split(/\s+/)
     .filter(Boolean),
 );

@@ -5,6 +5,7 @@
 //   Hökm yalnız verilənlərdən (Arnaut/Albani) göstərilir; yoxdursa «غير مذكور في هذه النشرة». Davam: «davam»/«daha çox» (::ctx:: hadith … gizli sətir).
 import { brotliDecompressSync } from "node:zlib";
 import { detectLang, foldLat } from "./_ayah.js";
+import { stemMatch } from "./_stem.js";
 import { isLexicalQuestion } from "./_lugha.js";
 import { norm, stem, tokens, tokenSpans } from "./_hadith/tok.js";
 import { LOADERS, SHARD } from "./_hadith/loaders.js";
@@ -504,6 +505,103 @@ export const TOPICS_EXTRA = [
   [["misvak", "miswak", "мисвак"], "السواك"],
 ];
 // çoxsözlü mövzular (tək sözdən əvvəl yoxlanır): ardıcıl söz prefiksləri -> ərəbcə ifadə
+// əlavə mövzular (yalnız əvvəlki lüğətlər heç nə tapmayanda; köhnə cavablar dəyişmir). Hər ərəbcə ifadə hədis indeksində yoxlanıb (scripts/coverage).
+export const TOPICS_MORE = [
+  [["sebr", "sebir", "sebrin", "sabır", "sabri"], "الصبر"],
+  [["hesed", "hased", "hasad"], "الحسد"],
+  [["paxil", "paxilliq", "xesis", "xesislik", "cimri", "cimrilik", "stingy", "stinginess", "скупост"], "البخل"],
+  [["fezilet", "fazilet", "virtue", "virtues", "достоинств"], "فضل"],
+  [["mescid", "mescit", "cami", "mosque", "mosques", "мечет"], "المساجد"],
+  [["cume", "cuma", "friday", "jumuah", "jumua", "пятниц"], "الجمعة"],
+  [["ezan", "azan", "adhan", "азан"], "الأذان"],
+  [["desmaz", "destemaz", "abdest", "ablution", "омовен"], "الوضوء"],
+  [["qusl", "gusul", "gusl", "ghusl"], "الغسل"],
+  [["teyemmum", "tayammum", "таяммум"], "التيمم"],
+  [["misvak", "miswak", "siwak", "мисвак"], "السواك"],
+  [["saqqal", "sakal", "beard", "бород"], "اللحية"],
+  [["big", "biyik", "mustache", "moustache", "усы"], "الشارب"],
+  [["ipek", "silk", "шелк"], "الحرير"],
+  [["qizil", "altin", "gold", "золот"], "الذهب"],
+  [["gumus", "silver", "серебр"], "الفضة"],
+  [["yuxu", "ruya", "dream", "dreams", "сон", "сновиден"], "الرؤيا"],
+  [["yatmaq", "yatarken", "sleep", "sleeping", "сна"], "النوم"],
+  [["xestelik", "xeste", "hastalik", "hasta", "sickness", "illness", "sick", "болезн", "больн"], "المريض"],
+  [["derman", "mualice", "tedavi", "medicine", "cure", "лечен", "лекарств"], "الدواء"],
+  [["cenaze", "funeral", "джаназ", "похорон"], "الجنازة"],
+  [["sehid", "sehadet", "martyr", "martyrdom", "мученик", "шахид"], "الشهيد"],
+  [["deccal", "dessal", "dajjal", "antichrist", "даджал"], "الدجال"],
+  [["mehdi", "mahdi", "махди"], "المهدي"],
+  [["melek", "melekler", "angel", "angels", "ангел"], "الملائكة"],
+  [["cin", "cinler", "jinn", "джин"], "الجن"],
+  [["seytan", "satan", "devil", "shaytan", "шайтан", "дьявол"], "الشيطان"],
+  [["sehr", "sihir", "buyu", "magic", "sorcery", "колдовств", "магия"], "السحر"],
+  [["sehabe", "sahabe", "sahabi", "companions", "сподвижник"], "لا تسبوا أصحابي"],
+  [["ebu bekr", "ebubekr", "ebubekir", "abu bakr", "абу бакр"], "أبي بكر الصديق"],
+  [["omer", "umar", "умар"], "عمر بن الخطاب"],
+  [["osman", "uthman", "усман"], "عثمان بن عفان"],
+  [["aise", "ayse", "aisha", "аиша"], "فضل عائشة"],
+  [["fatime", "fatima", "фатима"], "فاطمة"],
+  [["ramazan", "remezan", "ramadan", "рамадан"], "رمضان"],
+  [["qedr", "kadir gecesi", "qadr", "laylat", "ночь предопредел"], "ليلة القدر"],
+  [["iftar", "ифтар"], "الفطر"],
+  [["sahur", "sehur", "suhur", "сухур"], "السحور"],
+  [["umre", "umra", "umrah", "умра"], "اعتمر"],
+  [["qurban", "kurban", "udhiya", "sacrifice", "жертв"], "الأضحية"],
+  [["borc", "borclu", "debt", "debts", "долг"], "الدين"],
+  [["ticaret", "alver", "satis", "trade", "торгов"], "البيع"],
+  [["miras", "varis", "inheritance", "наследств"], "الميراث"],
+  [["vesiyyet", "vasiyet", "will", "завещан"], "الوصية"],
+  [["qumar", "kumar", "gambling", "азартн"], "الميسر"],
+  [["ogurluq", "ogru", "hirsiz", "hirsizlik", "theft", "thief", "воровств", "вор"], "السرقة"],
+  [["qetl", "qatil", "murder", "killing", "убийств"], "القتل"],
+  [["intihar", "suicide", "самоубийств"], "قتل نفسه"],
+  [["bosanma", "talaq", "talak", "divorce", "развод"], "الطلاق"],
+  [["koca", "husband", "муж"], "زوجها"],
+  [["arvad", "zovce", "zevce", "wife", "жена", "жены"], "امرأته"],
+  [["qardas", "kardes", "brother", "brotherhood", "брат"], "أخيه"],
+  [["dost", "dostluq", "friend", "friendship", "друг", "дружб"], "الجليس"],
+  [["mehebbet", "sevgi", "love", "любов"], "الحب"],
+  [["tebessum", "gulumseme", "smile", "smiling", "улыб"], "تبسم"],
+  [["geyim", "paltar", "elbise", "clothing", "clothes", "одежд"], "الثوب"],
+  [["yemek", "yemeyin", "food", "eating", "еда", "еды"], "الطعام"],
+  [["drinking water", "вода"], "الماء"],
+  [["heyvan", "hayvan", "animal", "animals", "живот"], "البهائم"],
+  [["kopek", "dog", "dogs", "собак"], "الكلب"],
+  [["pisik", "kedi", "cat", "cats", "кошк"], "الهرة"],
+  [["kasib", "fakir", "yoxsul", "poor", "бедн"], "المسكين"],
+  [["varli", "zengin", "rich", "богат"], "الغنى"],
+  [["mal", "pul", "money", "wealth", "деньг", "богатств"], "فتنة المال"],
+  [["dunya", "world", "мир"], "الدنيا"],
+  [["axiret", "ahiret", "hereafter", "akhirah", "ахират"], "الدار الآخرة"],
+  [["tovhid", "tevhid", "tawhid", "таухид"], "التوحيد"],
+  [["sirk", "shirk", "ширк"], "الشرك"],
+  [["bidet", "bidat", "bid'ah", "innovation", "бидат", "нововведен"], "بدعة"],
+  [["sunne", "sunnet", "sunnah", "сунн"], "سنتي"],
+  [["kufr", "kafir", "kufur", "disbelief", "куфр", "неверн"], "كفر"],
+  [["munafiq", "nifaq", "munafik", "hypocrite", "лицемер"], "المنافق"],
+  [["riya", "showing off", "показух"], "الرياء"],
+  [["istigfar", "forgiveness", "прощени"], "الاستغفار"],
+  [["ehsan", "ihsan", "excellence", "ихсан"], "الإحسان"],
+  [["islam", "ислам"], "الإسلام"],
+  [["sual", "soru", "question", "вопрос"], "السؤال"],
+];
+
+
+// çox geniş tək söz (MAX_LIST-dən çox): siyahı əvəzinə yoxlanmış dar ifadələr (indeksdə nəticəsi var, MAX_LIST-dən az)
+export const BROAD_REFINE = {
+  "الصلاة": ["الصلاة لوقتها", "فضل الصلاة"],
+  "الصدق": ["عليكم بالصدق"],
+  "الصدقة": ["الصدقة تطفئ", "فضل الصدقة"],
+  "الجنة": ["أهل الجنة", "دخل الجنة"],
+  "النار": ["أهل النار", "عذاب النار"],
+  "العلم": ["طلب العلم"],
+  "النساء": ["استوصوا بالنساء", "بالنساء خيرا"],
+  "الذكر": ["ذكر الله"],
+  "المسجد": ["المساجد"],
+  "الآخرة": ["الدار الآخرة"],
+  "العمرة": ["اعتمر"],
+};
+
 export const TOPIC_PHRASES = [
   [["namaz terk", "namazi terk", "namazı tərk", "namaz qilmayan", "namaz kilmayan", "terk namaz", "abandon prayer", "leaving prayer", "оставлен намаз"], "ترك الصلاة"],
   [["ana haqq", "ana hakk", "anaya hormet", "anaya yaxsiliq", "rights of mother"], "أمك"],
@@ -537,7 +635,7 @@ function phraseTopic(message) {
         for (let j = 0; j < kw.length; j++) {
           const t = toks[i + j];
           const k = kw[j];
-          if (!(t === k || (k.length >= 3 && t.startsWith(k)))) { ok = false; break; }
+          if (!(t === k || (k.length >= 3 && t.startsWith(k)) || stemMatch(t, k, 3))) { ok = false; break; }
         }
         if (ok) return ar;
       }
@@ -550,8 +648,13 @@ function topicTerms(message) {
   const toks = f.split(/[^a-z\u0400-\u04FF-]+/).filter((t) => t.length >= 3);
   const found = [];
   for (const [keys, ar] of [...TOPICS, ...TOPICS_EXTRA]) {
-    if (toks.some((t) => keys.some((k0) => { const k = foldLat(k0); return t === k || (k.length >= 4 && t.startsWith(k)); }))) found.push(ar);
+    if (toks.some((t) => keys.some((k0) => { const k = foldLat(k0); return t === k || (k.length >= 4 && t.startsWith(k)) || (k.length >= 3 && stemMatch(t, k)); }))) found.push(ar);
   }
+  if (!found.length)
+    for (const [keys, ar] of TOPICS_MORE) {
+      const kws = keys.map((k0) => foldLat(k0).split(/\s+/).filter(Boolean));
+      if (kws.some((kw) => toks.some((t, i) => kw.every((k, j) => toks[i + j] && stemMatch(toks[i + j], k))))) found.push(ar);
+    }
   return found.slice(0, 2);
 }
 
@@ -593,7 +696,7 @@ export function parseHadithQuery(message) {
     if (tp.length >= 2) list.push(tp.join(" "));
     list.push(...tp);
     try {
-      list.push(...topicAlts(raw).alts.flatMap((a) => a.split("/").map((x) => x.trim())));
+      list.push(...topicAlts(raw, { fuzzy: true }).alts.flatMap((a) => a.split("/").map((x) => x.trim())));
     } catch {
       /* lüğət yüklənmədi */
     }
@@ -758,7 +861,20 @@ export async function hadithReply(message, hist) {
       if (r.list.length <= MAX_LIST || (r.terms.length >= 2 && r.exact > 0 && r.exact <= MAX_LIST)) return runQuery(ph, lang);
       if (!fallback) fallback = ph;
     }
+    for (const ph of BROAD_REFINE[fallback] || []) {
+      const r = await searchHadith(ph);
+      if (r.list.length && (r.list.length <= MAX_LIST || (r.terms.length >= 2 && r.exact > 0 && r.exact <= MAX_LIST))) return runQuery(ph, lang);
+    }
     return runQuery(fallback || q.phrase, lang);
+  }
+  // tək ifadə çox genişdirsə (yalnız «daha dəqiq yaz» cavabı çıxardı): yoxlanmış dar ifadələr (BROAD_REFINE)
+  if (BROAD_REFINE[q.phrase]) {
+    const r0 = await searchHadith(q.phrase);
+    if (r0.list.length > MAX_LIST && !(r0.terms.length >= 2 && r0.exact > 0 && r0.exact <= MAX_LIST))
+      for (const ph of BROAD_REFINE[q.phrase]) {
+        const r = await searchHadith(ph);
+        if (r.list.length && (r.list.length <= MAX_LIST || (r.terms.length >= 2 && r.exact > 0 && r.exact <= MAX_LIST))) return runQuery(ph, lang);
+      }
   }
   return runQuery(q.phrase, lang);
 }

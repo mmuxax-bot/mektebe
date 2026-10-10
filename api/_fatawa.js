@@ -493,6 +493,9 @@ const RULING_AR = /(?:^|\s)(?:حكم|حكمه|الحكم|يجوز|جايز|جا�
 const RULING_LAT = /\b(?:hokm\w*|hukm\w*|caiz\w*|haram\w*|halal\w*|helal\w*|mekruh\w*|makruh\w*|vacib\w*|vacip\w*|wajib\w*|farz\w*|gunah\w*|yasak\w*|yasaq\w*|qadagan\w*|icaze\w*|mubah\w*|mesru\w*|olarmi|olurmu|olarmı|ruling\w*|permissible|permitted|allowed|lawful|unlawful|forbidden|prohibited|obligatory|mandatory|sinful|islamda|islamin|islama gore|islam ne diyor|islamic (?:view|position|perspective)|according to islam|view of islam|what does islam say|is it (?:a )?sin|is it ok|is it okay|can i|may i|should i)\b/;
 const RULING_RU = /(?:хукм|решени|положени|разреш|запрещ|дозвол|допустим|позволен|харам|халял|халяль|макрух|обязательн|грех|греш|можно ли|разрешено ли|что говорит ислам|в исламе|по исламу)/i;
 
+// köməkçi fellər və cins/şəxs sözləri «yad» məzmun sayılmır: «sehr etmənin hökmü», «kişilər üçün ipək», «qadının namazı»
+const LIGHT = /^(?:gotur\w*|almaq|alma[gk]|almasi\w*|almag\w*|vermek\w*|vermey\w*|taxm\w*|takm\w*|geyinm\w*|giym\w*|icmek\w*|icmey\w*|yemek\w*|yemey\w*|etdirm\w*|aldirm\w*|kecirm\w*|kutlam\w*|qilinm\w*|tutm[ae]\w*|etm\w*|eden\w*|edil\w*|edir\w*|elem\w*|eley\w*|olm[ae]\w*|olan\w*|olun\w*|qilm\w*|qilan\w*|kilm\w*|kilan\w*|yapm\w*|yapan\w*|yapil\w*|kisi\w*|erkek\w*|qadin\w*|kadin\w*|men|women|man|woman|muselman\w*|musulman\w*|musliman\w*|muslim\w*|insan\w*|sexs\w*|kimse\w*|biri\w*|islamda|dinde|dinimizde|seriatda|seriatta|in|islam)$/;
+
 /** Kitab/müəllif adı olmadan, hökm sualı: «hökmü / caizdirmi / haramdır / ruling / حكم …» + tanınan mövzu (və ya yalnız mövzu sözü). Digər idarəçilər əvvəl cavab verir. */
 export function parseNaturalQuery(message) {
   const raw = String(message || "").replace(/\s+/g, " ").trim();
@@ -510,15 +513,19 @@ export function parseNaturalQuery(message) {
     return alts.length ? { mode: "q", phrase: alts[0], alts, natural: true } : null;
   }
   const cue = RULING_LAT.test(f) || RULING_RU.test(raw) || FATWA_LAT.test(f) || FATWA_RU.test(raw);
-  const t = topicAlts(raw);
+  // əlavə hökm işarələri (2026-10): «bidətdir?», «düşürmü», «sünnədir?», «şirkdir?», «küfrdür?» (yalnız əvvəl null qalan suallara təsir edir)
+  const cue2 = cue || /\b(?:bid.?[ea]t\w*|bidat\w*|dusurm\w*|duserm\w*|sunnedir\w*|sunnetmi\w*|sirkdir\w*|kufrdur\w*|kufurdur\w*|olarmi|olurmu|is\s+it\s+(?:allowed|permissible|bid.?ah|sunnah))\b|\bbid.?ah\b/.test(f);
+  const t = topicAlts(raw, { fuzzy: cue2 });
   if (!t.alts.length) return null;
-  if (!cue && !t.bare) return null;
+  if (!cue2 && !t.bare) return null;
   // mövzu sözündən başqa «yad» məzmun sözləri çoxdursa (məs. «namazda saqqız çeynəmək caizdirmi»), sual dəqiq mövzudan kənardır: AI-yə qalır
   if (!t.bare) {
-    const m = matchTopics(raw);
+    const m = matchTopics(raw, { fuzzy: cue2 });
+    // əlavə lüğət/şəkilçi kökü ilə tanınan sözlər də «yad» sayılmır (yalnız əvvəl null qalan suallara təsir edir)
+    const m2 = matchTopics(raw, { all: true });
     let extra = 0;
     m.tokens.forEach((tk, i) => {
-      if (m.used[i] || STOP.has(tk) || RULING_LAT.test(tk) || RULING_RU.test(tk) || FATWA_LAT.test(tk) || /^(?:haqqinda|hakkinda|haqda|barede|baresinde|about)$/.test(tk)) return;
+      if (m.used[i] || m2.used[i] || STOP.has(tk) || LIGHT.test(tk) || RULING_LAT.test(tk) || RULING_RU.test(tk) || FATWA_LAT.test(tk) || /^(?:haqqinda|hakkinda|haqda|barede|baresinde|about)$/.test(tk)) return;
       extra++;
     });
     if (extra > 1) return null;

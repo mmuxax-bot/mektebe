@@ -571,9 +571,11 @@ export function parseRecQuery(message, hist) {
   const bookWord = BOOKCUE_LAT.test(f) || BOOKCUE_RU.test(raw) || BOOKCUE_AR.test(nplain);
   const hasAr = /[\u0621-\u064A]{2}/.test(raw);
   const recCue = REC_LAT.some((r) => r.test(f)) || REC_RU.some((r) => r.test(raw)) || (hasAr && REC_AR.some((r) => r.test(nplain)));
+  // ad + «nə oxuyum / haradan başlayım / hansından başlayım» (yalnız İbn Teymiyyə adı ilə)
+  const nameRec = !!name && /\b(?:ne|nec?e)\s+oxu\w*|\b(?:haradan|hardan|nedan|neden|hansindan|hansisindan|hangisinden|nereden)\s+(?:basla\w*|oxu\w*|oku\w*)|\boxumaga\s+(?:basla\w*|hardan)|\bilk\s+(?:hansi|hangi)\s+kitab/.test(f);
   if (name) {
-    if (!bookWord && !recCue) return null;
-    if (recCue) return { kind: "rec", stage: null };
+    if (!bookWord && !recCue && !nameRec) return null;
+    if (recCue || nameRec) return { kind: "rec", stage: null };
     // «İbn Teymiyyənin kitabları» yalnız (qısa) → siyahı; ərəbcə axtarış sözü varsa axtarışdır
     const content = latKeyed(f).filter((x) => !/^(ibn|taimiia?|taimi\w*|teimi\w*|ai|in|ain|din|in)$/.test(x.k));
     const words = f.replace(/[^a-z0-9\u0600-\u06ff\s]/g, " ").split(/\s+/).filter(Boolean).length;

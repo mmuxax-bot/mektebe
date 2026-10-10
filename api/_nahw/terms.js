@@ -63,7 +63,7 @@ export const LAT_TERMS = [
   { re: /(?:ef.al|af.al|efal)[-'\s]*(?:ul|ol)?[-'\s]*hamse|af.?al\W{0,3}khamsa/, ar: "الأفعال الخمسة", uniq: true },
   { re: /(?:memnu|mamnu)['\s]*(?:min|un)?\s*(?:es|as)?[-\s]*sarf|ممنوع من الصرف|ghayr\s+munsarif|ğeyri\s+munsarif|gayri\s+munsarif/, ar: "الممنوع من الصرف", uniq: true },
   { re: /\bhal\b|\bhalin\b|\bхаль\b/, ar: "الحال", uniq: false },
-  { re: /\btemyiz\w*|\btemiz\b|\btamyiz\w*|\btemyez\w*/, ar: "التمييز", uniq: true },
+  { re: /\btemyiz\w*|\btamyiz\w*|\btemyez\w*/, ar: "التمييز", uniq: true },
   { re: /\b(?:mef|maf)\W?u?l\w*\s*(?:u|i|ul|un|ün)?\s*(?:leh|lah|lehu|lahu|li\s*ecl\w*|liajlih\w*|ecl\w*)\b/, ar: "المفعول لأجله", uniq: true },
   { re: /\b(?:mef|maf)\W?u?l\w*\s*(?:u|i|ul|un)?\s*(?:fih|fihi)\b/, ar: "المفعول فيه", uniq: true },
   { re: /\b(?:mef|maf)\W?u?l\w*\s*(?:u|i|ul|un)?\s*(?:meah|maah|meahu|maahu|mea|maa)\b/, ar: "المفعول معه", uniq: true },
@@ -101,3 +101,70 @@ export const LAT_TERMS = [
 ];
 // Ərəb dilinin qrammatikasına işarə edən latın/kiril sözlər (cue)
 export const LAT_CUE = /\b(?:erebce|arapca|arabic|arabcha|arab\w*|erab\w*|ereb\w*|nehv\w*|nahv\w*|nahiv\w*|nahw\w*|sarf\w*|serf\w*|tasrif\w*|i.?rab\w*|ierab\w*|qram+at\w*|gram+at\w*|grammar\w*|grammatik\w*|dilbilgisi\w*|sintaksis|syntax)\b|араб|нахв|сарф|иъраб|грамматик/i;
+
+// ---- Əlavə latın/kiril terminlər (2026-10): yalnız LAT_TERMS heç nə tapmayanda yoxlanır (köhnə cavablar dəyişmir).
+// Mətn əvvəlcə latSkel() ilə sadələşir: diakritika (â, î ...), defis/apostrof -> boşluq, x -> h, «ul/ut/us/ur/un/ud/uz/ush» artikl qovuşmaları saxlanır.
+// Hamısı fərqləndirici terminlərdir (uniq): ərəb/qrammatika sözü olmadan da qəbul olunur. Hər ifadə nəhv indeksində yoxlanıb (scripts/coverage).
+export function latSkel(s) {
+  return String(s || "")
+    .toLowerCase()
+    .replace(/ə/g, "e").replace(/ı/g, "i").replace(/ö/g, "o").replace(/ü/g, "u").replace(/ş/g, "s").replace(/ç/g, "c").replace(/ğ/g, "g")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "").normalize("NFC")
+    .replace(/ё/g, "е")
+    .replace(/[’'`´ʻʼ‘ʿʾ-]/g, " ")
+    .replace(/x/g, "h")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+const A = "(?:\\s*(?:u[lt sdrnzh]?|i|e?l|a[lt]?|ush|ud|un)\\s*)?"; // ismu(l)/ismu(t)/ism-i ... qovuşma
+const R = (src, ar) => ({ re: new RegExp(src, "u"), ar, uniq: true });
+export const LAT_TERMS_MORE = [
+  R(`(?:^|\\s)nai?bu?${A}fa+[ie]?l`, "نائب الفاعل"),
+  R(`(?:^|\\s)m[ae]f?\\s?u+l(?:un|u|i)?\\s*bih[ie]?(?:\\s|$)`, "المفعول به"),
+  R(`(?:^|\\s)m[ae]f?\\s?u+l(?:un|u|i)?\\s*mut?l[ae][qkg]`, "المفعول المطلق"),
+  R(`(?:^|\\s)m[ae]f?\\s?u+l(?:un|u|i)?\\s*li\\s*e?[cj]l`, "المفعول لأجله"),
+  R(`(?:^|\\s)m[ae]f?\\s?u+l(?:un|u|i)?\\s*fih[ie]?(?:\\s|$)`, "المفعول فيه"),
+  R(`(?:^|\\s)m[ae]f?\\s?u+l(?:un|u|i)?\\s*m[ae]ah[ue]?(?:\\s|$)`, "المفعول معه"),
+  R(`(?:^|\\s)(?:c[ae]r+|jar+|cer)\\s*h[ae]rf|h[ae]rf\\w*\\s*(?:i\\s*|u[lc]\\s*)?(?:c[ae]r+|jar+)(?:\\s|$)|\\bprepositions?\\b`, "حروف الجر"),
+  R(`(?:^|\\s)n[ae]sb\\s*h[ae]rf|h[ae]rf\\w*\\s*(?:i\\s*|un\\s*)?n[ae]sb|nawasib|nevasib|\\bsubjunctive\\b`, "النواصب"),
+  R(`(?:^|\\s)[cj][ae]zm\\s*h[ae]rf|h[ae]rf\\w*\\s*(?:i\\s*|ul\\s*)?[cj][ae]zm|jawazim|cevazim|\\bjussive\\b`, "الجوازم"),
+  R(`(?:^|\\s)atf\\s*h[ae]rf|h[ae]rf\\w*\\s*(?:i\\s*|ul\\s*)?atf|\\bconjunctions?\\b`, "حروف العطف"),
+  R(`(?:^|\\s)[ae]f\\s?al${A}h[ae]ms[ae]|five verbs|пять глагол`, "الأفعال الخمسة"),
+  R(`(?:^|\\s)[ae]sma${A}h[ae]ms[ae]|five nouns|пять имен`, "الأسماء الخمسة"),
+  R(`(?:qeyri|geyri|gayri|gheyri|ghayr)\\s*m[uü]n?s[ae]rif|\\bdiptotes?\\b|мамну|неизменяем`, "الممنوع من الصرف"),
+  R(`(?:^|\\s)(?:fe|fi)[ie]?l\\w*\\s*(?:i\\s*)?(?:madi|mazi)(?:\\s|$)|(?:^|\\s)(?:madi|mazi)\\s*fi?[ie]?l|past tense|прошедшее время`, "الفعل الماضي"),
+  R(`(?:^|\\s)(?:fe|fi)[ie]?l\\w*\\s*(?:i\\s*)?mu?[dz]ari|(?:^|\\s)mu?[dz]ari\\s*fi?[ie]?l|present tense verb|imperfect verb|настояще.{0,4}время`, "الفعل المضارع"),
+  R(`(?:^|\\s)(?:emr|amr|emir)\\s*fi?[ie]?l|fi?[ie]?l\\w*\\s*(?:i\\s*|ul\\s*)?(?:emr|amr)(?:\\s|$)|imperative verb|повелительн`, "فعل الأمر"),
+  R(`(?:^|\\s)(?:ism|esm)${A}t[ae]f[dz]il|\\belatives?\\b|comparative and superlative`, "اسم التفضيل"),
+  R(`(?:^|\\s)(?:ism|esm|esma|asma)${A}m[aeo]v?w?s[uo]l|relative pronouns?|относительн.{0,3} местоимен`, "الاسم الموصول"),
+  R(`(?:^|\\s)(?:ism|esm|esma|asma)${A}(?:isar|ishar)|demonstrative pronouns?|указательн.{0,3} местоимен`, "اسم الإشارة"),
+  R(`(?:^|\\s)(?:ism|esm)${A}fa+[ie]?l(?:\\s|$)|active participle`, "اسم الفاعل"),
+  R(`(?:^|\\s)(?:ism|esm)${A}m[ae]f\\s?u+l|passive participle`, "اسم المفعول"),
+  R(`(?:^|\\s)sif[ae]t\\w*\\s*(?:i\\s*)?mu?s[ae]b+[ie]h|sifa mushabbaha`, "الصفة المشبهة"),
+  R(`(?:^|\\s)(?:sert|shart)\\s*(?:cuml|cumlesi|cumle|edat|herf|adat|jumla)|conditional sentence|условн.{0,3} предложен`, "أدوات الشرط"),
+  R(`(?:^|\\s)i\\s?rab\\w*(?:\\s|$)|(?:^|\\s)ierab|\\bi.?raab|иъраб|ирааб|ираб`, "الإعراب"),
+  R(`(?:^|\\s)m[ae]bni\\s*(?:ve|and|и)?\\s*mu?\\s?r[ae]b|mabni and mu.?rab|мабни`, "المعرب والمبني"),
+  R(`(?:^|\\s)t[ae]srif|(?:^|\\s)sarf\\s*(?:ilmi|elmi)|morphology|морфолог`, "التصريف"),
+  R(`(?:^|\\s)t[ae]my(?:i+|e+)[zs]|tamyeez|tamy?eez|тамйиз|тамииз`, "التمييز"),
+  R(`(?:^|\\s)(?:ha+l|hal)\\s+(?:in arabic|nahv|nehv|nahw|arapca|erebce|ereb)|хаал|(?:^|\\s)хал в араб`, "الحال"),
+  R(`(?:^|\\s)(?:idafe|idafa|izafe|izafet)|isim tamlamas|genitive construct|идафа|изафет`, "الإضافة"),
+  R(`subject and predicate|mubtada wa khabar|(?:^|\\s)мубтада`, "المبتدأ والخبر"),
+  R(`(?:^|\\s)(?:fa+[ie]?l|fail)\\s+(?:in arabic|arapca|erebce|nahv|nehv)|(?:^|\\s)фа.?иль|(?:^|\\s)фаил`, "الفاعل"),
+  R(`(?:^|\\s)(?:kana|kane|кана)\\s.{0,14}(?:baci|kardes|qardas|sister|akhawat|ehavat|с[её]стр)`, "كان وأخواتها"),
+  R(`(?:^|\\s)(?:inne|inna|enne|инна)\\s.{0,14}(?:baci|kardes|qardas|sister|akhawat|с[её]стр)`, "إن وأخواتها"),
+  R(`(?:^|\\s)(?:zanne|zanna|занна)\\s.{0,14}(?:baci|kardes|qardas|sister|akhawat|с[её]стр)`, "ظن وأخواتها"),
+  R(`мафу?.?ль\\s*бих|maf?\\s?ul\\s*bih`, "المفعول به"),
+  R(`(?:^|\\s)(?:la|lə)\\s*nafiy+[ae]\\s*(?:li\\s*)?(?:l\\s*)?(?:cins|jins)|negation of the genus`, "لا النافية للجنس"),
+  R(`(?:^|\\s)(?:t[ae]kid|tawkid|tevkid)(?:\\s|$)|emphasis in arabic grammar`, "التوكيد"),
+  R(`(?:^|\\s)(?:b[ae]d[ae]l)(?:\\s+in arabic|\\s+nahv|\\s+nehv)|badal in arabic`, "البدل"),
+  R(`(?:^|\\s)(?:munada|munadi|nida)(?:\\s|$)|vocative|мунада`, "المنادى"),
+  R(`(?:^|\\s)(?:musenna|musanna|muthanna|dual in arabic)|двойственн`, "المثنى"),
+  R(`(?:^|\\s)c[ae]m\\w*\\s*(?:i\\s*)?t[ae]ks[ie]r|broken plural|ломан.{0,3} множеств`, "جمع التكسير"),
+  R(`(?:^|\\s)c[ae]m\\w*\\s*(?:i\\s*)?muz[ae]k+[ae]r|sound masculine plural`, "جمع المذكر السالم"),
+  R(`(?:^|\\s)c[ae]m\\w*\\s*(?:i\\s*)?mu[ae]n+[ae]s|sound feminine plural`, "جمع المؤنث السالم"),
+  R(`(?:^|\\s)(?:nekre|nakira)\\s*(?:ve|and|и)?\\s*(?:marif|marife|maarifa)|definite and indefinite`, "النكرة والمعرفة"),
+  R(`(?:^|\\s)(?:zamir\\S*|damir|dama.?ir)\\s+(?:in arabic|nahv|nehv|arapca|erebce)|pronouns? in arabic|местоимения в араб`, "الضمائر"),
+  R(`(?:^|\\s)(?:istisna|istisnaa)\\s+(?:in arabic|nahv|nehv|arapca|erebce)|exception in arabic|исключени.{0,4} в араб`, "الاستثناء"),
+  R(`(?:^|\\s)(?:te+c+ub|teaccub|taajjub|ta.?ajjub)`, "التعجب"),
+  R(`(?:^|\\s)(?:adad|eded)\\s*(?:ve|and)?\\s*(?:madud|maadud)|numbers in arabic grammar`, "العدد والمعدود"),
+];

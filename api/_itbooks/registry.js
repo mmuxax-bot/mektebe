@@ -101,3 +101,37 @@ export const LANGS = ["az", "tr", "en", "ru", "ar"];
 export const bookName = (b, lang) => (lang === "ar" ? b.ar : b.names[lang] || b.names.az);
 /** bir cümləlik təsvir: az,tr,en,ar; ru üçün en */
 export const bookDesc = (b, lang) => (!b.desc ? "" : lang === "az" ? b.desc[0] : lang === "tr" ? b.desc[1] : lang === "ar" ? b.desc[3] : b.desc[2]);
+
+// ---- Əlavə yazılışlar (2026-10): az/tr latın (ə->e ...), səhv yazılışlar, artikl variantları. Sorğu əhatəsi: scripts/coverage.
+const MORE_ALIAS = {
+  ubudiyyah: ["ubudiyye kitabi", "ubudiyyə", "el ubudiyye", "ubudiyya", "ubudiyet", "ubudiyyetu", "al uboodiyyah", "ubudiyyah risalesi"],
+  "wasiyya-sughra": ["vesiyyetus sugra", "vasiyyetus sugra", "vesiyye sugra kitabi", "el vesiyye", "vasiyetu sugra", "wasiyyah al sughra"],
+  "kalim-tayyib": ["kelimut teyyib", "kelim teyyib", "kalimut teyyib", "kelimet teyyib", "kalim al tayyib", "al kalim al tayyib", "kelimu tayyib kitabi"],
+  "tuhfa-iraqiyya": ["tuhfe iraqiyye", "tuhfetul irakiyye", "tuhfa al iraqiyya", "tuhfe irakiyye", "tuhfetul iraqiyye", "tohfe iraqiyye"],
+  "amrad-qulub": ["qelb xestelikleri", "qelb xestelikleri kitabi", "kalp hastaliklari kitabi", "emradul qulub", "amradul qulub", "emrazul kulub", "amrad al qulub wa shifauha", "diseases of the hearts"],
+  wasitiyya: ["vasitiye", "vasitiyye akidesi", "akidetul vasitiyye", "aqidetul vasitiyye", "eqidetul vasitiyye", "aqidah wasitiyyah", "aqida wasitiya", "vasitiyyə", "vasıtıyye", "al wasitiyya"],
+  wasita: ["vasite beyne", "vasite beynel hakk", "wasitah bayna al haqq"],
+  "raful-malam": ["refu melam", "reful melam", "raful malam an aimma", "rafulmalam", "raf al malam an al aimma"],
+  furqan: ["furqan beyne evliyair rehman", "furkan beyne evliya", "evliyaur rehman", "evliyair rahman ve evliyais seytan", "al furqan bayna awliya"],
+  "siyasa-shariyya": ["siyaset seriyye", "siyaset i seriyye", "siyaseti seriyye", "siyaset i ser iyye", "siyasetus seriyye", "siyasetu seriyye", "siyasetis seriyye", "siyasah sharia", "siyasat shariyya", "islami siyaset kitabi"],
+  hisba: ["hisbe kitabi", "hisbe fi islam", "al hisba fil islam", "hisba in islam", "hisbetu fil islam"],
+  "muqaddima-tafsir": ["usulut tafsir", "muqeddime fi usulit tefsir", "mukaddime fi usulit tefsir", "muqaddima fi usul at tafsir", "tefsir usulune giris"],
+  "qaida-tawassul": ["tawassul wal wasila", "tawassul and wasilah", "qaide celile", "kaide celile fit tevessul", "qaidetun celile"],
+  hamawiyya: ["hemeviyye", "hameviyye", "fetvayi hameviyye", "el fetva el hameviyye", "fatwa hamawiyya", "hamawiyya kubra", "hamaviyye risalesi", "hemeviyye kubra"],
+  tadmuriyya: ["tehmuriyye", "tedmuriyya", "tedmuriye", "tadmuriyah", "risale tedmuriyye", "risaletut tedmuriyye", "tedmuri", "tadmuri"],
+  "hadith-nuzul": ["nuzul hedisinin serhi", "nuzul hadisi serhi", "serhu hadisin nuzul", "sharh hadith an nuzul", "hadith of descent"],
+  iman: ["kitabul iman ibn teymiyye", "iman kitabi ibn teymiyye", "kitab el iman", "al iman ibn taymiyyah", "kitabul-iman"],
+  iqtida: ["iqtidaus sirat", "iqtidau sirat", "iktizaus sirat", "iqtidaus siratil mustaqim", "iktidaus siratil mustakim", "iqtida as sirat al mustaqim", "iqtida al sirat", "iktiza i sirat"],
+  "qawaid-nuraniyya": ["qavaidun nuraniyye", "kavaidun nuraniyye", "qawaid an nuraniyya", "al qawaid al nuraniyya", "nuraniyye qaideleri"],
+  istiqama: ["istiqame kitabi", "istikame kitabi", "al istiqamah", "el istikame"],
+  "sarim-maslul": ["sarim meslul", "sarimul maslul", "es sarim el meslul", "as sarim al maslul", "sarimul meslul ala satimir resul"],
+  "jawab-sahih": ["cevabus sahih", "cevabus sehih", "el cevab es sahih", "al jawab as sahih", "javabus sahih", "cevab sahih"],
+  asfahaniyya: ["isfahaniyye", "esfahaniyye akidesi", "sharh al aqida al asfahaniyya", "asfahaniyya aqida"],
+  nubuwwat: ["en nubuvvat", "nubuvvet kitabi", "an nubuwwat", "nubuvvat kitabi", "nubuwwat kitab"],
+  "radd-mantiqiyyin": ["mantiqcilara red", "mantikcilara red", "reddu alel mantiqiyyin", "er red ale mantiqiyyin", "radd alal mantiqiyyin", "refutation of the logicians"],
+  "minhaj-sunna": ["minhacus sunne", "minhacus sunnetin nebeviyye", "minhaj as sunnah", "minhaj us sunna"],
+  "talbis-jahmiyya": ["beyanu telbisil cehmiyye", "telbisul cehmiyye", "bayan talbis al jahmiyya", "talbis al jahmiyyah"],
+  "dar-taarud": ["dere tearuz", "deru tearuz", "deru tearudil aql", "deru tearudil aql ven naql", "dar taarud al aql wan naql", "dar tearuz", "deru teaaruz", "derü tearuz", "ter tearuz", "aql ve naqlin tearuzu"],
+};
+for (const b of BOOKS) if (MORE_ALIAS[b.slug]) b.alias = [...(b.alias || []), ...MORE_ALIAS[b.slug]];
+export const MORE_ALIAS_COUNT = Object.values(MORE_ALIAS).reduce((a, x) => a + x.length, 0);

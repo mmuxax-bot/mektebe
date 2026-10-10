@@ -6,7 +6,7 @@ import { brotliDecompressSync } from "node:zlib";
 import { key } from "./_lugha.js";
 import { detectLang } from "./_ayah.js";
 import { tokens, tokenSpans, stemTok } from "./_nahw/tok.js";
-import { PHRASES, UNIQUE_SINGLE, AMBIG_SINGLE, PARTICLES, PARTICLE_EXPAND, LAT_TERMS, LAT_CUE } from "./_nahw/terms.js";
+import { PHRASES, UNIQUE_SINGLE, AMBIG_SINGLE, PARTICLES, PARTICLE_EXPAND, LAT_TERMS, LAT_CUE, LAT_TERMS_MORE, latSkel } from "./_nahw/terms.js";
 import { AUTHOR_BOOST, DIDACTIC, DIDACTIC_BOOST, ADVANCED_RE, MAX_RESULTS, EXCERPT_CHARS, MIN_COVERAGE } from "./_nahw/config.js";
 import { LOADERS } from "./_nahw/loaders.js";
 import { checkExcerpt, isLanQuery, gkey } from "./_nahw/guard.js";
@@ -179,7 +179,14 @@ export function parseNahwQuery(message) {
     // --- latın/kiril yazılı sual
     const f = fold(raw);
     const cue = LAT_CUE.test(f) || LAT_CUE.test(raw);
-    const hits = LAT_TERMS.filter((x) => x.re.test(f));
+    let hits = LAT_TERMS.filter((x) => x.re.test(f));
+    // köhnə terminlər tapılmadısa: əlavə terminlər (sadələşmiş mətn üzrə; api/_nahw/terms.js LAT_TERMS_MORE)
+    if (!hits.length || (!cue && !hits.some((h) => h.uniq))) {
+      const sk = latSkel(raw);
+      const seen = new Set();
+      const more = LAT_TERMS_MORE.filter((x) => x.re.test(sk) && !seen.has(x.ar) && seen.add(x.ar));
+      if (more.length) hits = more;
+    }
     const arRuns = gkey(raw).match(/[\u0621-\u064A]+/g) || [];
     const latLan = /(?:^|\s)(?:ərəbcə|erebce|arapça|arapca|ərəb\s+dilində)\s+l[eə]n(?:\s|$|[?.!])|\bl[eə]n\s+h[eə]rfi?\b/i.test(raw);
     if (latLan) {

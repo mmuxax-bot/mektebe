@@ -2,11 +2,12 @@
 // Yalnız mövcud lüğətlər istifadə olunur (AI yox): Məcmuu əl-Fətava mövzuları (api/_fatawa/topics.js + topicmatch.js),
 // hədis mövzuları (TOPICS, TOPICS_EXTRA, TOPIC_PHRASES — api/_hadith.js), nəhv terminləri (LAT_TERMS, PHRASES — api/_nahw/terms.js)
 // və bir neçə səhabə adı. Latın yazıda hərf səhvləri (q/k, x/h, w/v, qoşa hərf, 1–2 hərf səhvi) və «Əbu/Ebu/Abu» fərqləri tolerantdır.
+import { stemMatch } from "../_stem.js";
 import { foldLat } from "../_ayah.js";
 import { TOPICS, TOPICS_EXTRA, TOPIC_PHRASES } from "../_hadith.js";
 import { matchTopics, topicAlts } from "../_fatawa/topicmatch.js";
 import { TOPIC_SRC } from "../_fatawa/topics.js";
-import { LAT_TERMS, PHRASES as NH_PHRASES } from "../_nahw/terms.js";
+import { LAT_TERMS, LAT_TERMS_MORE, latSkel, PHRASES as NH_PHRASES } from "../_nahw/terms.js";
 
 const AR = /[\u0621-\u064A]/;
 // nəhv fold-u (api/_nahw.js ilə eyni: kiril saxlanılır)
@@ -28,6 +29,32 @@ const NAMES = [
   [["ibn mesud", "ibn masud", "ибн масуд"], "ابن مسعود"],
   [["ebu said", "abu said", "абу саид"], "أبو سعيد"],
   [["cabir", "jabir", "джабир"], "جابر بن عبد الله"],
+  // əlavə (2026-10): səhabələr və peyğəmbərlər (yalnız axtarış genişləndirməsi)
+  [["ali", "eli", "hz eli", "ali ibn ebu talib", "али"], "علي بن أبي طالب"],
+  [["osman", "usman", "uthman", "усман"], "عثمان بن عفان"],
+  [["omer", "omar", "umar", "умар"], "عمر بن الخطاب"],
+  [["fatime", "fatima", "фатима"], "فاطمة"],
+  [["xedice", "hatice", "khadija", "хадиджа"], "خديجة"],
+  [["huseyn", "huseyin", "husayn", "хусейн"], "الحسين"],
+  [["muaviye", "muawiya", "муавия"], "معاوية"],
+  [["bilal", "билал"], "بلال"],
+  [["selman", "salman", "салман"], "سلمان الفارسي"],
+  [["muaz", "muadh", "муаз"], "معاذ بن جبل"],
+  [["ebu zerr", "abu dharr", "абу зарр"], "أبو ذر"],
+  [["xalid ibn velid", "halid bin velid", "khalid ibn al walid", "халид ибн валид"], "خالد بن الوليد"],
+  [["musa", "moses", "муса"], "موسى"],
+  [["isa", "jesus", "иса"], "عيسى ابن مريم"],
+  [["ibrahim", "abraham", "ибрахим"], "إبراهيم"],
+  [["nuh", "noah", "нух"], "نوح"],
+  [["yusif", "yusuf", "joseph", "юсуф"], "يوسف"],
+  [["adem", "adam", "адам"], "آدم"],
+  [["suleyman", "solomon", "сулейман"], "سليمان"],
+  [["davud", "david", "давуд"], "داود"],
+  [["yunus", "jonah", "юнус"], "يونس"],
+  [["eyyub", "ayyub", "job", "аюб"], "أيوب"],
+  [["meryem", "maryam", "mary", "марьям"], "مريم"],
+  [["peygemberler", "peygamberler", "prophets", "пророки", "peygember", "prophet", "пророк"], "الأنبياء"],
+  [["sehabeler", "sahabeler", "sehabe", "sahabe", "companions", "сподвижники", "сахабы"], "الصحابة"],
 ];
 
 const toks = (s) => foldLat(s).split(/[^a-z0-9\u0400-\u04FF]+/).filter(Boolean);
@@ -38,7 +65,7 @@ function seqMatch(qt, keyStr, prefix = 3) {
     let ok = true;
     for (let j = 0; j < kw.length; j++) {
       const t = qt[i + j], k = kw[j];
-      if (!(t === k || (k.length >= prefix && t.startsWith(k)))) { ok = false; break; }
+      if (!(t === k || (k.length >= prefix && t.startsWith(k)) || stemMatch(t, k, 99))) { ok = false; break; }
     }
     if (ok) return true;
   }
@@ -150,7 +177,14 @@ function latinCands(q) {
   general.push(...ta.alts);
   for (const [keys, ar] of TOPICS_EXTRA) if (qt.some((t) => t.length >= 3 && keys.some((k0) => { const k = foldLat(k0); return t === k || (k.length >= 4 && t.startsWith(k)); }))) general.push(ar);
   const f = nfold(q).replace(/ё/g, "е");
-  for (const x of NH_RE()) if (x.re.test(f) || (x.cyr && x.cyr.test(f))) nahw.push(x.ar);
+  let nhUniq = false;
+  for (const x of NH_RE()) if (x.re.test(f) || (x.cyr && x.cyr.test(f))) { nahw.push(x.ar); if (x.uniq) nhUniq = true; }
+  // əlavə terminlər (api/_nahw/terms.js LAT_TERMS_MORE): köhnələr tapmadısa və ya yalnız ümumi (uniq olmayan) tapdısa, öndə
+  if (!nhUniq) {
+    const sk = latSkel(q);
+    const more = LAT_TERMS_MORE.filter((x) => x.re.test(sk)).map((x) => x.ar);
+    if (more.length) nahw.unshift(...more);
+  }
   return { general: [...new Set(general)], nahw: [...new Set(nahw)], names };
 }
 

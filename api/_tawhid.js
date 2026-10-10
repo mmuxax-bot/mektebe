@@ -441,6 +441,42 @@ export function tawhidMatch(message) {
   return { kind: "entry", ids, lang, score: top.score };
 }
 
+// ---- əlavə (2026-10): köhnə uyğunlaşdırma heç nə tapmayanda: en/ru/tr ifadələri və yazılış variantları az sualına çevrilir,
+// qısa isim ifadəsinə («rübubiyyət tövhidi», «əsma və sifat») «nədir» əlavə olunur. Əvvəl işləyən suallar dəyişmir.
+const ALIAS_Q = [
+  [/\b(?:what\s+is|define|meaning\s+of)\s+(?:al[\s-]?)?taw?h[ei]e?d\b|что\s+такое\s+та[ву]х[иі]д|(?:^|\s)tevhid\s+ned[iı]r|^\s*(?:at[\s-]?)?tawh[ie]e?d\s*\??$/i, "Tövhid nədir"],
+  [/\b(?:types|kinds|categories|divisions)\s+of\s+taw?h[ei]e?d|вид(?:ы|ах)\s+та[ву]х[иі]да|(?:^|\s)tevhid(?:in)?\s+(?:k[ıi]s[ıi]mlar[ıi]|cesitleri|çeşitleri|turleri|türleri)|ctegories of tawhid/i, "Tövhidin növləri"],
+  [/\b(?:proofs?|evidences?|arguments?)\s+(?:of|for)\s+(?:the\s+)?existence\s+of\s+(?:allah|god)|доказательств\S*\s+(?:существования|бытия)\s+аллаха|allah.?[ıi]n\s+varl[ıi]g[ıi]n[ıi]n\s+delil/i, "Allahın varlığının dəlilləri"],
+  [/\bwhat\s+is\s+(?:a[sl][\s-]?)?shirk\b|что\s+такое\s+ширк|(?:^|\s)şirk\s+nedir/i, "Şirk nədir"],
+  [/taw?hid\s+(?:ar|al)[\s-]?rub[uo]+biy+a+h?|r[uü]bub[iı]y+e?t\s+tevh[iı]d|tevh[iı]d[\s-]?i?\s+r[uü]bub/i, "Rübubiyyət tövhidi nədir"],
+  [/taw?hid\s+al[\s-]?asma.{0,8}sifat|(?:^|\s)(?:isim|esma)\s+ve\s+s[ıi]fat\s+tevh/i, "Əsma və sifat tövhidi nədir"],
+  [/(?:ateist\S*|atheist\S*|атеист\S*|allah\S*\s+inkar\s+ed\S*)\s*(?:lər[əe]|lere|lara|to|ам)?\s*(?:cavab|cevap|answer|reply|ответ)|(?:cavab|cevap|answer|reply|ответ)\S*\s+(?:ateist|atheist|атеист)/i, "tövhid 2-ci mövzu"],
+  [/allah\S*\s+(?:varl\S*\s+)?inkar\s+ed\S*|(?:^|\s)ateist\S*\s+(?:iddia|shubh|şübh|subh)/i, "tövhid 2-ci mövzu"],
+  [/kainat\S*\s+yarad[ıi]l\S*|kainat\S*\s+kim\s+yarat|who\s+created\s+the\s+universe|кто\s+создал\s+вселенн/i, "Kainatı kim yaradıb"],
+  [/allah\S*\s+sif[əe]tl[əe]ri\s*(?:haqq?[ıi]nda|bar[əe]sind[əe]|hakk[ıi]nda)?\s*\??$|attributes\s+of\s+allah/i, "Allahın sifətləri hansı cür təsnif edilir"],
+  [/allah\S*\s+(?:[əe]f.?al[ıi]|f[eə]ll[əe]ri|fiilleri)|actions\s+of\s+allah/i, "Allahın felləri neçə növdür"],
+  [/t[öo]vhid\s+(?:d[əe]rsl[əe]ri|kursu|mövzular|movzular|f[əe]nni)|tawhid\s+(?:lessons|course)/i, "Tövhid 1 mövzuları"],
+  [/(?:^|\s)(?:[əe]sma|esmaul|asma)\s+(?:v[əe]|ve|wa|and)\s+(?:sifat|sif[əe]t)|(?:^|\s)ad\s+v[əe]\s+sif[əe]t/i, "Allahın ad və sifətləri tövhidi nədir"],
+  [/allah\S*\s+adlar[ıi]\s*(?:haqq?[ıi]nda|bar[əe]sind[əe])?\s*\??$|names\s+of\s+allah\s*\??$/i, "Əhli-sünnənin Allahın adları ilə bağlı qaydaları"],
+];
+function tawhidAlias(message) {
+  const raw = String(message || "").replace(/\s+/g, " ").trim();
+  if (!raw || raw.length > 120) return null;
+  const f = foldLat(raw);
+  for (const [re, q] of ALIAS_Q) if (re.test(raw) || re.test(f)) return q;
+  // qısa isim ifadəsi, sual sözü yoxdur: «nədir» əlavə et
+  const words = raw.split(" ");
+  if (words.length >= 2 && words.length <= 4 && /tovhid|tevhid|tawhid|rububi|sifet|sifat|esma|asma|sirk|shirk/.test(f) && !/[?؟]|\b(?:n[əe]dir|nedi|nec[əe]|niy[əe]|hans[ıi]|ne|what|why|how)\b/i.test(raw) && !/[\u0600-\u06FF]/.test(raw)) return raw + " nədir";
+  return null;
+}
+
+/** Zəncirin sonunda (heç bir idarəçi cavab vermədikdə): en/ru/tr ifadələri və qısa isim ifadələri üçün tövhid cavabı, yoxsa null */
+export function tawhidFallbackReply(message) {
+  if (tawhidMatch(message)) return null; // adi tawhidReply artıq cavab verərdi
+  const alt = tawhidAlias(message);
+  return alt && tawhidMatch(alt) ? tawhidReply(alt) : null;
+}
+
 export function tawhidReply(message) {
   const m = tawhidMatch(message);
   if (!m) return null;

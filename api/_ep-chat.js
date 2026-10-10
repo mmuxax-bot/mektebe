@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { askProvider, aiConfig } from "./_ai.js";
 import { cannedReply } from "./_canned.js";
 import { quranReply } from "./_quran.js";
-import { tawhidReply } from "./_tawhid.js";
+import { tawhidReply, tawhidFallbackReply } from "./_tawhid.js";
 import { tafsirReply, withTafsirSuggest } from "./_tafsir.js";
 import { nextReply } from "./_next.js";
 import { gameReply } from "./_game.js";
@@ -130,7 +130,7 @@ export default async function handler(req, res) {
         /* namaz vaxtı tapılmazsa, sual öz axınında qalır */
       }
     }
-    if (!fixed) for (const [kind, fn] of [["game", (m) => gameReply(m, gameHist)], ["book", (m) => translateReply(m, { ip: String(req.headers?.["x-forwarded-for"] || req.headers?.["x-real-ip"] || "").split(",")[0].trim() || "chat" })], ["book", (m) => fatawaReply(m, hist)], ["book", (m) => (body.mode === "code" || body.mode === "create" ? null : itbooksReply(m, hist))], ["book", (m) => hadithReply(m, hist)], ["next", (m) => nextReply(m, hist)], ["tafsir", tafsirReply], ["ayah", ayahReply], ["tawhid", tawhidReply], ["canned", cannedReply], ["quran", quranReply], ["book", (m) => lughaReply(follow || m)], ["book", nahwReply], ["book", hadithBare], ["book", (m) => (lexicalLoose || body.mode === "code" || body.mode === "create" ? null : fatawaNaturalReply(m))], ["din", (m) => (lexicalLoose ? null : dinReply(m))], ["brand", brandReply]]) {
+    if (!fixed) for (const [kind, fn] of [["game", (m) => gameReply(m, gameHist)], ["book", (m) => translateReply(m, { ip: String(req.headers?.["x-forwarded-for"] || req.headers?.["x-real-ip"] || "").split(",")[0].trim() || "chat" })], ["book", (m) => fatawaReply(m, hist)], ["book", (m) => (body.mode === "code" || body.mode === "create" ? null : itbooksReply(m, hist))], ["book", (m) => hadithReply(m, hist)], ["next", (m) => nextReply(m, hist)], ["tafsir", tafsirReply], ["ayah", ayahReply], ["tawhid", tawhidReply], ["canned", cannedReply], ["quran", quranReply], ["book", (m) => lughaReply(follow || m)], ["book", nahwReply], ["book", hadithBare], ["book", (m) => (lexicalLoose || body.mode === "code" || body.mode === "create" ? null : fatawaNaturalReply(m))], ["din", (m) => (lexicalLoose ? null : dinReply(m))], ["brand", brandReply], ["tawhid", tawhidFallbackReply]]) {
       let r = await fn(message);
       if (r) {
         if (kind === "ayah") r = withTafsirSuggest(r, message); // təfsir istənilməyib: ayə/surə cavabına təfsir seçimləri əlavə olunur
@@ -284,7 +284,8 @@ async function booksOnly(body, message, res) {
     return;
   }
   const code = body.mode === "code" || body.mode === "create";
-  const chain = [["book", (m) => fatawaReply(m, hist)], ["book", (m) => (code ? null : itbooksReply(m, hist))], ["book", (m) => hadithReply(m, hist)], ["next", (m) => nextReply(m, hist)], ["tafsir", tafsirReply], ["ayah", ayahReply], ["tawhid", tawhidReply], ["canned", cannedReply], ["quran", quranReply], ["book", (m) => lughaReply(follow || m)], ["book", nahwReply], ["book", hadithBare], ["book", (m) => (lexicalLoose || code ? null : fatawaNaturalReply(m))]];
+  const chain = [["book", (m) => fatawaReply(m, hist)], ["book", (m) => (code ? null : itbooksReply(m, hist))], ["book", (m) => hadithReply(m, hist)], ["next", (m) => nextReply(m, hist)], ["tafsir", tafsirReply], ["ayah", ayahReply], ["tawhid", tawhidReply], ["canned", cannedReply], ["quran", quranReply], ["book", (m) => lughaReply(follow || m)], ["book", nahwReply], ["book", hadithBare], ["book", (m) => (lexicalLoose || code ? null : fatawaNaturalReply(m))], ["tawhid", (m) => ((!lexicalLoose && dinReply(m)) || brandReply(m) ? null : tawhidFallbackReply(m))]];
+  // sonuncu: tövhid ehtiyat uyğunlaşdırması (en/ru/tr, qısa ifadə) — nibrascode-un din/brand cavabları qabaqlanmır
   for (const [kind, fn] of chain) {
     let r = await fn(message);
     if (!r) continue;
