@@ -18,17 +18,26 @@ http
       res.end(JSON.stringify(d));
     };
     try {
-      const m = url.pathname.match(/^\/api\/([a-z0-9-]+)\/?$/);
+      // vercel.json rewrite-ları (":ad" və ":ad(a|b)" nümunələri), sonra api/<ad>.js funksiyası
+      let rel = decodeURIComponent(url.pathname);
+      for (const r of vercel.rewrites || []) {
+        const names = [];
+        const re = new RegExp("^" + r.source.replace(/:(\w+)(\([^)]*\))?/g, (_, n, g) => (names.push(n), g || "([^/]+)")) + "/?$");
+        const hit = rel.match(re);
+        if (hit && !fs.existsSync(path.join(root, "public", rel))) {
+          const dest = new URL(r.destination.replace(/:(\w+)/g, (_, n) => hit[names.indexOf(n) + 1] ?? ""), "http://localhost");
+          for (const [k, v] of dest.searchParams) url.searchParams.set(k, v);
+          rel = dest.pathname;
+          break;
+        }
+      }
+      const m = rel.match(/^\/api\/([a-z0-9-]+)\/?$/);
       if (m && fs.existsSync(path.join(root, "api", m[1] + ".js"))) {
         req.query = Object.fromEntries(url.searchParams);
         const mod = await import(pathToFileURL(path.join(root, "api", m[1] + ".js")).href);
         return await mod.default(req, res);
       }
-      let rel = decodeURIComponent(url.pathname);
-      for (const r of vercel.rewrites || []) {
-        const re = new RegExp("^" + r.source.replace(/:\w+\*/g, ".*").replace(/:\w+/g, "[^/]+") + "$");
-        if (re.test(rel) && !fs.existsSync(path.join(root, "public", rel)) ) { rel = r.destination; break; }
-      }
+      if (rel.startsWith("/api/")) return res.status(404).json({ error: "not_found" });
       let file = path.join(root, "public", rel);
       if (!file.startsWith(path.join(root, "public"))) return res.status(403).end();
       if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, "index.html");

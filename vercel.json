@@ -5,6 +5,10 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/api/:route(books|page|toc|search|chat)",
+      "destination": "/api/index?__route=:route"
+    },
+    {
       "source": "/kitab/:id",
       "destination": "/reader"
     },
@@ -14,17 +18,8 @@
     }
   ],
   "functions": {
-    "api/chat.js": {
+    "api/index.js": {
       "maxDuration": 45
-    },
-    "api/page.js": {
-      "maxDuration": 20
-    },
-    "api/toc.js": {
-      "maxDuration": 20
-    },
-    "api/search.js": {
-      "maxDuration": 30
     }
   },
   "headers": [

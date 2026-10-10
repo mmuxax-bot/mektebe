@@ -6,7 +6,7 @@ library.nibrascode.com — İbn Teymiyyə kitabları (28 kitab + Məcmuul-fətav
 ## Quruluş
 
 - `public/` — statik sayt (build yoxdur): `index.html` (ana səhifə: axtarış, «Davam et», 3 bölmə kartı), `section.html` (`/bolme/<ibn-taymiyyah|nahw|hadith>`; Məcmuul-fətava İbn Teymiyyə bölməsində ayrıca blokdur, köhnə `/bolme/majmu` ora keçir), `reader.html` (`/kitab/<id>`, vərəq çevirmə), `ai.html` (Nibras AI).
-- `api/` — Vercel Node funksiyaları:
+- `api/index.js` — Vercel-də TƏK funksiya (Function Storage-a qənaət). `vercel.json` rewrite-ı `/api/<books|page|toc|search|chat>` ünvanlarını ora yönəldir, açıq URL-lər eynidir; hər marşrutun kodu `api/_books.js`, `_page.js`, `_toc.js`, `_search.js`, `_chat.js`-dədir və yalnız lazım olanda yüklənir (`/api/books` kitab məlumatını yükləmir):
   - `GET /api/books` — katalog
   - `GET /api/page?book=<id>&p=<n>[&q=]` — səhifə
   - `GET /api/toc?book=<id>[&vol=<n>]` — mündəricat / cildlər
