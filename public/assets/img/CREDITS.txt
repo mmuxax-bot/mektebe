@@ -1,0 +1,10 @@
+mushaf.webp
+  Title:   Qur'an and Rehal
+  Source:  https://commons.wikimedia.org/wiki/File:Qur%27an_and_Rehal.jpg
+           (original: https://upload.wikimedia.org/wikipedia/commons/f/fc/Qur%27an_and_Rehal.jpg, 900x600;
+            first published at akkasemosalman.ir, released under CC BY 4.0 per the Commons {{Akkasemosalman}} template)
+  Author:  sayyed shahab-o- din vajedi
+  License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+           https://creativecommons.org/licenses/by/4.0/
+  Changes: cropped to the mushaf and stand (690x580 region), resized to 600x504, converted to WebP (q82, ~35 KB).
+  Attribution is shown in the footer of the home page.

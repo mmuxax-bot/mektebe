@@ -48,6 +48,8 @@ export function footer() {
   const f = document.createElement("footer");
   f.className = "foot";
   f.innerHTML = `<span dir="ltr">© Nibras Code 2026</span> · <a href="https://nibrascode.com">nibrascode.com</a>`;
+  // CC BY 4.0 müəllif qeydi (yalnız foto olan ana səhifədə)
+  if (document.querySelector("main.home")) f.insertAdjacentHTML("beforeend", `<small class="credit" dir="ltr">Quran photo: <a href="https://commons.wikimedia.org/wiki/File:Qur%27an_and_Rehal.jpg" target="_blank" rel="noopener">sayyed shahab-o-din vajedi</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> (cropped)</small>`);
   document.body.append(f);
 }
 

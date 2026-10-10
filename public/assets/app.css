@@ -271,10 +271,7 @@ body.reader { overflow: hidden; height: 100vh; height: 100dvh; display: flex; fl
 /* ---------- faza 3: ana səhifə */
 html { overflow-x: clip; }
 .home .hero { position: relative; text-align: center; margin: 0 auto; padding: 72px 0 12px; max-width: 760px; }
-.home .hero::before, .home .hero::after { content: ""; position: absolute; z-index: -1; left: 50%; transform: translateX(-50%); pointer-events: none; }
-.home .hero::before { top: -60px; width: 100vw; height: 560px; opacity: 0.07;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cg fill='none' stroke='%23c9d8ff' stroke-width='1'%3E%3Crect x='20' y='20' width='44' height='44'/%3E%3Crect x='20' y='20' width='44' height='44' transform='rotate(45 42 42)'/%3E%3Ccircle cx='42' cy='42' r='9'/%3E%3Cpath d='M0 0l11 11M84 0 73 11M0 84l11-11M84 84 73 73M42 0v11M42 84V73M0 42h11M84 42H73'/%3E%3C/g%3E%3C/svg%3E") center top / 84px 84px;
-  -webkit-mask: radial-gradient(closest-side, #000 30%, transparent); mask: radial-gradient(closest-side, #000 30%, transparent); }
+.home .hero::after { content: ""; position: absolute; z-index: -1; left: 50%; transform: translateX(-50%); pointer-events: none; }
 .home .hero::after { top: -40px; width: min(900px, 120vw); height: 460px; background: radial-gradient(closest-side, rgba(79, 140, 255, 0.2), rgba(212, 175, 95, 0.05) 55%, transparent); }
 .cal { font-family: "Aref Ruqaa", var(--ar); font-weight: 700; font-size: clamp(54px, 9vw, 86px); line-height: 1.15; color: transparent; background: linear-gradient(180deg, #f3dfa6, #c9a24f); -webkit-background-clip: text; background-clip: text; filter: drop-shadow(0 6px 24px rgba(212, 175, 95, 0.25)); }
 .home .hero h1 { margin: 6px 0 10px; font-size: clamp(30px, 4.4vw, 46px); letter-spacing: -0.6px; }
@@ -341,10 +338,7 @@ html { overflow-x: clip; }
   .cta { font-size: 0; width: 32px; height: 32px; justify-content: center; border-radius: 50%; background: rgba(var(--c1), 0.14); flex: none; }
 }
 .home .hero { isolation: isolate; }
-.home .hero::before { opacity: 0.09; }
-.home .hero::before { opacity: 0.16; }
 .home .hero::after { background: radial-gradient(closest-side, rgba(79, 140, 255, 0.26), rgba(212, 175, 95, 0.07) 55%, transparent); }
-.home .hero::before { opacity: 0.12; }
 
 /* ---------- Quran */
 .cal.sm { font-size: clamp(38px, 6vw, 56px); }
@@ -465,10 +459,6 @@ div.hit .s { display: block; }
 @media (min-width: 1025px) { .home .seccard { padding: 26px 22px 22px; } .home .seccard h2 { font-size: 20px; } .home .seccard .fanbox { width: 130px; height: 132px; } .home .seccard .fan, .home .seccard .fan .cover { width: 78px; } .home .seccard .fan.f0 { left: 26px; } .home .seccard .fan.f2 { left: 52px; } }
 .seccard[data-s="quran"] { --c1: 212, 175, 95; --c2: 240, 214, 150; border-color: rgba(212, 175, 95, 0.35); }
 .seccard[data-s="quran"] .sic { background: rgba(212, 175, 95, 0.16); color: #e6cf8f; }
-.mcov { background: linear-gradient(135deg, #6a3814, #33180a); color: #f6e4ae; }
-.mcov::before { border-color: rgba(240, 210, 140, 0.75); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.18), inset 0 0 0 4px rgba(240, 210, 140, 0.4); }
-.mcov::after { border-color: rgba(240, 210, 140, 0.9); background: rgba(240, 210, 140, 0.25); }
-.mcov .ct { font-family: "Amiri", var(--ar); font-size: 15px !important; line-height: 1.45; }
 .home .resume { display: block; margin: 34px auto 0; max-width: 900px; padding: 0; overflow: visible; }
 .home .resume:empty { display: none; }
 .rhead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; padding: 0 2px; }
@@ -497,3 +487,11 @@ div.hit .s { display: block; }
 .home .seccard p { margin-bottom: 16px; }
 @media (min-width: 1025px) { .home .seccard .sfoot { flex-wrap: nowrap; } .home .seccard .scount { font-size: 12.5px; } .home .seccard .cta { font-size: 13px; } }
 @media (max-width: 760px) { .home .seccard p { margin-bottom: 0; } .home .seccard .sfoot { margin-top: 12px; } }
+
+/* ---------- faza 8: naxışsız hero, Quran kartında real mushaf fotosu */
+.seccard .fanbox.qphoto { display: flex; align-items: center; justify-content: center; }
+.qphoto img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 14px; box-shadow: 0 14px 28px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(212, 175, 95, 0.35); transition: transform 0.3s; background: #000; }
+.seccard:hover .qphoto img { transform: translateY(-4px) scale(1.02); }
+@media (prefers-reduced-motion: reduce) { .seccard:hover .qphoto img { transform: none; } }
+.foot .credit { display: block; margin-top: 4px; font-size: 11px; opacity: 0.7; }
+.foot .credit a { color: inherit; text-decoration: underline; }
