@@ -7,6 +7,10 @@
     {
       "source": "/kitab/:id",
       "destination": "/reader"
+    },
+    {
+      "source": "/bolme/:id",
+      "destination": "/section"
     }
   ],
   "functions": {

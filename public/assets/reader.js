@@ -34,7 +34,10 @@ $("#pin").max = b.pages;
 
 // ---------------------------------------------------------------- şrift
 let fsz = Number(localStorage.getItem("nl:fs")) || 21;
-const applyFs = () => document.documentElement.style.setProperty("--rfs", fsz + "px");
+const applyFs = () => {
+  document.documentElement.style.setProperty("--rfs", fsz + "px");
+  document.querySelectorAll(".pbody").forEach((b) => b._upd && b._upd());
+};
 applyFs();
 $("#fup").onclick = () => ((fsz = Math.min(32, fsz + 1)), applyFs(), localStorage.setItem("nl:fs", fsz));
 $("#fdown").onclick = () => ((fsz = Math.max(15, fsz - 1)), applyFs(), localStorage.setItem("nl:fs", fsz));
@@ -82,7 +85,7 @@ function textHTML(text, hl) {
   return main.join("") + (notes.length ? `<div class="fn">${notes.join("")}</div>` : "");
 }
 function pageHTML(d) {
-  if (!d) return `<div class="phead"></div><div class="pbody"></div><div class="pfoot"></div>`;
+  if (!d) return `<div class="phead"></div><div class="pwrap"><div class="pbody"><div class="pin"></div></div></div><div class="pfoot"></div>`;
   const head = `<div class="phead"><span class="rh">${esc(d.title || b.ar)}</span><span class="rf">${esc(d.ref || "")}</span></div>`;
   let body = "";
   if (b.kind === "hd") {
@@ -92,11 +95,52 @@ function pageHTML(d) {
   } else {
     body = textHTML(d.text, d.hl) || `<p class="muted">—</p>`;
   }
-  return `${head}<div class="pbody">${body}</div><div class="pfoot">${d.p}</div>`;
+  return `${head}<div class="pwrap"><div class="pbody"><div class="pin">${body}</div></div><div class="ptrack"><i></i></div><div class="pmore"><button type="button" tabindex="-1">↓ ${esc(t("moreBelow"))}</button></div></div><div class="pfoot">${d.p}</div>`;
 }
 function paint(el, d) {
   el.classList.toggle("blank", !d);
   el.innerHTML = pageHTML(d);
+  watch(el);
+}
+// Uzun səhifə kağızın içində sürüşür: sağ/sol kənarda göstərici, altda «Davamı aşağıda». Çevriləndə yuxarıdan başlayır (yeni DOM).
+const ro = new ResizeObserver((es) => es.forEach((e) => e.target._upd && e.target._upd()));
+function watch(el) {
+  const body = el.querySelector(".pbody");
+  if (!body) return;
+  const thumb = el.querySelector(".ptrack i");
+  const upd = () => {
+    const sh = body.scrollHeight;
+    const ch = body.clientHeight;
+    const long = sh > ch + 2;
+    el.classList.toggle("long", long);
+    el.classList.toggle("more-below", long && body.scrollTop + ch < sh - 6);
+    if (long && thumb) {
+      const h = Math.max(12, (ch / sh) * 100);
+      thumb.style.height = h + "%";
+      thumb.style.top = (body.scrollTop / (sh - ch)) * (100 - h) + "%";
+    }
+  };
+  body._upd = upd;
+  body.addEventListener("scroll", upd, { passive: true });
+  const mb = el.querySelector(".pmore button");
+  if (mb) mb.onclick = () => body.scrollBy({ top: body.clientHeight * 0.85, behavior: "smooth" });
+  ro.observe(body);
+  if (body.firstElementChild) {
+    body.firstElementChild._upd = upd; // şrift yüklənəndə / ölçü dəyişəndə mətn hündürlüyü dəyişir
+    ro.observe(body.firstElementChild);
+  }
+  upd();
+  if (document.fonts) document.fonts.ready.then(upd);
+}
+// Boşluq / PageDown / ↓: əvvəl səhifənin özü sürüşür, sonu görünəndə növbəti səhifə
+function scrollOrTurn(dir) {
+  const bodies = [$("#pr .pbody"), spread ? $("#pl .pbody") : null].filter(Boolean);
+  if (dir < 0) bodies.reverse();
+  for (const bd of bodies) {
+    const atEnd = dir > 0 ? bd.scrollTop + bd.clientHeight >= bd.scrollHeight - 6 : bd.scrollTop <= 2;
+    if (!atEnd) return bd.scrollBy({ top: dir * bd.clientHeight * 0.85, behavior: reduce ? "auto" : "smooth" });
+  }
+  go(dir);
 }
 
 // ---------------------------------------------------------------- vəziyyət
@@ -118,6 +162,10 @@ async function show(p) {
   paint($("#pr"), r);
   if (spread) paint($("#pl"), l);
   if (!r) toast(t("error"));
+  if (hlQuery) for (const el of [$("#pr"), spread ? $("#pl") : null]) {
+    const mk = el && el.querySelector(".pbody mark");
+    if (mk) el.querySelector(".pbody").scrollTop = Math.max(0, mk.offsetTop - 60);
+  }
   after();
 }
 function after() {
@@ -232,6 +280,8 @@ addEventListener("keydown", (e) => {
   if (e.target.closest("input, textarea")) return;
   if (e.key === "ArrowLeft") go(1);
   else if (e.key === "ArrowRight") go(-1);
+  else if (e.key === " " || e.key === "PageDown" || e.key === "ArrowDown") (e.preventDefault(), scrollOrTurn(1));
+  else if (e.key === "PageUp" || e.key === "ArrowUp") (e.preventDefault(), scrollOrTurn(-1));
   else if (e.key === "Escape") closeDrawer();
 });
 let tx = null;
@@ -382,4 +432,4 @@ else if (location.hash === "#search") {
   openDrawer("search");
   if (hlQuery) $("#bsf").requestSubmit();
 }
-window.__reader = { go, jump, setFlipMs: (ms) => (FLIP_MS = ms) }; // sınaq üçün
+window.__reader = { go, jump, scrollOrTurn, setFlipMs: (ms) => (FLIP_MS = ms) }; // sınaq üçün

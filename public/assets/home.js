@@ -1,28 +1,23 @@
-import { $, esc, t, fmt, pick, lang, header, footer, catalog, coverHTML, bookName, bookUrl, lastRead, api, markHTML, countLabel } from "./common.js";
+import { $, esc, t, fmt, header, footer, catalog, coverHTML, bookUrl, lastRead, api, SECTIONS, secTitle, secDesc, sectionUrl, sectionBooks, hitHTML } from "./common.js";
 
 header("home");
 footer();
 $("#h1").innerHTML = `${esc(t("hero1"))} <span>${esc(t("hero2"))}</span>`;
 $("#q").placeholder = t("searchAll");
 $("#sb").textContent = t("search");
-$("#filter").placeholder = t("filter");
 $("#ld").textContent = t("loading");
 
-const LIMIT = 12;
-const sub = (b) => [b.death ? t("death", { y: fmt(b.death) }) : "", b.volumes > 1 ? t("volsN", { n: fmt(b.volumes) }) : "", countLabel(b)].filter(Boolean).join(" · ");
-const card = (b) => `<a class="book" href="${bookUrl(b)}" data-f="${esc((b.ar + " " + Object.values(b.name || {}).join(" ") + " " + b.author).toLowerCase())}">${coverHTML(b)}<div class="meta"><div class="nm">${esc(bookName(b))}</div><div class="sub">${esc(sub(b))}</div></div></a>`;
-
 const cat = await catalog().catch(() => null);
-if (!cat) {
-  $("#ld").textContent = t("error");
-} else {
-  $("#sub").textContent = t("heroSub", { books: fmt(cat.count), pages: fmt(cat.pages) });
-  renderResume(cat);
-  renderShelves(cat);
+if (!cat) $("#ld").textContent = t("error");
+else {
+  $("#sub").textContent = t("heroSub2", { books: fmt(cat.count), pages: fmt(cat.pages) });
+  renderResume();
+  renderSections();
 }
 
-function renderResume(cat) {
-  const items = Object.entries(lastRead()).filter(([id]) => cat.byId.has(id)).sort((a, b) => b[1].at - a[1].at).slice(0, 4);
+// «Davam et»: yalnız oxunan kitab varsa görünür
+function renderResume() {
+  const items = Object.entries(lastRead()).filter(([id]) => cat.byId.has(id)).sort((a, b) => b[1].at - a[1].at).slice(0, 3);
   $("#resume").innerHTML = items
     .map(([id, v]) => {
       const b = cat.byId.get(id);
@@ -31,45 +26,22 @@ function renderResume(cat) {
     .join("");
 }
 
-function renderShelves(cat) {
-  const html = cat.sections
+// 4 böyük bölmə kartı
+function renderSections() {
+  $("#sections").innerHTML = cat.sections
     .map((s) => {
-      const n = s.groups.reduce((a, g) => a + g.books.length, 0);
-      const groups = s.groups
-        .map((g) => {
-          const h = g.stage ? `<h3>${esc(t("stage")[g.stage - 1])} — ${esc(pick(g.title))}</h3>` : "";
-          const many = g.books.length > LIMIT + 2;
-          return `<div class="group">${h}<div class="grid" data-many="${many ? 1 : 0}">${g.books.map(card).join("")}</div>${many ? `<div class="more-row"><button class="btn ghost sm" data-more="${g.books.length}">${esc(t("showAll", { n: g.books.length }))}</button></div>` : ""}</div>`;
-        })
-        .join("");
-      return `<section class="section" id="s-${s.id}"><h2>${esc(pick(s.title))} <small>${esc(t("booksN", { n: fmt(n) }))}</small></h2>${groups}</section>`;
+      const all = sectionBooks(s);
+      const mj = all.find((b) => b.id === "majmu");
+      const books = all.filter((b) => b !== mj);
+      const count = mj ? t("itCount", { a: fmt(books.length), b: fmt(mj.volumes) }) : t("booksN", { n: fmt(books.length) });
+      const fan = books.slice(0, 3).map((b, i) => `<div class="fan f${i}">${coverHTML(b, "mini")}</div>`).join("");
+      const icon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${SECTIONS[s.id].icon}"/></svg>`;
+      return `<a class="seccard" href="${sectionUrl(s.id)}"><div class="fanbox">${fan}</div><div class="sbody"><div class="sic">${icon}</div><h2>${esc(secTitle(s.id))}</h2><p>${esc(secDesc(s.id))}</p><div class="scount">${esc(count)}<span>→</span></div><div class="sar ar">${esc(s.title.ar || "")}</div></div></a>`;
     })
     .join("");
-  $("#shelves").innerHTML = html;
-  for (const grid of document.querySelectorAll('.grid[data-many="1"]')) collapse(grid, true);
-  document.querySelectorAll("[data-more]").forEach((btn) =>
-    btn.addEventListener("click", () => {
-      const grid = btn.closest(".group").querySelector(".grid");
-      const open = grid.dataset.open === "1";
-      collapse(grid, open);
-      btn.textContent = open ? t("showAll", { n: btn.dataset.more }) : t("showLess");
-    }),
-  );
-}
-function collapse(grid, yes) {
-  grid.dataset.open = yes ? "0" : "1";
-  [...grid.children].forEach((c, i) => c.classList.toggle("hidden", yes && i >= LIMIT));
 }
 
-$("#filter").addEventListener("input", (e) => {
-  const q = e.target.value.trim().toLowerCase();
-  document.querySelectorAll(".book").forEach((a) => a.classList.toggle("hidden", q ? !a.dataset.f.includes(q) : false));
-  if (!q) document.querySelectorAll('.grid[data-many="1"]').forEach((g) => collapse(g, g.dataset.open !== "1"));
-  document.querySelectorAll(".more-row").forEach((r) => r.classList.toggle("hidden", !!q));
-  document.querySelectorAll(".section").forEach((s) => s.classList.toggle("hidden", q && !s.querySelector(".book:not(.hidden)")));
-});
-
-// ---------- bütün kitabxanada axtarış
+// bütün kitabxanada axtarış
 $("#sf").addEventListener("submit", async (e) => {
   e.preventDefault();
   const q = $("#q").value.trim();
@@ -78,8 +50,7 @@ $("#sf").addEventListener("submit", async (e) => {
   box.classList.remove("hidden");
   box.innerHTML = `<p class="muted">${esc(t("loading"))}</p>`;
   try {
-    const [r, cat] = await Promise.all([api("/api/search?q=" + encodeURIComponent(q)), catalog()]);
-    const secTitle = new Map(cat.sections.map((s) => [s.id, pick(s.title)]));
+    const r = await api("/api/search?q=" + encodeURIComponent(q));
     if (!r.total) {
       box.innerHTML = `<h2>${esc(t("results"))}</h2><p class="muted">${esc(t("noResults"))}</p>`;
       return;
@@ -88,18 +59,12 @@ $("#sf").addEventListener("submit", async (e) => {
       `<h2>${esc(t("results"))} <small class="muted">${esc(t("resultsN", { n: fmt(r.total) }))}</small></h2>` +
       r.sections
         .filter((s) => s.total)
-        .map((s) => `<div class="res-sec"><h4>${esc(secTitle.get(s.id))} · ${esc(t("resultsN", { n: fmt(s.total) }))}</h4>${s.results.map((h) => hitHTML(h, cat, q)).join("")}</div>`)
+        .map((s) => `<div class="res-sec"><h4>${esc(secTitle(s.id))} · ${esc(t("resultsN", { n: fmt(s.total) }))}</h4>${s.results.map((h) => hitHTML(h, cat, q)).join("")}</div>`)
         .join("");
   } catch {
     box.innerHTML = `<p class="muted">${esc(t("error"))}</p>`;
   }
 });
-function hitHTML(h, cat, q) {
-  const b = cat.byId.get(h.book);
-  return `<a class="hit" href="${bookUrl(b, h.p)}&q=${encodeURIComponent(q)}"><div class="h1"><b>${esc(b.ar)}</b><span>${esc(h.ref)}${h.title ? " · " + esc(h.title) : ""}</span></div><div class="s">${markHTML(h.s, h.hl)}</div></a>`;
-}
-
-// ?q=... ilə açılanda axtarış dərhal işləyir (paylaşılan link)
 const q0 = new URLSearchParams(location.search).get("q");
 if (q0) {
   $("#q").value = q0;

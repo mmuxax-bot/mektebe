@@ -18,7 +18,8 @@ const inline = (s) => esc(s).replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
 const isAr = (s) => /[\u0600-\u06FF]/.test(s) && !/[a-zəğıöüçşа-я]/i.test(s.replace(/::[a-z/]+::/g, ""));
 
 // Nibras AI cavab işarələri: ::tafsir X:: … ::/tafsir::, ::tl::, ::src::, ::tv::, ::note::, ::sug:: (::sl::, ::sb:: ad | sorğu), ::ctx:: (gizli)
-export function render(text) {
+export function render(text, links = []) {
+  let bi = 0;
   const out = [];
   let blk = null;
   let sug = null;
@@ -36,7 +37,9 @@ export function render(text) {
       continue;
     }
     if (l === "::/tafsir::" && blk) {
-      out.push(`<div class="blk">${blk.tl ? `<div class="tl">${esc(blk.tl)}</div>` : ""}<div class="bx">${blk.body.map((x) => `<p>${esc(x)}</p>`).join("")}</div>${blk.tv.map((x) => `<div class="tv" dir="auto">${esc(x)}</div>`).join("")}${blk.src.map((x) => `<div class="sr">${esc(x)}</div>`).join("")}</div>`);
+      const ln = links[bi++];
+      const open = ln && ln.book ? `<a class="openb" dir="auto" href="/kitab/${encodeURIComponent(ln.book)}?p=${Number(ln.p) || 1}${ln.q ? "&q=" + encodeURIComponent(ln.q) : ""}">📖 ${esc(t("openInBook"))}</a>` : "";
+      out.push(`<div class="blk">${blk.tl ? `<div class="tl">${esc(blk.tl)}</div>` : ""}<div class="bx">${blk.body.map((x) => `<p>${esc(x)}</p>`).join("")}</div>${blk.tv.map((x) => `<div class="tv" dir="auto">${esc(x)}</div>`).join("")}${blk.src.map((x) => `<div class="sr">${esc(x)}</div>`).join("")}${open}</div>`);
       blk = null;
       continue;
     }
@@ -75,10 +78,10 @@ export function render(text) {
   return out.join("");
 }
 
-function add(role, text, scroll = true) {
+function add(role, text, scroll = true, links = []) {
   const d = document.createElement("div");
   d.className = "msg" + (role === "user" ? " me" : "");
-  d.innerHTML = `<div class="bub" dir="auto">${role === "user" ? esc(text) : render(text)}</div>`;
+  d.innerHTML = `<div class="bub" dir="auto">${role === "user" ? esc(text) : render(text, links)}</div>`;
   $("#log").append(d);
   if (scroll) d.scrollIntoView({ block: "end", behavior: "smooth" });
   return d;
@@ -98,13 +101,15 @@ async function ask(q) {
   const wait = add("assistant", "");
   wait.querySelector(".bub").innerHTML = `<span class="dots muted">${esc(t("loading").replace(/…$/, ""))}</span>`;
   let reply = t("aiErr");
+  let links = [];
   try {
-    const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: q, messages: hist.slice(-12) }) });
+    const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: q, messages: hist.slice(-12).map(({ role, text }) => ({ role, text })) }) });
     const j = await r.json();
     if (j && j.reply) reply = j.reply;
+    if (j && Array.isArray(j.links)) links = j.links;
   } catch {}
-  wait.querySelector(".bub").innerHTML = render(reply);
-  hist.push({ role: "user", text: q }, { role: "assistant", text: reply });
+  wait.querySelector(".bub").innerHTML = render(reply, links);
+  hist.push({ role: "user", text: q }, { role: "assistant", text: reply, links });
   hist = hist.slice(-20);
   sessionStorage.setItem(KEY, JSON.stringify(hist));
   busy = false;
@@ -121,5 +126,5 @@ $("#m").addEventListener("keydown", (e) => {
     $("#f").requestSubmit();
   }
 });
-for (const m of hist) add(m.role, m.text, false);
+for (const m of hist) add(m.role, m.text, false, m.links || []);
 if (hist.length) $("#ex").classList.add("hidden");

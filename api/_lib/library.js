@@ -29,6 +29,11 @@ function nahwBook(id) {
   }
   return _nb.get(id);
 }
+/** nəhv kitabının səhifələri [[səhifə, cild, başlıq, mətn]] (id: nh-<id>) */
+export async function nahwPages(id) {
+  const b = bookMeta(id);
+  return b && b.kind === "nh" ? (await nahwBook(b.src)).p : [];
+}
 // _nahw.js-dəki postinq oxuyucusunun eyni nüsxəsi (orada ixrac olunmur)
 function readVarint(buf, pos) {
   let n = 0;

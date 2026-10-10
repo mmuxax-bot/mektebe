@@ -12,6 +12,7 @@ import { itbooksReply } from "./_itbooks.js";
 import { localReply } from "./_local.js";
 import { isReligious } from "./_religious.js";
 import { isSourceKind, stripNotice, OLD_AZ_NOTICE } from "./_notice.js";
+import { locateBlocks } from "./_lib/locate.js"; // «Kitabda aç» düymələri üçün (yalnız kitabxana saytında)
 
 const track = () => {}; // statistika bu saytda yoxdur
 
@@ -121,7 +122,8 @@ export default async function handler(req, res) {
       // dinReply artıq özü bildirişdir: sonrakı dini suallarda (noticeShown:true) təkrar bildiriş yox, qısa cavab qalır
       let out = cleaned(ready);
       if (isRel && ready.startsWith(OLD_AZ_NOTICE)) out = cleaned(ready.slice(OLD_AZ_NOTICE.length));
-      res.status(200).json({ success: true, reply: out, usedAI: false, ...relFlag(isRel) });
+      const links = fixed ? await locateBlocks(out, message).catch(() => []) : [];
+      res.status(200).json({ success: true, reply: out, usedAI: false, ...relFlag(isRel), ...(links.length ? { links } : {}) });
       return;
     }
     // Gündəlik limit istifadəçi tərəfində sayılır; doluysa yalnız xarici AI tələb edən suallar dayandırılır (hazır cavablar yuxarıda artıq cavablanıb)

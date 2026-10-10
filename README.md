@@ -1,11 +1,11 @@
 # Nibras Library
 
-library.nibrascode.com — İbn Teymiyyə kitabları (28), Məcmuu əl-Fətava (35 cild), Kütübü-sittə (6 kitab) və ərəb qrammatikası (74 kitab).
+library.nibrascode.com — İbn Teymiyyə kitabları (28 kitab + Məcmuul-fətava, 35 cild), Kütübü-sittə (6 kitab) və ərəb qrammatikası (74 kitab).
 Ərəbcə mətn olduğu kimi göstərilir, tərcümə olunmur.
 
 ## Quruluş
 
-- `public/` — statik sayt (build yoxdur): `index.html` (kitabxana), `reader.html` (`/kitab/<id>`, vərəq çevirmə), `ai.html` (Nibras AI).
+- `public/` — statik sayt (build yoxdur): `index.html` (ana səhifə: axtarış, «Davam et», 3 bölmə kartı), `section.html` (`/bolme/<ibn-taymiyyah|nahw|hadith>`; Məcmuul-fətava İbn Teymiyyə bölməsində ayrıca blokdur, köhnə `/bolme/majmu` ora keçir), `reader.html` (`/kitab/<id>`, vərəq çevirmə), `ai.html` (Nibras AI).
 - `api/` — Vercel Node funksiyaları:
   - `GET /api/books` — katalog
   - `GET /api/page?book=<id>&p=<n>[&q=]` — səhifə
@@ -13,7 +13,7 @@ library.nibrascode.com — İbn Teymiyyə kitabları (28), Məcmuu əl-Fətava (
   - `GET /api/search?q=...[&book=<id>&offset=&limit=]` — axtarış
   - `POST /api/chat` — Nibras AI (nibrascode/code `api/chat.js`-in kitab hissəsi)
 - `api/_itbooks`, `_nahw`, `_hadith`, `_fatawa`, `_lugha` — məlumat modulları (nibrascode/code-dan dəyişmədən köçürülüb).
-- `api/_lib/` — kitabxana qatı (`library.js`), avtomatik katalog (`catalog.js`, `hdtoc.js`).
+- `api/_lib/` — kitabxana qatı (`library.js`), avtomatik katalog (`catalog.js`, `hdtoc.js`, `hdno.js`), AI cavabındakı kitab bloklarını səhifəyə bağlayan `locate.js` («Kitabda aç»).
 
 Kitab id-ləri: `it-<slug>` (İbn Teymiyyə), `majmu`, `hd-<bukhari|muslim|abudawud|tirmidhi|nasai|ibnmajah>`, `nh-<Şamilə id>`.
 

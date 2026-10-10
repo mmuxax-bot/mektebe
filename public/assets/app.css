@@ -105,8 +105,8 @@ body.reader { overflow: hidden; height: 100vh; height: 100dvh; display: flex; fl
 .ibtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 38px; height: 38px; padding: 0 10px; border-radius: 10px; background: var(--card); border: 1px solid var(--line); color: var(--text); cursor: pointer; font-size: 14px; white-space: nowrap; }
 .ibtn:hover { border-color: rgba(79, 140, 255, 0.5); }
 .ibtn svg { width: 18px; height: 18px; }
-.stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 18px 12px; position: relative; perspective: 2400px; }
-.book3d { position: relative; display: flex; flex-direction: row-reverse; transform-style: preserve-3d; width: min(1240px, calc(100vw - 130px), calc((100dvh - 150px) * 1.36)); aspect-ratio: 1.36; }
+.stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 18px 12px; position: relative; }
+.book3d { position: relative; display: flex; flex-direction: row-reverse; perspective: 2400px; width: min(1240px, calc(100vw - 130px), calc((100dvh - 150px) * 1.36)); aspect-ratio: 1.36; }
 .book3d.single { width: min(620px, calc(100vw - 130px), calc((100dvh - 150px) * 0.7)); aspect-ratio: 0.7; }
 .book3d.single .leaf.l { display: none; }
 .leaf { position: relative; flex: 1; height: 100%; }
@@ -192,3 +192,76 @@ body.reader { overflow: hidden; height: 100vh; height: 100dvh; display: flex; fl
 .composer textarea { flex: 1; resize: none; min-height: 50px; max-height: 160px; padding: 13px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg2); color: var(--text); font: inherit; outline: none; }
 .dots::after { content: "…"; animation: blink 1s infinite; }
 @keyframes blink { 50% { opacity: 0.2; } }
+.openb { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 7px 12px; border-radius: 10px; background: #1d3b7a; color: #fff; font-size: 13.5px; font-family: var(--ui); }
+.openb:hover { background: #2f6cf0; }
+
+/* ---------- uzun səhifə: kağız içində sürüşmə + göstərici (heç bir sətir gizli qalmır) */
+.pbody { scrollbar-width: none; overscroll-behavior: contain; padding-bottom: 28px; }
+.pbody::-webkit-scrollbar { display: none; }
+.pwrap { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.ptrack { position: absolute; top: 10px; bottom: 10px; width: 4px; border-radius: 4px; background: rgba(122, 75, 20, 0.12); left: 7px; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+.spread .leaf.r .ptrack { left: auto; right: 7px; }
+.ptrack i { position: absolute; left: 0; right: 0; border-radius: 4px; background: rgba(122, 75, 20, 0.55); }
+.page.long .ptrack { opacity: 1; }
+.pmore { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; background: linear-gradient(rgba(245, 236, 214, 0), var(--paper) 70%); pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+.pmore button { pointer-events: auto; border: 1px solid rgba(122, 75, 20, 0.35); background: #fbf4e2; color: var(--ink2); border-radius: 999px; padding: 4px 12px; font: 13px var(--ui); cursor: pointer; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12); }
+.page.more-below .pmore { opacity: 1; }
+.page:not(.more-below) .pmore button { pointer-events: none; }
+
+/* ---------- sadə ana səhifə və bölmə səhifələri */
+.airy { max-width: 1120px; padding-left: 22px; padding-right: 22px; }
+.airy .hero { padding: 64px 0 8px; max-width: 760px; }
+.airy .hero p { margin-top: 6px; }
+.airy .searchbar { margin-top: 28px; }
+.airy .resume { margin-top: 36px; }
+.secgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 44px; }
+@media (max-width: 760px) { .secgrid { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; } .airy .hero { padding-top: 36px; } }
+.seccard { position: relative; display: flex; gap: 22px; align-items: center; padding: 26px; border-radius: 20px; background: linear-gradient(160deg, rgba(79, 140, 255, 0.09), rgba(11, 18, 34, 0.6) 55%); border: 1px solid var(--line); color: var(--text); overflow: hidden; transition: border-color 0.2s, transform 0.2s; min-height: 190px; }
+.seccard:hover { border-color: rgba(79, 140, 255, 0.45); transform: translateY(-2px); }
+.fanbox { position: relative; flex: 0 0 104px; height: 130px; }
+.fan { position: absolute; top: 0; width: 82px; }
+.fan .cover { width: 82px; height: auto; }
+.fan.f0 { left: 22px; z-index: 3; }
+.fan.f1 { left: 11px; top: 6px; z-index: 2; transform: rotate(-6deg); opacity: 0.85; }
+.fan.f2 { left: 0; top: 12px; z-index: 1; transform: rotate(-12deg); opacity: 0.7; }
+.fan .mini.cover .ct { font-size: 12px; -webkit-line-clamp: 4; }
+.sbody { flex: 1; min-width: 0; }
+.sic { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: rgba(79, 140, 255, 0.14); color: var(--accent2); margin-bottom: 10px; }
+.sic svg { width: 19px; height: 19px; }
+.seccard h2 { margin: 0 0 6px; font-size: 21px; letter-spacing: -0.2px; }
+.seccard p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+.scount { margin-top: 14px; color: var(--accent2); font-size: 14px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.sar { position: absolute; top: 18px; inset-inline-end: 22px; font-size: 15px; color: rgba(143, 182, 255, 0.45); }
+@media (max-width: 420px) { .seccard { padding: 20px 18px; gap: 16px; min-height: 0; } .fanbox { flex-basis: 84px; height: 110px; } .fan, .fan .cover { width: 68px; } .sar { display: none; } }
+.crumbs { display: flex; gap: 8px; align-items: center; padding-top: 28px; font-size: 14px; color: var(--muted); }
+.crumbs a { color: var(--muted); }
+.crumbs a:hover { color: var(--text); }
+.crumbs b { color: var(--text); font-weight: 600; }
+.sechead { padding: 18px 0 4px; }
+.sechead h1 { margin: 0 0 6px; font-size: clamp(26px, 4vw, 38px); letter-spacing: -0.4px; }
+.sechead p { margin: 0; }
+.searchbar.narrow { max-width: 460px; margin-top: 22px; }
+.airy .group h3 { margin: 44px 0 16px; font-size: 16px; }
+.airy .group h3 small { color: var(--muted); font-weight: 500; margin-inline-start: 6px; }
+.airy .grid { gap: 26px 20px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+@media (max-width: 520px) { .airy .grid { grid-template-columns: repeat(2, 1fr); gap: 20px 14px; } }
+.vols { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.vtile { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); color: var(--text); }
+.vtile:hover { border-color: rgba(79, 140, 255, 0.45); }
+.vtile .vn { flex: 0 0 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: rgba(79, 140, 255, 0.14); color: var(--accent2); font-size: 13px; font-weight: 700; }
+.vtile .vt { font-size: 17px; flex: 1; text-align: start; }
+[dir="rtl"] .sar { display: none; }
+.group.feature { margin-top: 56px; padding: 28px; border-radius: 22px; background: linear-gradient(160deg, rgba(212, 175, 95, 0.1), rgba(11, 18, 34, 0.55) 60%); border: 1px solid rgba(212, 175, 95, 0.28); }
+.feature .fhead { display: flex; gap: 26px; align-items: center; margin-bottom: 24px; }
+.feature .fhead .book { flex: 0 0 150px; }
+.feature .fhead .book .meta { display: none; }
+.feature .ftext h3 { margin: 0 0 8px !important; font-size: 22px !important; }
+.feature .ftext p { margin: 0 0 16px; line-height: 1.55; }
+@media (max-width: 520px) { .group.feature { padding: 20px 16px; } .feature .fhead { gap: 16px; } .feature .fhead .book { flex-basis: 96px; } .feature .ftext h3 { font-size: 18px !important; } }
+.seccard { flex-direction: column; align-items: flex-start; padding: 30px 28px; }
+.seccard .fanbox { flex: 0 0 auto; width: 120px; height: 128px; margin-bottom: 6px; }
+.seccard .sbody { width: 100%; }
+@media (max-width: 760px) { .seccard { flex-direction: row; align-items: center; padding: 22px 20px; } .seccard .fanbox { width: 104px; margin: 0; } }
+@media (max-width: 420px) { .seccard .fanbox { width: 84px; height: 110px; } }
+.resume-card span.btn { color: #fff; font-size: 14px; }
+.sar { display: none !important; }

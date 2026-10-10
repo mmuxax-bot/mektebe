@@ -54,20 +54,25 @@ const HD_INFO = {
 const hdi = await HD.__loadIndex();
 const hdBooks = [];
 const HD_TOC = {};
+const HD_NO = {}; // kitab -> hədis nömrələri (ascii, sıra ilə): «Kitabda aç» üçün rəqəm -> səhifə
+const asciiNo = (s) => String(s || "").replace(/[٠-٩]/g, (c) => "٠١٢٣٤٥٦٧٨٩".indexOf(c));
 for (const b of hdi.books) {
   const m = HD.BOOK_META[b.id];
   const [name, death, desc] = HD_INFO[b.slug];
   const id = "hd-" + b.slug;
   hdBooks.push({ id, kind: "hd", src: b.slug, ar: m.title, name, author: m.author, authorName: null, death, pages: b.n, volumes: 1, first: b.start, start: 1, ed: m.ed, srcUrl: "https://shamela.ws/book/" + b.id, desc });
   const items = [];
+  const nos = [];
   let last = null;
   for (let i = 0; i < b.n; i++) {
     const h = await HD.getHadith(hdi, b.start + i);
+    nos.push(asciiNo(h.no));
     const k = String(h.kitab || "").trim();
     if (k && k !== last) items.push({ t: k, p: i + 1 });
     last = k;
   }
   HD_TOC[id] = items;
+  HD_NO[id] = nos.join("\n");
 }
 
 // ---------------- Nəhv (ölüm ilinə görə, məlumatdakı sıra)
@@ -82,10 +87,9 @@ for (const b of nhi.books) {
 
 const CATALOG = {
   sections: [
-    { id: "ibn-taymiyyah", title: L5("İbn Teymiyyə kitabları", "Books of Ibn Taymiyyah", "İbn Teymiyye'nin kitapları", "Книги Ибн Таймийи", "كتب شيخ الإسلام ابن تيمية"), groups: itGroups },
+    { id: "ibn-taymiyyah", title: L5("İbn Teymiyyə kitabları", "Books of Ibn Taymiyyah", "İbn Teymiyye'nin kitapları", "Книги Ибн Таймийи", "كتب شيخ الإسلام ابن تيمية"), groups: [...itGroups, { id: "majmu", featured: true, title: L5("Məcmuul-fətava", "Majmu' al-Fatawa", "Mecmûu'l-Fetâvâ", "Маджму аль-фатава", "مجموع الفتاوى"), books: [majmu] }] },
     { id: "nahw", title: L5("Ərəb qrammatikası (nəhv və sərf)", "Arabic grammar (nahw and sarf)", "Arapça dil bilgisi (nahiv ve sarf)", "Арабская грамматика (нахв и сарф)", "النحو والصرف"), groups: [{ id: "nahw", title: null, books: nhBooks }] },
     { id: "hadith", title: L5("Kütübü-sittə", "The six hadith books", "Kütüb-i Sitte", "Шесть сборников хадисов", "الكتب الستة"), groups: [{ id: "hadith", title: null, books: hdBooks }] },
-    { id: "majmu", title: L5("Məcmuu əl-Fətava", "Majmu' al-Fatawa", "Mecmûu'l-Fetâvâ", "Маджму аль-фатава", "مجموع الفتاوى"), groups: [{ id: "majmu", title: null, books: [majmu] }] },
   ],
 };
 const count = CATALOG.sections.reduce((a, s) => a + s.groups.reduce((x, g) => x + g.books.length, 0), 0);
@@ -94,4 +98,5 @@ CATALOG.count = count;
 CATALOG.pages = pages;
 fs.writeFileSync(new URL("../api/_lib/catalog.js", import.meta.url), "// Avtomatik: node scripts/build-catalog.mjs\nexport const CATALOG = " + JSON.stringify(CATALOG) + ";\n");
 fs.writeFileSync(new URL("../api/_lib/hdtoc.js", import.meta.url), "// Avtomatik: node scripts/build-catalog.mjs (Kütübü-sittə: kitab başlıqları)\nexport const HD_TOC = " + JSON.stringify(HD_TOC) + ";\n");
+fs.writeFileSync(new URL("../api/_lib/hdno.js", import.meta.url), "// Avtomatik: node scripts/build-catalog.mjs (Kütübü-sittə: hədis nömrələri, sıra ilə)\nexport const HD_NO = " + JSON.stringify(HD_NO) + ";\n");
 console.log("books", count, "pages", pages);
