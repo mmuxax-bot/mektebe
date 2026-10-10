@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nibras Library — Kitabxana</title>
+<meta name="description" content="İbn Teymiyyə kitabları, Kütübü-sittə, Məcmuu əl-Fətava və ərəb qrammatikası kitabları: ərəbcə mətn, əsl kitab kimi oxu.">
+<meta name="theme-color" content="#05060c">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/app.css">
+</head>
+<body>
+<main class="wrap">
+  <section class="hero">
+    <h1 id="h1"></h1>
+    <p id="sub"></p>
+    <form class="searchbar" id="sf">
+      <input id="q" type="search" dir="auto" autocomplete="off" enterkeyhint="search">
+      <button class="btn" id="sb" type="submit"></button>
+    </form>
+    <div class="resume" id="resume"></div>
+  </section>
+  <section class="results hidden" id="results"></section>
+  <div class="searchbar" style="margin-top:28px"><input id="filter" type="search" dir="auto" autocomplete="off"></div>
+  <div id="shelves"><p class="muted" id="ld"></p></div>
+</main>
+<script type="module" src="/assets/home.js"></script>
+</body>
+</html>
