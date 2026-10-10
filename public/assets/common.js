@@ -31,7 +31,7 @@ export function header(active) {
     <a class="brand" href="/"><img src="/favicon.svg" alt=""><span>Nibras Library</span><small>· ${esc(t("library"))}</small></a>
     <nav class="nav">
       <a href="/" class="home ${active === "home" ? "on" : ""}">${esc(t("library"))}</a>
-      <a href="https://nibrascode.com/ai" class="ai">Nibras AI</a>
+      <a href="/ai" class="ai">Library AI</a>
       <a href="https://nibrascode.com" class="site">nibrascode.com</a>
       <select class="lang" aria-label="Language">${LANGS.map(([k, l]) => `<option value="${k}" ${k === lang ? "selected" : ""}>${l}</option>`).join("")}</select>
     </nav>`;
