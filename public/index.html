@@ -10,17 +10,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&text=%D8%A7%D9%84%D9%85%D9%83%D8%AA%D8%A8%D8%A9&display=swap">
 <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body>
-<main class="wrap airy">
+<main class="wrap airy home">
   <section class="hero">
+    <div class="cal" lang="ar" dir="rtl" aria-hidden="true">المكتبة</div>
     <h1 id="h1"></h1>
     <p id="sub"></p>
-    <form class="searchbar" id="sf">
+    <div class="stats" id="stats"></div>
+    <form class="searchbar big" id="sf" role="search">
+      <svg class="sicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" dir="auto" autocomplete="off" enterkeyhint="search">
       <button class="btn" id="sb" type="submit"></button>
     </form>
+    <p class="shint" id="shint"></p>
   </section>
   <section class="results hidden" id="results"></section>
   <div class="resume" id="resume"></div>

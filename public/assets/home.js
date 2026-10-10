@@ -5,12 +5,14 @@ footer();
 $("#h1").innerHTML = `${esc(t("hero1"))} <span>${esc(t("hero2"))}</span>`;
 $("#q").placeholder = t("searchAll");
 $("#sb").textContent = t("search");
+$("#shint").textContent = t("searchHint");
 $("#ld").textContent = t("loading");
 
 const cat = await catalog().catch(() => null);
 if (!cat) $("#ld").textContent = t("error");
 else {
-  $("#sub").textContent = t("heroSub2", { books: fmt(cat.count), pages: fmt(cat.pages) });
+  $("#sub").textContent = t("heroTag");
+  $("#stats").innerHTML = [t("booksN", { n: fmt(cat.count) }), t("pagesN", { n: fmt(cat.pages) }), t("secN", { n: fmt(cat.sections.length) })].map((x) => `<span>${esc(x)}</span>`).join("");
   renderResume();
   renderSections();
 }
@@ -36,7 +38,7 @@ function renderSections() {
       const count = mj ? t("itCount", { a: fmt(books.length), b: fmt(mj.volumes) }) : t("booksN", { n: fmt(books.length) });
       const fan = books.slice(0, 3).map((b, i) => `<div class="fan f${i}">${coverHTML(b, "mini")}</div>`).join("");
       const icon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${SECTIONS[s.id].icon}"/></svg>`;
-      return `<a class="seccard" href="${sectionUrl(s.id)}"><div class="fanbox">${fan}</div><div class="sbody"><div class="sic">${icon}</div><h2>${esc(secTitle(s.id))}</h2><p>${esc(secDesc(s.id))}</p><div class="scount">${esc(count)}<span>→</span></div><div class="sar ar">${esc(s.title.ar || "")}</div></div></a>`;
+      return `<a class="seccard" data-s="${s.id}" href="${sectionUrl(s.id)}"><div class="fanbox">${fan}</div><div class="sbody"><div class="sic">${icon}</div><h2>${esc(secTitle(s.id))}</h2><p>${esc(secDesc(s.id))}</p><div class="sfoot"><span class="scount">${esc(count)}</span><span class="cta" aria-label="${esc(t("goSection"))}">${esc(t("goSection"))}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></div></div></a>`;
     })
     .join("");
 }
