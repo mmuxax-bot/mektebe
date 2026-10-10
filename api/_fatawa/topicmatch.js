@@ -2,7 +2,7 @@
 import { foldLat } from "../_ayah.js";
 import { TOPICS as HADITH_TOPICS } from "../_hadith.js";
 import { TOPIC_SRC } from "./topics.js";
-import { stemMatch, editDist } from "../_stem.js";
+import { stemMatch, editDist, sufOk } from "../_stem.js";
 
 const foldKey = (s) => (/[\u0400-\u04FF]/.test(s) ? s.toLowerCase().replace(/ё/g, "е") : foldLat(s));
 // 4 hərfdən qısa açarlardan yalnız bunlar qəbul edilir (tam uyğunluq); qalanları ümumi sözlərlə qarışır
@@ -15,7 +15,7 @@ function build() {
   if (_t) return _t;
   const entries = [];
   const kws = [];
-  const addEntry = (keys, ar, more = false) => {
+  const addEntry = (keys, ar, more = false, exact3 = false) => {
     const idx = entries.length;
     entries.push({ ar });
     for (const k0 of keys) {
@@ -25,17 +25,19 @@ function build() {
       if (!words.length) continue;
       if (words.length === 1 && words[0].length < 4 && !SHORT_OK.has(words[0])) continue;
       const weak = words.length === 1 && DENY.has(words[0]); // ümumi söz: yalnız hökm sualında (bare rejimində sayılmır)
-      kws.push({ words: words.map(cyrStem), e: idx, len: words.join("").length, weak, more });
+      kws.push({ words: words.map(cyrStem), e: idx, len: words.join("").length, weak, more, exact3 });
     }
   };
   let more = false;
+  let exact3 = false;
   for (const ln of TOPIC_SRC.split("\n")) {
     const l = ln.trim();
     if (l.startsWith("# ===== ƏLAVƏ (2026-10)")) more = true;
+    if (l.startsWith("# ===== DƏQİQ AÇARLAR")) exact3 = true;
     if (!l || l.startsWith("#")) continue;
     const i = l.indexOf("=>");
     if (i < 0) continue;
-    addEntry(l.slice(0, i).split(","), l.slice(i + 2).split("/").map((x) => x.trim()).filter(Boolean), more);
+    addEntry(l.slice(0, i).split(","), l.slice(i + 2).split("/").map((x) => x.trim()).filter(Boolean), more, exact3);
   }
   // hədis mövzu lüğəti (niyyət, sədəqə, nikah və s.) ən aşağı üstünlüklə
   for (const [keys, ar] of HADITH_TOPICS) addEntry(keys, [ar]);
@@ -57,6 +59,14 @@ const wordMatch = (t, k) => t === k || (k.length >= 4 && t.startsWith(k));
 const wordMatch2 = (t, k) => wordMatch(t, k) || stemMatch(t, k);
 const FILL = new Set(["seyler", "seyleri", "seylar", "sey", "things", "thing", "вещи", "вещей", "yani", "ne", "neler", "nelerdir", "hangileri", "hansilar", "hansi", "which", "list", "nedir", "nedi", "ne", "nə", "haqqinda", "hakkinda", "haqda", "barede", "about", "what", "is", "are", "the", "a", "an", "of", "on", "in", "and", "ve", "və", "ile", "ucun", "icin", "for", "bu", "o", "hokmu", "ruling", "me", "tell", "give", "show", "melumat", "bilgi", "information", "info", "izah", "aciqla", "explain", "qaydalari", "kurallari", "rules", "mesele", "mesele", "meselesi", "hakkinda", "islamda", "islamda", "islamin", "islam", "in", "что", "такое", "это", "о", "об", "про", "в", "и", "какой", "каково", "положение", "please", "zehmet", "olmasa", "lutfen", "mövzu", "movzu", "konu", "topic", "тема", "тему"]);
 
+// səhv yazılış düzəlişinə verilməyən həqiqi sözlər (1 hərf dəyişəndə başqa mövzu açarına düşürdülər):
+//   salamlaşma/söhbət (salam, necesen, nasilsin), adlar (Abdullah, Hasan, Usama, Cabir ...), adi az/tr sözləri (insan, kadın, sabah, güneş, kardeş ...)
+//   və sürə adları (Fatihə ayrıca açardır; Təbbət, Təkvir). Belə söz 1 hərf fərqli açara bağlanmır.
+const FUZZY_BLOCK = ["abdullah", "abdul", "abdillah", "abdulmuttalib", "muttalib", "bahili", "arada", "doymek", "donmek", "ghifari", "gifari", "gunes", "hasan", "hesen", "husein", "huseyn", "husband", "imama", "imdad", "insan", "isare", "isbat", "istisna", "jabir", "jundub", "kadin", "kadir", "qadin", "kardes", "kasib", "kelim", "kelime", "kisim", "komek", "komputer", "leaving", "lisan", "madrid", "mahir", "merci", "movcud", "mualice", "mucahid", "mujahid", "muslim", "mustaqim", "mustakim", "mutaffifin", "muzekker", "nasil", "naziat", "necesen", "rabah", "relatives", "sabah", "sabit", "salam", "salama", "salamah", "salame", "selam", "selame", "select", "samura", "samurah", "semure", "sehih", "sahih", "sihab", "siyahi", "siyasa", "siyaset", "sugra", "sure", "tabir", "tamlama", "tefsir", "tafsir", "tesrif", "tevalli", "thawban", "tutulma", "umama", "umamah", "usama", "usamah", "usman", "vasite", "yaman", "yeman", "yeqin", "yazi", "hidayet", "hucurat", "huruf", "tebbet", "tekvir", "teksir", "talab", "ghayb", "qulub", "shuba", "shubah", "halal", "helal", "sunna", "sunnah", "sunne", "berze", "muslims", "kerim", "kelimut", "sifat", "sirat", "siratil", "keffare", "kocanin", "quraqliq"];
+function fuzzyBlocked(t) {
+  return FUZZY_BLOCK.some((b) => t === b || (t.startsWith(b) && sufOk(t.slice(b.length))));
+}
+
 /**
  * @returns {{ tokens:string[], hits:{pos:number,e:number}[], used:boolean[], entries:{ar:string[]}[], bare:boolean }}
  * hits: tapılan mövzular (mesajdakı mövqe sırası ilə, hər mövzu bir dəfə)
@@ -75,6 +85,7 @@ export function matchTopics(message, opts = {}) {
     if (pass === 2 && hits.length) break;
     const wm = pass === 1 ? wordMatch : wordMatch2;
     for (const kw of kws) {
+      if (kw.exact3) continue;
       if (pass === 1 && kw.more) continue;
       const n = kw.words.length;
       for (let i = 0; i + n <= tokens.length; i++) {
@@ -87,12 +98,26 @@ export function matchTopics(message, opts = {}) {
     }
   }
   // səhv yazılış (yalnız opts.fuzzy, heç bir mövzu tapılmayanda): ≥5 hərfli söz ≥5 hərfli tək açardan 1 hərf fərqli (ilk hərf eyni); zəif sayılır (bare olmur)
+  // 3-cü keçid (yalnız səhv yazılış düzəlişindən əvvəl): dəqiq açarlar fuzzy-dən üstündür
+  if (opts.fuzzy && !hits.length) {
+    for (const kw of kws) {
+      if (!kw.exact3) continue;
+      const n = kw.words.length;
+      for (let i = 0; i + n <= tokens.length; i++) {
+        let ok = true;
+        for (let j = 0; j < n; j++) if (used[i + j] || !wordMatch2(tokens[i + j], kw.words[j])) { ok = false; break; }
+        if (!ok) continue;
+        for (let j = 0; j < n; j++) used[i + j] = true;
+        if (!seen.has(kw.e)) { seen.add(kw.e); hits.push({ pos: i, e: kw.e, weak: true }); }
+      }
+    }
+  }
   if (opts.fuzzy && !hits.length) {
     let best = null;
     tokens.forEach((t, i) => {
-      if (used[i] || t.length < 5 || !/^[a-z]+$/.test(t) || FILL.has(t)) return;
+      if (used[i] || t.length < 5 || !/^[a-z]+$/.test(t) || FILL.has(t) || fuzzyBlocked(t)) return;
       for (const kw of kws) {
-        if (kw.words.length !== 1 || kw.weak) continue;
+        if (kw.words.length !== 1 || kw.weak || kw.exact3) continue;
         const k = kw.words[0];
         if (k.length < 5 || k[0] !== t[0]) continue;
         const lim = 1;

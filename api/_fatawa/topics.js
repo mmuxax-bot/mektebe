@@ -217,7 +217,7 @@ ticaret mali zekat, trade goods zakat, zakat on merchandise, закят с то�
 heyvan zekati, zakat on livestock, закят со скота, davar zekati, hayvan zekati, sigir zekat, koyun zekat, deve zekat => زكاة بهيمة الأنعام / زكاة الأنعام
 ziraat zekati, usr, ushr, tarim zekat, zakat on crops, закят с урожая, mehsul zekat, ekin zekati => زكاة الزروع والثمار / العشر
 borc zekat, borcun zekati, zakat on debt, zakat on loans, закят с долга, alacaq zekat, dayn zakat => زكاة الدين
-fitre, zakat al fitr, zakat fitr, fitr sadaqasi, закят аль-фитр, fitir sadaqa, fitre miktari, fitre ne zaman, fitr amount => زكاة الفطر
+fitre, fitr, zakat al fitr, zakat fitr, fitr sadaqasi, закят аль-фитр, fitir sadaqa, fitre miktari, fitre ne zaman, fitr amount => زكاة الفطر
 sedeqe, sadaka, sadaqa, charity, садака, sadaqa jariya, sedeqe cariye, sadaqah => الصدقة
 nafile sedeqe, voluntary charity, добровольная садака, ihsan sadaqat => صدقة التطوع
 sedeqe olu ucun, sadaka olu icin, charity on behalf of the dead, садака за умершего, olu adina sedeqe => الصدقة عن الميت
@@ -245,7 +245,7 @@ arefe orucu, day of arafah fasting, arafa orucu, день арафа пост, a
 cum orucu, friday fasting alone, fasting on friday only, пост в пятницу, cuma gunu oruc, cumani yalniz tutmak, saturday fasting, shanba orucu, cumartesi orucu, singling out saturday => إفراد الجمعة بالصوم / صوم يوم السبت
 vusal orucu, wisal fasting, continuous fasting, непрерывный пост, ard arda oruc, gece gunduz oruc => صوم الوصال
 sehur, suhoor, sahur, sehri, сухур, sahoor, imsak, imsaq, imsak vaxti, fajr and suhoor, sahura kalkmak => السحور
-iftar, iftari, fitr, break fast, ифтар, iftar vaxti, iftar dua, iftar duasi, iftari tez acmaq, hasten iftar, eat iftar dates => الإفطار / تعجيل الفطر
+iftar, iftari, break fast, ифтар, iftar vaxti, iftar dua, iftar duasi, iftari tez acmaq, hasten iftar, eat iftar dates => الإفطار / تعجيل الفطر
 itikaf, i'tikaf, itikaf, itikaf yapmaq, retreat in mosque, итикаф, itikaf nasil, mescidde itikaf, women itikaf => الاعتكاف
 qedir gecesi, kadir gecesi, laylat al qadr, night of power, night of decree, ночь могущества, ночь предопределения, laylatul qadr, lailatul qadr, kadir gecesi dua, qedir gecesi hansi => ليلة القدر
 sevval, shawwal, шавваль, sevval bayrami => شوال / صوم ست من شوال
@@ -758,4 +758,19 @@ gozel exlaq, exlaq, ahlak, good character, хороший нрав => حسن ا�
 utanmaq, shyness, стыдливост => الحياء
 qizil taxmaq, qizil takmaq, kisilere qizil, kisinin qizil taxmasi, altin takmak, erkeklere altin, gold for men, золото для мужчин => لبس الذهب للرجال / خاتم الذهب / الذهب
 erebce oyrenmek, ereb dilini oyrenmek, ereb dili, arapca ogrenmek, learning arabic, изучение арабского => تعلم العربية / اللغة العربية
+# ===== DƏQİQ AÇARLAR (fuzzy-dən əvvəl): yalnız səhv yazılış düzəlişi işə düşəcəkdisə yoxlanır — 1 hərf fərqli başqa açara düşməsin deyə
+# (məs. «fitnə» əvvəl fuzzy ilə «fitrə» -> زكاة الفطر olurdu). Köhnə cavablar dəyişmir: bu açarlar 1-ci/2-ci keçiddə iştirak etmir.
+fitne, fitna, fitneler, fitnalar, fiten, fitan, fitnekar, fitnekarlar, fitnah => الفتن / الفتنة
+aqida, aqidah, akida, akide, akidah, aqide, eqide => العقيدة / الاعتقاد
+cemaat, cemaatle, camaat, camaatla, jamaat, jamaah, cemaatla => صلاة الجماعة
+fatiha, fatihe, fatihah, al fatiha => فاتحة الكتاب / الفاتحة
+kafir, kafirler, kafirs, kafirun, kuffar => الكفار / الكفر
+quran, kuran, koran, quranul kerim => القرآن / تلاوة القرآن
+janaza, janazah, cenazah => صلاة الجنازة / الجنازة
+ibadet, ibadetler, ibadat, ibadah => العبادة
+silat, silatur rahim, sileyi rehm, sile rehm => صلة الرحم
+nezer, nezer deymesi => العين
+yagis, yagish, yagmur => صلاة الاستسقاء
+qas aldirmaq, qasini aldirmaq, qas almaq, qas aldirmasi, kas aldirmak, kas almak, eyebrow plucking, plucking eyebrows => النمص / النامصة
+ovlad doymek, usaq doymek, cocuk dovmek, cocuklari dovmek, beating children, hitting children, child beating => ضرب الصبي / ضرب الولد
 `;
