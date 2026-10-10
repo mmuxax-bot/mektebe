@@ -90,6 +90,13 @@ export default async function handler(req, res) {
       res.status(400).json({ success: false, reply: "Mesaj boş ola bilməz." });
       return;
     }
+    // Nibras Library: nibrascode.com serverindən gələn «yalnız kitab» sorğusu (başlıq x-nibras-books-only: 1). Yalnız məlumat idarəçiləri
+    // (fətava, İbn Teymiyyə kitabları, hədis, ayə davamı, təfsir, ayə, tövhid, hazır cavab, Quran lüğəti, ərəb lüğəti, nəhv) eyni sırada işləyir;
+    // AI provayderi HEÇ VAXT çağırılmır. op:"finalize" — AI cavabındakı [[ayah:..]] / ﴿…﴾ mətnini Tanzil ilə əvəz edir (modelsiz).
+    if (String(req.headers?.["x-nibras-books-only"] || "") === "1") {
+      await booksOnly(body, message, res);
+      return;
+    }
     // Bəqərə surəsi sözlərinin izahı hazır cavabdır (AI-yə getmir). dinReply-dən əvvəl gəlməlidir,
     // yoxsa «ayə»/«təfsir» sözləri olan suallar ümumi dini xəbərdarlığa düşər.
     // Tövhid 1 (Əqidə 3001) dərs xülasəsi də hazır cavabdır. cannedReply-dən əvvəl gəlir: «Allahın adları təvqifidir» kimi
@@ -256,6 +263,40 @@ export default async function handler(req, res) {
       reply: "Server xətası. Bir az sonra yenidən cəhd edin.",
     });
   }
+}
+
+// ---------------------------------------------------------------- Nibras Library: «yalnız kitab» rejimi (nibrascode.com üçün)
+async function booksOnly(body, message, res) {
+  const hist = (Array.isArray(body.messages) ? body.messages : Array.isArray(body.history) ? body.history : []).map((i) => (i && i.text == null && typeof i.content === "string" ? { ...i, text: i.content } : i));
+  const follow = lexicalFollowup(message, hist);
+  const lexical = isLexicalQuestion(message) || !!follow;
+  const lexicalLoose = lexical || isLexicalQuestion(message, { loose: true });
+  const meta = { lexical, lexicalLoose };
+  if (body.op === "meta") {
+    res.status(200).json({ success: true, ...meta });
+    return;
+  }
+  if (body.op === "finalize") {
+    // AI cavabının son emalı (chat.js-dəki kimi): ayə işarələri/sitatları + lüğətdə tapılmayan söz qeydi
+    const text = finalizeAi(String(body.text || ""), message, { noBlocks: lexicalLoose });
+    const note = lexical ? lughaNotFoundNote(follow || message) : null;
+    res.status(200).json({ success: true, text, note, ...meta });
+    return;
+  }
+  const code = body.mode === "code" || body.mode === "create";
+  const chain = [["book", (m) => fatawaReply(m, hist)], ["book", (m) => (code ? null : itbooksReply(m, hist))], ["book", (m) => hadithReply(m, hist)], ["next", (m) => nextReply(m, hist)], ["tafsir", tafsirReply], ["ayah", ayahReply], ["tawhid", tawhidReply], ["canned", cannedReply], ["quran", quranReply], ["book", (m) => lughaReply(follow || m)], ["book", nahwReply], ["book", hadithBare], ["book", (m) => (lexicalLoose || code ? null : fatawaNaturalReply(m))]];
+  for (const [kind, fn] of chain) {
+    let r = await fn(message);
+    if (!r) continue;
+    if (kind === "ayah") r = withTafsirSuggest(r, message);
+    const isRel = !lexical; // chat.js: religious = kind !== brand/game/din-kod && !lexical
+    let out = stripLanWarning(stripNotice(r));
+    if (isRel && r.startsWith(OLD_AZ_NOTICE)) out = stripLanWarning(stripNotice(r.slice(OLD_AZ_NOTICE.length)));
+    const links = await locateBlocks(out, message).catch(() => []);
+    res.status(200).json({ success: true, reply: out, usedAI: false, kind, fromSource: isSourceKind(kind), ...(isRel ? { religious: true } : {}), links, sources: [], ...meta });
+    return;
+  }
+  res.status(200).json({ success: true, reply: null, ...meta });
 }
 
 function fold(text) {
