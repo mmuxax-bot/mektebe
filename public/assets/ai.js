@@ -18,7 +18,7 @@ const inline = (s) => esc(s).replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
 const isAr = (s) => /[\u0600-\u06FF]/.test(s) && !/[a-zəğıöüçşа-я]/i.test(s.replace(/::[a-z/]+::/g, ""));
 
 // Nibras AI cavab işarələri: ::tafsir X:: … ::/tafsir::, ::tl::, ::src::, ::tv::, ::note::, ::sug:: (::sl::, ::sb:: ad | sorğu), ::ctx:: (gizli)
-export function render(text, links = []) {
+export function render(text, links = [], sources = []) {
   let bi = 0;
   const out = [];
   let blk = null;
@@ -75,13 +75,16 @@ export function render(text, links = []) {
     else para.push(l);
   }
   flush();
+  // AI cavabı kitabxana çıxarışlarına əsaslanıbsa: mənbələr və «Kitabda aç» linkləri
+  if (sources && sources.length)
+    out.push(`<div class="srcs"><div class="sl">${esc(t("aiSources"))}</div>${sources.map((x) => `<a class="openb" dir="auto" href="/kitab/${encodeURIComponent(x.book)}?p=${Number(x.p) || 1}${x.q ? "&q=" + encodeURIComponent(x.q) : ""}">📖 ${esc(x.title || "")} · ${esc(x.ref || "")}</a>`).join("")}</div>`);
   return out.join("");
 }
 
-function add(role, text, scroll = true, links = []) {
+function add(role, text, scroll = true, links = [], sources = []) {
   const d = document.createElement("div");
   d.className = "msg" + (role === "user" ? " me" : "");
-  d.innerHTML = `<div class="bub" dir="auto">${role === "user" ? esc(text) : render(text, links)}</div>`;
+  d.innerHTML = `<div class="bub" dir="auto">${role === "user" ? esc(text) : render(text, links, sources)}</div>`;
   $("#log").append(d);
   if (scroll) d.scrollIntoView({ block: "end", behavior: "smooth" });
   return d;
@@ -102,14 +105,16 @@ async function ask(q) {
   wait.querySelector(".bub").innerHTML = `<span class="dots muted">${esc(t("loading").replace(/…$/, ""))}</span>`;
   let reply = t("aiErr");
   let links = [];
+  let sources = [];
   try {
     const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: q, messages: hist.slice(-12).map(({ role, text }) => ({ role, text })) }) });
     const j = await r.json();
     if (j && j.reply) reply = j.reply;
     if (j && Array.isArray(j.links)) links = j.links;
+    if (j && Array.isArray(j.sources)) sources = j.sources;
   } catch {}
-  wait.querySelector(".bub").innerHTML = render(reply, links);
-  hist.push({ role: "user", text: q }, { role: "assistant", text: reply, links });
+  wait.querySelector(".bub").innerHTML = render(reply, links, sources);
+  hist.push({ role: "user", text: q }, { role: "assistant", text: reply, links, sources });
   hist = hist.slice(-20);
   sessionStorage.setItem(KEY, JSON.stringify(hist));
   busy = false;
@@ -126,5 +131,5 @@ $("#m").addEventListener("keydown", (e) => {
     $("#f").requestSubmit();
   }
 });
-for (const m of hist) add(m.role, m.text, false, m.links || []);
+for (const m of hist) add(m.role, m.text, false, m.links || [], m.sources || []);
 if (hist.length) $("#ex").classList.add("hidden");

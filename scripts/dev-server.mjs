@@ -34,6 +34,17 @@ http
       const m = rel.match(/^\/api\/([a-z0-9-]+)\/?$/);
       if (m && fs.existsSync(path.join(root, "api", m[1] + ".js"))) {
         req.query = Object.fromEntries(url.searchParams);
+        // Vercel kimi: JSON gövdəsi req.body-yə oxunur
+        if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS") {
+          const chunks = [];
+          for await (const c of req) chunks.push(c);
+          const raw = Buffer.concat(chunks).toString("utf8");
+          try {
+            req.body = /json/.test(req.headers["content-type"] || "") && raw ? JSON.parse(raw) : raw;
+          } catch {
+            req.body = raw;
+          }
+        }
         const mod = await import(pathToFileURL(path.join(root, "api", m[1] + ".js")).href);
         return await mod.default(req, res);
       }

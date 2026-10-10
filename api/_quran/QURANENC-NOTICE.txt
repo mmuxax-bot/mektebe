@@ -1,0 +1,13 @@
+Quranın mənalarının Azərbaycan dilinə tərcüməsi / Translation of the meanings of the Noble Qur'an in Azeri
+=========================================================================================================
+Mənbə / Source: QuranEnc.com — https://quranenc.com/en/browse/azeri_musayev
+Tərcümə id / Translation id: azeri_musayev
+Başlıq / Title: Translation of the meanings of the Noble Qur'an (Azeri)
+Versiya / Version: 2025-05-27 23:42:29 (v1.0.4-xml.1)
+Yeniliklər / Updates: https://quranenc.com/check/azeri_musayev/v1.0.4-xml.1
+
+Nibras AI qeydi / Note:
+az.js və az-notes.js faylları bu XML-dən olduğu kimi yaradılıb, tərcümə mətni dəyişdirilməyib.
+These files are generated verbatim from the XML; the translation text has not been changed.
+Quran başqa dillərə yalnız mənaca tərcümə oluna bilər; tərcümə ayənin bütün mənasını tam ifadə etməyə bilər.
+Ərəbcə ayə mətni həmişə Tanzil məlumatından (quran.js) götürülür; tərcümə QuranEnc-dən.

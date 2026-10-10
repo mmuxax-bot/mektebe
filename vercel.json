@@ -5,7 +5,7 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/api/:route(books|page|toc|search|chat)",
+      "source": "/api/:route(books|page|toc|search|quran|tafsir|chat|chats|translate|image|stats)",
       "destination": "/api/index?__route=:route"
     },
     {
@@ -15,11 +15,15 @@
     {
       "source": "/bolme/:id",
       "destination": "/section"
+    },
+    {
+      "source": "/quran/:s",
+      "destination": "/sura"
     }
   ],
   "functions": {
     "api/index.js": {
-      "maxDuration": 45
+      "maxDuration": 60
     }
   },
   "headers": [

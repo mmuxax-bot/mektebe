@@ -408,7 +408,7 @@ async function runSearch() {
     const r = await api(`/api/search?book=${encodeURIComponent(b.id)}&q=${encodeURIComponent(sq)}&offset=${soff}&limit=20`);
     ld.remove();
     if (!soff) list.innerHTML = `<p class="dnote">${esc(r.total ? t("resultsN", { n: fmt(r.total) }) : t("noResults"))}</p>`;
-    list.insertAdjacentHTML("beforeend", r.results.map((h) => `<a class="hit" href="#" data-p="${h.p}"><div class="h1"><b>${esc(h.ref)}</b><span>${esc(h.title || "")}</span></div><div class="s">${markHTML(h.s, h.hl)}</div></a>`).join(""));
+    list.insertAdjacentHTML("beforeend", r.results.map((h) => `<a class="hit" href="${esc(h.url || "#")}" data-p="${h.p}" data-via="${esc(r.via || "")}"><div class="h1"><b>${esc(h.ref)}</b><span>${esc(h.title || "")}</span></div><div class="s">${markHTML(h.s, h.hl)}</div></a>`).join(""));
     soff += r.results.length;
     if (soff < r.total) list.insertAdjacentHTML("beforeend", `<button class="btn ghost sm moreb">${esc(t("more"))}</button>`);
   } catch {
@@ -419,6 +419,8 @@ $("#sList").addEventListener("click", (e) => {
   if (e.target.closest(".moreb")) return runSearch();
   const h = e.target.closest(".hit");
   if (!h) return;
+  // latın sorğu ərəbcə ifadəyə çevrilibsə, vurğulama üçün səhifə həmin ifadə ilə açılır
+  if (h.dataset.via && h.dataset.via !== hlQuery && h.getAttribute("href") !== "#") return;
   e.preventDefault();
   jump(Number(h.dataset.p));
 });

@@ -119,5 +119,6 @@ export const bookCard = (b) =>
   `<a class="book" href="${bookUrl(b)}" data-f="${esc((b.ar + " " + Object.values(b.name || {}).join(" ") + " " + b.author).toLowerCase())}">${coverHTML(b)}<div class="meta"><div class="nm">${esc(bookName(b))}</div><div class="sub">${esc(bookSub(b))}</div></div></a>`;
 export function hitHTML(h, cat, q) {
   const b = cat.byId.get(h.book);
-  return `<a class="hit" href="${bookUrl(b, h.p)}&q=${encodeURIComponent(q)}"><div class="h1"><b>${esc(b.ar)}</b><span>${esc(h.ref)}${h.title ? " · " + esc(h.title) : ""}</span></div><div class="s">${markHTML(h.s, h.hl)}</div></a>`;
+  const url = h.url || `${bookUrl(b, h.p)}&q=${encodeURIComponent(q)}`;
+  return `<div class="hit"><a class="h1" href="${esc(url)}"><b>${esc(b.ar)}</b><span>${esc(h.ref)}${h.title ? " · " + esc(h.title) : ""}</span></a><a class="s" href="${esc(url)}">${markHTML(h.s, h.hl)}</a><a class="openb sm" href="${esc(url)}">${esc(t("openInBook"))} →</a></div>`;
 }

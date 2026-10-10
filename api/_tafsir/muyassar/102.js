@@ -1,0 +1,3 @@
+// Tafsir al-Muyassar — QuranEnc.com (arabic_moyassar). Mətn dəyişdirilməyib. Avtomatik: node scripts/build-tafsir.mjs
+import { unpack } from "../_unpack.js";
+export default unpack("H1QHAJwJdizEZBjy90T/uCP98xZKC9TfQbnpMiwuSwnl3qhoakuJzrZCzm7AOIKelvr1C0Tk/25qYwlGC3PtPsVRd3gW4FjPA1xD00ASuQ4TTmNItwkdnT2apVMIYxxvfwc0rqT1R1ll7ZBAc+s7n0m6Vpi9y5ADxq8HbzTvk6OdY7HozTvhNVJLBE7gOqP1FTlucAKoIhWVcdOxKEe2EbkU+OCMbsWEUkeW0cQBz4hGeGLLrQbVrcrabC3Pk7g2McWbBJpRiNDdhFWeBKD6wXn7cNHYB8ftyQRk0htdnzJUqi6oN23tJCFuCmgNqIsID3UY9HgwyFMvEirHKUjRrBu+adK1rJtEoRCUOCYDoS/IU1/hkGv7jXtDHE3V0JSa4KcOC0n21s4AKChXgGIAqytpGpYRR7lMlfK7z3TwAQ==");
