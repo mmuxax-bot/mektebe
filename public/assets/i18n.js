@@ -109,7 +109,7 @@ export function getLang() {
     return q;
   }
   const s = localStorage.getItem("nl:lang");
-  return s && STR[s] ? s : "az";
+  return s && STR[s] ? s : "ar";
 }
 export const lang = getLang();
 export function t(key, vars = {}) {
