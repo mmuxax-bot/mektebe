@@ -435,8 +435,14 @@ export function parseFatawaQuery(message) {
   let vol = null;
   let page = null;
   let m;
+  // «10-cu cild 5-ci səhifə», «10. cilt 5. sayfa»: say sözdən əvvəl
+  const ORD = "\\s*(?:-?\\s*(?:cu|ci|ncu|nci|inci|uncu|unci|ıncı|üncü|th|st|nd|rd)\\b|\\.)\\s*"; // sıra şəkilçisi mütləqdir
+  const preVol = new RegExp("(?<![\\d/:])(\\d{1,2})" + ORD + "(?:cild\\w*|cilt\\w*|volume|vol\\b|jild\\w*)").exec(f);
+  const prePage = new RegExp("(?<![\\d/:])(\\d{1,4})" + ORD + "(?:sehife\\w*|sayfa\\w*|page\\b|pg\\b)").exec(f);
   if ((m = /(?:^|\s)(?:المجلد|مجلد|الجز|جز|ج)\s*[:.]?\s*(\d{1,2})(?!\d)/.exec(ar)) || (m = /\b(?:cild\w*|cilt\w*|volume|vol|jild|juz|cuz|c|v)\.?\s*[:.]?\s*(\d{1,2})(?!\d)/.exec(lat)) || (m = /(?:том|т)\.?\s*(\d{1,2})(?!\d)/.exec(ru))) vol = Number(m[1]);
   if ((m = /(?:^|\s)(?:صفحه|الصفحه|ص)\s*[:.]?\s*(\d{1,4})(?!\d)/.exec(ar)) || (m = /\b(?:sehife\w*|sayfa\w*|page|pg|pp|p|s|ss)\.?\s*[:.]?\s*(\d{1,4})(?!\d)/.exec(lat)) || (m = /(?:страница|стр|с)\.?\s*(\d{1,4})(?!\d)/.exec(ru))) page = Number(m[1]);
+  if (preVol) vol = Number(preVol[1]);
+  if (prePage) page = Number(prePage[1]);
   if (vol == null && page == null && (m = /(?<![\d/:])(\d{1,2})\s*[/:]\s*(\d{1,4})(?![\d/:])/.exec(asciiDigits(plain)))) {
     vol = Number(m[1]);
     page = Number(m[2]);
