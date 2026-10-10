@@ -47,7 +47,7 @@ export function header(active) {
 export function footer() {
   const f = document.createElement("footer");
   f.className = "foot";
-  f.innerHTML = `© Nibras Code · ${esc(t("footer"))} · <a href="https://nibrascode.com">nibrascode.com</a>`;
+  f.innerHTML = `<span dir="ltr">© Nibras Code 2026</span> · <a href="https://nibrascode.com">nibrascode.com</a>`;
   document.body.append(f);
 }
 

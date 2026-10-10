@@ -21,7 +21,7 @@ const STR = {
     aiSub: "Kitablardan soruş: cavab kitabın öz mətnindən gəlir.", aiPh: "Sualını yaz…", send: "Göndər",
     aiErr: "İndi cavab alınmadı. Bir az sonra yenidən yoxla.", aiNote: "Kitabda tapılmayan suallara süni intellekt cavab verir, səhv ola bilər.",
     ex: ["İbn Teymiyyənin kitablarını məsləhət et", "musiqi haqqında fətva", "məfulun ləh nədir", "ana haqqı hədis"],
-    footer: "Nibras Code layihəsi", lastRead: "səh. {p} / {n}", openBook: "Kitabı aç", newChat: "Yeni söhbət",
+    qAyahs: "{n} ayə", qTafsirs: "{n} təfsir", lastRead: "səh. {p} / {n}", openBook: "Kitabı aç", newChat: "Yeni söhbət",
   },
   en: {
     aiSources: "Sources (library)",
@@ -44,7 +44,7 @@ const STR = {
     aiSub: "Ask about the books: answers come from the book's own text.", aiPh: "Type your question…", send: "Send",
     aiErr: "No answer right now. Try again a bit later.", aiNote: "Questions not found in the books are answered by AI and may contain mistakes.",
     ex: ["Recommend Ibn Taymiyyah's books", "fatwa on music", "what is maf'ul li-ajlih", "hadith about mothers' rights"],
-    footer: "A Nibras Code project", lastRead: "p. {p} / {n}", openBook: "Open book", newChat: "New chat",
+    qAyahs: "{n} ayahs", qTafsirs: "{n} tafsirs", lastRead: "p. {p} / {n}", openBook: "Open book", newChat: "New chat",
   },
   ar: {
     aiSources: "المصادر (المكتبة)",
@@ -67,7 +67,7 @@ const STR = {
     aiSub: "اسأل عن الكتب: الجواب من نص الكتاب نفسه.", aiPh: "اكتب سؤالك…", send: "إرسال",
     aiErr: "تعذر الجواب الآن. حاول بعد قليل.", aiNote: "ما لا يوجد في الكتب يجيب عنه الذكاء الاصطناعي، وقد يخطئ.",
     ex: ["كتب تنصح بها لابن تيمية", "مجموع الفتاوى الصبر", "ما هو المفعول لأجله", "حديث بر الوالدين"],
-    footer: "من مشاريع Nibras Code", lastRead: "ص {p} / {n}", openBook: "افتح الكتاب", newChat: "محادثة جديدة",
+    qAyahs: "{n} آية", qTafsirs: "{n} تفاسير", lastRead: "ص {p} / {n}", openBook: "افتح الكتاب", newChat: "محادثة جديدة",
   },
   tr: {
     aiSources: "Kaynaklar (kütüphane)",
@@ -90,7 +90,7 @@ const STR = {
     aiSub: "Kitaplara sor: cevap kitabın kendi metninden gelir.", aiPh: "Sorunu yaz…", send: "Gönder",
     aiErr: "Şu an cevap alınamadı. Biraz sonra tekrar dene.", aiNote: "Kitaplarda bulunmayan sorulara yapay zekâ cevap verir, hata olabilir.",
     ex: ["İbn Teymiyye'nin kitaplarını öner", "müzik hakkında fetva", "mef'ûlün leh nedir", "anne hakkı hadis"],
-    footer: "Bir Nibras Code projesi", lastRead: "s. {p} / {n}", openBook: "Kitabı aç", newChat: "Yeni sohbet",
+    qAyahs: "{n} ayet", qTafsirs: "{n} tefsir", lastRead: "s. {p} / {n}", openBook: "Kitabı aç", newChat: "Yeni sohbet",
   },
   ru: {
     aiSources: "Источники (библиотека)",
@@ -113,7 +113,7 @@ const STR = {
     aiSub: "Спросите о книгах: ответ берётся из самого текста книги.", aiPh: "Напишите вопрос…", send: "Отправить",
     aiErr: "Сейчас ответа нет. Попробуйте чуть позже.", aiNote: "На вопросы вне книг отвечает ИИ, возможны ошибки.",
     ex: ["Посоветуй книги Ибн Таймийи", "фетва о музыке", "что такое мафуль ли-аджлих", "хадис о правах матери"],
-    footer: "Проект Nibras Code", lastRead: "стр. {p} / {n}", openBook: "Открыть книгу", newChat: "Новый чат",
+    qAyahs: "{n} аятов", qTafsirs: "{n} тафсира", lastRead: "стр. {p} / {n}", openBook: "Открыть книгу", newChat: "Новый чат",
   },
 };
 export const LANGS = [["az", "AZ"], ["en", "EN"], ["ar", "AR"], ["tr", "TR"], ["ru", "RU"]];

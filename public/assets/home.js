@@ -40,15 +40,15 @@ function renderSections() {
       const icon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${SECTIONS[s.id].icon}"/></svg>`;
       return `<a class="seccard" data-s="${s.id}" href="${sectionUrl(s.id)}"><div class="fanbox">${fan}</div><div class="sbody"><div class="sic">${icon}</div><h2>${esc(secTitle(s.id))}</h2><p>${esc(secDesc(s.id))}</p><div class="sfoot"><span class="scount">${esc(count)}</span><span class="cta" aria-label="${esc(t("goSection"))}">${esc(t("goSection"))}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></div></div></a>`;
     })
-    .join("") + quranCard();
+    .join("");
+  $("#qfeat").innerHTML = quranCard();
 }
 
-// Quran kartı (kitab kataloqundan ayrı: /quran)
+// Quran: bölmələrin üstündə tam enli, mushaf üslublu əsas kart (kitab kataloqundan ayrı: /quran)
 function quranCard() {
-  const cov = (ar, n, i, h) => `<div class="fan f${i}"><div class="cover mini" style="--h:${h};--fs:19px"><div class="ct">سورة ${ar}</div><div class="ca"></div><div class="cp">${esc(t("ayahsN", { n: fmt(n) }))}</div></div></div>`;
-  const fan = cov("الفاتحة", 7, 0, 150) + cov("البقرة", 286, 1, 160) + cov("الكهف", 110, 2, 140);
-  const icon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2-1.5-5-2-8-1.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13C17 4 14 4.5 12 6Zm0 0v13"/></svg>`;
-  return `<a class="seccard" data-s="quran" href="/quran"><div class="fanbox">${fan}</div><div class="sbody"><div class="sic">${icon}</div><h2>${esc(t("sec_quran"))}</h2><p>${esc(t("desc_quran"))}</p><div class="sfoot"><span class="scount">${esc(t("surasN", { n: fmt(114) }))}</span><span class="cta" aria-label="${esc(t("goSection"))}">${esc(t("goSection"))}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></div></div></a>`;
+  const pills = [t("surasN", { n: fmt(114) }), t("qAyahs", { n: fmt(6236) }), t("qTafsirs", { n: fmt(3) })].map((x) => `<span>${esc(x)}</span>`).join("");
+  const arrow = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>`;
+  return `<a class="qfeat" href="/quran"><div class="qmus" aria-hidden="true"><div class="qpage"><span class="qorn"></span><b lang="ar" dir="rtl">القرآن الكريم</b><span class="qorn"></span></div></div><div class="qbody"><h2>${esc(t("sec_quran"))}</h2><p>${esc(t("desc_quran"))}</p><div class="qpills">${pills}</div><span class="cta qcta">${esc(t("goSection"))}${arrow}</span></div></a>`;
 }
 
 // bütün kitabxanada axtarış
