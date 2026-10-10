@@ -45,7 +45,7 @@ const STR = {
     library: "المكتبة", site: "nibrascode.com", hero1: "اقرأ الكتب", hero2: "براحة",
     heroSub: "{books} كتابًا، {pages} صفحة. النص العربي كما هو.",
     searchAll: "ابحث في كل الكتب", search: "بحث", filter: "تصفية بالعنوان",
-    resume: "تابع القراءة", resumeTitle: "حيث توقفت", pagesN: "{n} صفحة", hadithN: "{n} حديث", volsN: "{n} مجلدات", booksN: "{n} كتب",
+    resume: "تابع القراءة", resumeTitle: "حيث توقفت", pagesN: "الصفحات: {n}", hadithN: "الأحاديث: {n}", volsN: "المجلدات: {n}", booksN: "الكتب: {n}",
     stage: ["المرحلة الأولى", "المرحلة الثانية", "المرحلة الثالثة", "المرحلة الرابعة"],
     showAll: "عرض الكل ({n})", showLess: "عرض أقل", toc: "الفهرس", volumes: "المجلدات", searchBook: "ابحث في الكتاب",
     searchHint: "اكتب كلمة أو عبارة", resultsN: "{n} نتيجة", noResults: "لا توجد نتائج", more: "المزيد",
