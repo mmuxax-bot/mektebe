@@ -20,8 +20,6 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
 const ref = (p) => "ج " + arNum(p.vol) + "، " + (p.ap ? "ملحق " : "") + "ص " + arNum(p.page);
-// cildlərin mövzu qrupları (İbn Qasim tərtibi)
-const GROUPS = [[1, 6], [7, 9], [10, 11], [12, 17], [18, 20], [21, 35]];
 
 // ---------------------------------------------------------------- başlıq / altlıq
 function chrome() {
@@ -116,8 +114,12 @@ async function viewHome() {
   const totalHeads = heads.reduce((a, b) => a + b, 0);
   const last = store.get("ft:last", null);
   const lastP = last && last.p ? await page(last.p - 1).catch(() => null) : null;
-  const names = t("groups").split("|");
-  const tile = (v, i) => `<a class="vtile" href="#/v/${v.n}"><span class="vn">${fmt(v.n)}</span><span class="vb"><span class="vt ar">${esc(v.title)}</span><span class="vs">${esc(t("pagesN", { n: fmt(v.count) }))} · ${esc(t("headsN", { n: fmt(heads[i]) }))}</span></span></a>`;
+  // hər cild ayrıca kitab: yaşıl üz qabığı, qızılı çərçivə, cild nömrəsi və mövzusu
+  const tile = (v, i) => {
+    const [a, b] = v.title.split(/:\s*/);
+    const len = v.title.length;
+    return `<a class="vbook" href="#/v/${v.n}" title="الجزء ${arNum(v.n)}: ${esc(v.title)}"><div class="vcover" style="--fs:${len > 26 ? 13 : len > 16 ? 15 : 17}px"><span class="vk">مجموع الفتاوى</span><span class="vnum">${arNum(v.n)}</span><span class="vtt">${esc(a)}${b ? `<small>${esc(b)}</small>` : ""}</span><span class="vby">ابن تيمية</span></div><div class="vmeta">${esc(t("pagesN", { n: fmt(v.count) }))} · ${esc(t("headsN", { n: fmt(heads[i]) }))}</div></a>`;
+  };
   app.innerHTML = `
     <section class="fhero">
       <div class="fcover" aria-hidden="true"><div class="ct">مجموع الفتاوى</div><div class="ca">شيخ الإسلام ابن تيمية</div><div class="cp">٣٥</div></div>
@@ -137,7 +139,7 @@ async function viewHome() {
       <div class="tcard"><h2>${esc(t("jumpTitle"))}</h2>${jumpForm(m.vols, 1)}</div>
     </section>
     <section class="volumes"><h2>${esc(t("volumes"))}</h2>
-      ${GROUPS.map(([a, z], gi) => `<div class="vgroup"><h3>${esc(names[gi])} <small>${fmt(a)}–${fmt(z)}</small></h3><div class="vols">${m.vols.filter((v) => v.n >= a && v.n <= z).map((v) => tile(v, v.n - 1)).join("")}</div></div>`).join("")}
+      <div class="shelf">${m.vols.map((v, i) => tile(v, i)).join("")}</div>
       <p class="note muted">${esc(t("indexVols"))}</p>
     </section>`;
   bindSearch();

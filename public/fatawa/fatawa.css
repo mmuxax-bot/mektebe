@@ -81,7 +81,7 @@ select { padding-inline-end: 10px; }
 .jform input { width: 96px; }
 
 /* cildlər */
-.volumes > h2 { margin: 40px 0 0; font-size: 22px; }
+.volumes > h2 { margin: 40px 0 18px; font-size: 22px; }
 .vgroup h3 { margin: 26px 0 12px; font-size: 15px; color: var(--accent2); font-weight: 600; }
 .vgroup h3 small { color: var(--muted); font-weight: 500; margin-inline-start: 6px; }
 .vols { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
@@ -177,4 +177,28 @@ body.reading .wrap { max-width: 900px; padding-bottom: 20px; }
   .rnav .btn { flex: 1; justify-content: center; }
   .rbar .lbl { display: none; }
   .rbar { top: 49px; }
+}
+
+/* cildlər: hər cild ayrıca kitab üz qabığı */
+.shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 22px 18px; }
+.vbook { display: block; color: var(--text); transition: transform 0.18s; }
+.vbook:hover { transform: translateY(-4px); }
+.vcover { position: relative; aspect-ratio: 2 / 3; border-radius: 5px 10px 10px 5px; overflow: hidden; color: #f3e3b5; background: linear-gradient(135deg, #1f4a3c, #0c2219); box-shadow: 0 12px 26px rgba(0, 0, 0, 0.5), inset 6px 0 0 rgba(0, 0, 0, 0.28), inset 8px 0 0 rgba(255, 255, 255, 0.04); display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; padding: 18px 12px 14px 16px; direction: rtl; font-family: var(--ar); }
+.vcover::before { content: ""; position: absolute; inset: 7px 7px 7px 11px; border: 1.5px solid rgba(232, 200, 120, 0.6); border-radius: 4px; box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.15), inset 0 0 0 4px rgba(232, 200, 120, 0.2); pointer-events: none; }
+.vbook:hover .vcover::before { border-color: rgba(240, 214, 150, 0.9); }
+.vcover .vk { font-size: 13px; font-weight: 700; color: var(--gold2); opacity: 0.95; }
+.vcover .vnum { display: flex; align-items: center; justify-content: center; width: 2.1em; height: 2.1em; font-size: 26px; font-weight: 700; color: var(--gold2); border: 1.5px solid rgba(232, 200, 120, 0.6); border-radius: 50%; line-height: 1; box-shadow: inset 0 0 0 3px rgba(12, 34, 25, 0.9), inset 0 0 0 4px rgba(232, 200, 120, 0.25); }
+.vcover .vtt { font-size: var(--fs, 16px); font-weight: 700; line-height: 1.35; display: flex; flex-direction: column; gap: 2px; }
+.vcover .vtt small { font-size: 0.82em; font-weight: 400; opacity: 0.85; }
+.vcover .vby { font-size: 11px; opacity: 0.7; }
+.vmeta { font-size: 12px; color: var(--muted); padding: 7px 2px 0; text-align: center; }
+@media (max-width: 760px) {
+  .shelf { grid-template-columns: repeat(3, 1fr); gap: 16px 10px; }
+  .vcover { padding: 12px 6px 9px 9px; border-radius: 4px 8px 8px 4px; }
+  .vcover::before { inset: 5px 5px 5px 8px; }
+  .vcover .vk { font-size: 10px; }
+  .vcover .vnum { font-size: 18px; }
+  .vcover .vtt { font-size: calc(var(--fs, 16px) - 4px); }
+  .vcover .vby { font-size: 9px; }
+  .vmeta { font-size: 10.5px; }
 }
