@@ -444,9 +444,13 @@ function textHTML(p, set) {
   }
   return main.join("") + (notes.length ? `<div class="fn">${notes.join("")}</div>` : "");
 }
+let readerSeq = 0;
 async function viewReader(P, hq) {
+  const my = ++readerSeq; // köhnə (gec bitən) render yeni səhifənin üstünə yazmasın
+  const stale = () => my !== readerSeq || !location.hash.startsWith("#/p/");
   let m;
   try { m = await meta(); } catch { return failed(); }
+  if (stale()) return;
   P = Math.min(Math.max(1, P), m.N);
   const set = hq ? new Set(tokens(hq)) : null;
   $("#crumbs").hidden = true;
@@ -461,8 +465,25 @@ async function viewReader(P, hq) {
   applyFs();
   $("#fup").onclick = () => ((fsz = Math.min(34, fsz + 1)), applyFs(), store.set("ft:fs", fsz));
   $("#fdown").onclick = () => ((fsz = Math.max(15, fsz - 1)), applyFs(), store.set("ft:fs", fsz));
+  // naviqasiya səhifə mətni yüklənməmişdən əvvəl bağlanır (yeni hissə yüklənərkən də düymə/ox/sürüşdürmə işləsin)
+  const go = (k) => {
+    const n = P + k;
+    if (n >= 1 && n <= m.N) location.hash = "#/p/" + n + (hq ? "?q=" + encodeURIComponent(hq) : "");
+  };
+  // ərəb kitabı: növbəti səhifə soldadır
+  $("#bNext").onclick = () => go(1);
+  $("#bPrev").onclick = () => go(-1);
+  $("#bNext").disabled = P >= m.N;
+  $("#bPrev").disabled = P <= 1;
+  onkey = (e) => {
+    if (e.target.closest("input, select, textarea")) return;
+    if (e.key === "ArrowLeft") go(1);
+    else if (e.key === "ArrowRight") go(-1);
+  };
+  prefetch(P);
   let p;
-  try { p = await page(P - 1); } catch { return failed(); }
+  try { p = await page(P - 1); } catch { return stale() ? undefined : failed(); }
+  if (stale()) return;
   document.title = `${ref(p)} — ${t("title")}`;
   $("#rvol").textContent = `الجزء ${arNum(p.vol)}: ${p.volTitle}`;
   $("#rhead").textContent = p.title !== p.volTitle ? p.title : "";
@@ -478,28 +499,16 @@ async function viewReader(P, hq) {
   $("#rjv").value = p.vol;
   $("#rjp").value = p.ap ? "" : p.page;
   store.set("ft:last", { p: P, at: Date.now() });
-  const go = (k) => {
-    const n = P + k;
-    if (n >= 1 && n <= m.N) location.hash = "#/p/" + n + (hq ? "?q=" + encodeURIComponent(hq) : "");
-  };
-  // ərəb kitabı: növbəti səhifə soldadır
-  $("#bNext").onclick = () => go(1);
-  $("#bPrev").onclick = () => go(-1);
-  $("#bNext").disabled = P >= m.N;
-  $("#bPrev").disabled = P <= 1;
   $("#rj").onsubmit = (e) => {
     e.preventDefault();
     location.hash = `#/j/${$("#rjv").value}/${Number($("#rjp").value) || 1}`;
   };
-  onkey = (e) => {
-    if (e.target.closest("input, select, textarea")) return;
-    if (e.key === "ArrowLeft") go(1);
-    else if (e.key === "ArrowRight") go(-1);
-  };
   const mk = $("#pb mark");
   if (mk) mk.scrollIntoView({ block: "center" });
-  prefetch(P);
+  // qonşu hissələr əvvəlcədən: həm növbəti/əvvəlki səhifə, həm də hissə sərhədinə yaxınlaşanda növbəti hissə
+  prefetch(P + 8);
   prefetch(P - 2);
+  prefetch(P - 10);
 }
 let onkey = null;
 addEventListener("keydown", (e) => document.body.classList.contains("reading") && onkey && onkey(e));
