@@ -104,7 +104,9 @@ function pageHTML(d) {
     body += textHTML(d.text, d.hl);
     body += `<div class="grade">${esc(d.foot[0] || "")}</div><div class="src">${esc(d.foot[1] || "")}</div>`;
   } else {
-    body = textHTML(d.text, d.hl) || `<p class="muted">—</p>`;
+    // Məcmuul-fətava: yeni fətva/fəsil başlayan səhifədə başlıq (mətn dəyişmir)
+    if (d.startTitle) body += `<div class="bab">${esc(d.startTitle)}</div>`;
+    body += textHTML(d.text, d.hl) || `<p class="muted">—</p>`;
   }
   return `${head}<div class="pwrap"><div class="pbody"><div class="pin">${body}</div></div><div class="ptrack"><i></i></div><div class="pmore"><button type="button" tabindex="-1">↓ ${esc(t("moreBelow"))}</button></div></div><div class="pfoot">${d.p}</div>`;
 }
@@ -339,7 +341,8 @@ $("#scrim").onclick = closeDrawer;
 document.querySelectorAll(".tab").forEach((x) => (x.onclick = () => setTab(x.dataset.tab)));
 
 let tocLoaded = false;
-const item = (x, cls = "") => `<div class="titem ${cls}" data-p="${x.p}"><span>${esc(x.t)}</span><span class="pn">${fmt(x.p)}</span></div>`;
+// Məcmuul-fətava başlıqlarında çap səhifəsi (ص) göstərilir
+const item = (x, cls = "") => `<div class="titem ${cls}${x.k ? " k-" + x.k : ""}" data-p="${x.p}"><span>${esc(x.t)}</span><span class="pn">${x.pg != null ? "ص " + fmt(x.pg) : fmt(x.p)}</span></div>`;
 async function loadToc() {
   if (tocLoaded) return markToc(true);
   tocLoaded = true;

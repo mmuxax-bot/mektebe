@@ -53,11 +53,11 @@ $("#shelf").innerHTML = groups
 if (mj) {
   $("#shelf").insertAdjacentHTML(
     "beforeend",
-    `<section class="group feature" id="majmu"><div class="fhead">${bookCard(mj)}<div class="ftext"><h3>${esc(secTitle("majmu"))} <small>${esc(t("volsN", { n: fmt(mj.volumes) }))}</small></h3><p class="muted">${esc(t("majmuNote"))}</p><a class="btn sm" href="${bookUrl(mj)}">${esc(t("openBook"))}</a></div></div><div class="vols" id="vols"></div></section>`,
+    `<section class="group feature" id="majmu"><div class="fhead">${bookCard(mj)}<div class="ftext"><h3>${esc(secTitle("majmu"))} <small>${esc(t("volsN", { n: fmt(mj.volumes) }))}</small></h3><p class="muted">${esc(t("majmuNote"))}</p><a class="btn sm" href="/fatawa/">${esc(t("majmuOpen"))}</a> <a class="btn ghost sm" href="${bookUrl(mj)}">${esc(t("openBook"))}</a></div></div><div class="vols" id="vols"></div></section>`,
   );
   api("/api/toc?book=majmu")
     .then((r) => {
-      $("#vols").innerHTML = r.volumes.map((v) => `<a class="vtile" href="${bookUrl(mj, v.p)}"><span class="vn">${fmt(v.v)}</span><span class="vt ar">${esc(v.t)}</span></a>`).join("");
+      $("#vols").innerHTML = r.volumes.map((v) => `<a class="vtile" href="/fatawa/#/v/${v.v}"><span class="vn">${fmt(v.v)}</span><span class="vt ar">${esc(v.t)}</span></a>`).join("");
       if (location.hash === "#majmu") $("#majmu").scrollIntoView();
     })
     .catch(() => {});

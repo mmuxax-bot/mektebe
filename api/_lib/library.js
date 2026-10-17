@@ -71,7 +71,7 @@ const clampP = (p, total) => Math.min(Math.max(1, Math.floor(Number(p) || 1)), t
 const itVol = (v) => (v === 0 ? "المقدمة" : v > 0 ? "ج " + arNum(v) : "");
 
 /** {book, p, total, ref, vol, page, title, head[], text, foot[], prev, next} */
-export async function getPage(id, pIn, q = "") {
+export async function getPage(id, pIn, q = "", vp = null) {
   // vurğulama sorğusu latın/kirildirsə (məs. «namaz»), ərəbcə ifadəyə çevrilir
   if (q && !/[\u0621-\u064A]/.test(q)) {
     const ex = expandQuery(q);
@@ -80,6 +80,12 @@ export async function getPage(id, pIn, q = "") {
   }
   const b = bookMeta(id);
   if (!b) return null;
+  // Məcmuul-fətava: «cild X, səhifə Y» (çap nömrəsi) -> ardıcıl səhifə
+  if (vp && b.kind === "majmu") {
+    const r = await resolveMajmu(vp.vol, vp.pg);
+    if (!r) return { book: b.id, error: "page_not_found" };
+    pIn = r;
+  }
   const p = clampP(pIn, b.pages);
   const out = { book: b.id, p, total: b.pages, prev: p > 1 ? p - 1 : null, next: p < b.pages ? p + 1 : null, head: [], foot: [] };
   if (b.kind === "it") {
@@ -92,6 +98,11 @@ export async function getPage(id, pIn, q = "") {
     const idx = await FT.__loadIndex();
     const pg = await FT.getPage(idx, p - 1);
     Object.assign(out, { vol: pg.vol, page: pg.page, title: pg.title || "", volTitle: pg.volTitle || "", text: pg.text || "", ref: "ج " + arNum(pg.vol) + "، ص " + arNum(pg.page) + (pg.ap ? " (ملحق)" : "") });
+    // oxucuda başlıq: yeni cild (cild adı) və ya yeni fətva/fəsil başlayan səhifə
+    const d = p - 1;
+    const v = idx.vols.find((x) => x.n === pg.vol);
+    if (v && v.first === d) out.volStart = "الجزء " + arNum(v.n) + ": " + v.title;
+    else if (d > 0 && idx.pt[d] !== idx.pt[d - 1] && pg.title) out.startTitle = pg.title;
   } else if (b.kind === "hd") {
     const idx = await HD.__loadIndex();
     const h = await HD.getHadith(idx, b.first + p - 1);
@@ -122,6 +133,19 @@ export async function getPage(id, pIn, q = "") {
   return out;
 }
 
+/** Məcmuul-fətava: cild + çap səhifəsi -> 1-dən başlayan ardıcıl səhifə (tapılmasa ən yaxın sonrakı səhifə; cild yoxdursa null) */
+export async function resolveMajmu(volIn, pgIn) {
+  const idx = await FT.__loadIndex();
+  const vol = Math.floor(Number(volIn));
+  const pg = Math.floor(Number(pgIn));
+  const v = idx.vols.find((x) => x.n === vol);
+  if (!v || !(pg >= 1)) return null;
+  const d = idx.byPage.get(vol + ":" + pg);
+  if (d != null) return d + 1;
+  for (let i = v.first; i < v.first + v.count; i++) if (!idx.pa[i] && Number(idx.pp[i]) >= pg) return i + 1;
+  return v.first + v.count; // cildin son səhifəsi
+}
+
 // ---------------------------------------------------------------- mündəricat
 const _toc = new Map();
 function headingRuns(n, titleAt, volAt) {
@@ -137,6 +161,13 @@ function headingRuns(n, titleAt, volAt) {
   }
   return items;
 }
+// Məcmuul-fətava başlıq növü: q = sual (سئل/مسألة), f = fəsil, b = bab/kitab/qaidə, t = qalan mövzu başlığı
+const headKind = (t) => (/^(سئل|وسئل|مسألة|مسائل|سؤال)/.test(t) ? "q" : /^(فصل|فصول)/.test(t) ? "f" : /^(باب|كتاب|قاعدة|رسالة)/.test(t) ? "b" : "t");
+function headCount(idx, v) {
+  let n = 0;
+  for (let i = v.first + 1; i < v.first + v.count; i++) if (idx.pt[i] !== idx.pt[i - 1]) n++;
+  return n;
+}
 /** {book, kind:"headings"|"volumes", items:[{t,p,v?}], volumes?:[{v,t,p,count}]} */
 export async function getToc(id, volQ = null) {
   const b = bookMeta(id);
@@ -150,11 +181,13 @@ export async function getToc(id, volQ = null) {
     out = { book: b.id, kind: "headings", items };
   } else if (b.kind === "majmu") {
     const idx = await FT.__loadIndex();
-    const volumes = idx.vols.map((v) => ({ v: v.n, t: v.title, p: v.first + 1, count: v.count }));
+    const volumes = idx.vols.map((v) => ({ v: v.n, t: v.title, p: v.first + 1, count: v.count, last: v.maxPage, heads: headCount(idx, v) }));
     if (volQ) {
       const v = idx.vols.find((x) => x.n === Number(volQ));
       if (!v) return null;
-      const items = headingRuns(v.count, (i) => idx.titles[idx.pt[v.first + i]]).map((x) => ({ ...x, p: x.p + v.first, v: v.n })).filter((x, i) => !(i === 0 && /^الجزء/.test(x.t)));
+      const items = headingRuns(v.count, (i) => idx.titles[idx.pt[v.first + i]])
+        .map((x) => ({ ...x, p: x.p + v.first, v: v.n, pg: String(idx.pp[x.p + v.first - 1]), k: headKind(x.t) }))
+        .filter((x, i) => !(i === 0 && /^الجزء/.test(x.t)));
       out = { book: b.id, kind: "headings", vol: v.n, items };
     } else out = { book: b.id, kind: "volumes", volumes };
   } else if (b.kind === "hd") {
