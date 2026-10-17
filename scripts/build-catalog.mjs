@@ -51,6 +51,8 @@ const HD_INFO = {
   nasai: [L5("Sünən ən-Nəsai", "Sunan al-Nasa'i", "Sünen-i Nesâî", "Сунан ан-Насаи", "سنن النسائي"), 303, L5("Nəsainin Sünəni (əl-Muctəba).", "Al-Nasa'i's Sunan (al-Mujtaba).", "Nesâî'nin Sünen'i (el-Müctebâ).", "Сунан ан-Насаи (аль-Муджтаба).", "سنن النسائي (المجتبى).")],
   ibnmajah: [L5("Sünən İbn Macə", "Sunan Ibn Majah", "Sünen-i İbn Mâce", "Сунан Ибн Маджи", "سنن ابن ماجه"), 273, L5("İbn Macənin Sünəni, Kütübü-sittənin altıncısı.", "Ibn Majah's Sunan, the sixth of the six books.", "İbn Mâce'nin Sünen'i, Kütüb-i Sitte'nin altıncısı.", "Сунан Ибн Маджи, шестая из шести книг.", "سنن ابن ماجه، سادس الكتب الستة.")],
 };
+// Buxari mətni Şamilə 1681-dəndir (Sultaniyyə / Tavq ən-Nəcat, Fuad nömrələməsi); daxili id 735 qalır
+const SRC_BOOK = { 735: "1681" };
 const hdi = await HD.__loadIndex();
 const hdBooks = [];
 const HD_TOC = {};
@@ -60,7 +62,7 @@ for (const b of hdi.books) {
   const m = HD.BOOK_META[b.id];
   const [name, death, desc] = HD_INFO[b.slug];
   const id = "hd-" + b.slug;
-  hdBooks.push({ id, kind: "hd", src: b.slug, ar: m.title, name, author: m.author, authorName: null, death, pages: b.n, volumes: 1, first: b.start, start: 1, ed: m.ed, srcUrl: "https://shamela.ws/book/" + b.id, desc });
+  hdBooks.push({ id, kind: "hd", src: b.slug, ar: m.title, name, author: m.author, authorName: null, death, pages: b.n, volumes: 1, first: b.start, start: 1, ed: m.ed, srcUrl: "https://shamela.ws/book/" + (SRC_BOOK[b.id] || b.id), desc });
   const items = [];
   const nos = [];
   let last = null;

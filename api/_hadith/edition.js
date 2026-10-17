@@ -1,7 +1,8 @@
 // Çap / nömrələmə qeydi (hər hədis blokunun altında bir qısa sətir; oxucuda başlığın altında).
 // Yalnız məlumatdakı Şamilə kitab kartlarının (books/<id>.json → card) və naşir/müəllif müqəddimələrinin təsdiqlədiyi faktlar:
-//   735   Buxari: «المحقق: د. مصطفى ديب البغا — دار ابن كثير، دار اليمامة، دمشق — الطبعة الخامسة ١٤١٤هـ/١٩٩٣م»;
-//         müqəddimə: «ترقيم الأحاديث ترقيما متسلسلا ... حتى ولو كان الحديث متكررا» (son hədis 7123 — Fəthul-Bari nömrəsindən fərqlidir)
+//   735   Buxari (Şamilə 1681): «الطبعة: السلطانية، بالمطبعة الكبرى الأميرية، ببولاق مصر، ١٣١١ هـ ... ثم صَوّرها بعنايته: د. محمد زهير الناصر،
+//         وطبعها الطبعة الأولى ١٤٢٢ هـ لدى دار طوق النجاة - بيروت، مع إثراء الهوامش بترقيم الأحاديث لمحمد فؤاد عبد الباقي»
+//         (əsas nömrə = Fuad Əbdülbaqinin Fəthul-Bari nömrələməsi, 1–7563; əl-Buğa çapının nömrəsi ikinci dərəcəli qeyd kimi mətnə görə tutuşdurulub)
 //   1727  Müslim: «المحقق: محمد فؤاد عبد الباقي — مطبعة عيسى البابي الحلبي، القاهرة ١٣٧٤هـ/١٩٥٥م»; mətndə «١ - (٨)»:
 //         mötərizədəki ümumi nömrə (məlumatda saxlanan və göstərilən budur) + kitab daxilində ardıcıl nömrə (saxlanmır)
 //   117359 Əbu Davud: «المحقق: شعيب الأرنؤوط - محمد كامل قره بللي — دار الرسالة العالمية، ط١ ١٤٣٠هـ/٢٠٠٩م»
@@ -12,11 +13,11 @@
 //         müqəddimə: «حافظت على الترقيم المشهور لابن ماجه ... ترقيم ... فؤاد عبد الباقي»
 const ED = {
   735: {
-    az: "Çap: Mustafa əl-Buğa nəşri (Dəməşq, 1993); nömrə bu çapın ardıcıl nömrəsidir, başqa çaplarda (məs. Fəthul-Bari) fərqlidir.",
-    tr: "Baskı: Mustafa el-Buğa neşri (Dımaşk, 1993); numara bu baskının sıra numarasıdır, diğer baskılarda (ör. Fethu'l-Bârî) farklıdır.",
-    en: "Edition: Mustafa al-Bugha (Damascus, 1993); the number is this edition's running number and differs in others (e.g. Fath al-Bari).",
-    ru: "Издание: Мустафа аль-Буга (Дамаск, 1993); номер — сквозной номер этого издания, в других (напр. «Фатх аль-Бари») он иной.",
-    ar: "الطبعة: ط البغا (دمشق ١٤١٤هـ)؛ الرقم هو ترقيم البغا المتسلسل، ويختلف في غيرها (كترقيم فتح الباري).",
+    az: "Çap: Sultaniyyə (Bulaq, 1311h) — Dar Tavq ən-Nəcat (2001); nömrə M. Fuad Əbdülbaqinin nömrələməsidir (Fəthul-Bari, 1–7563); mötərizədə əl-Buğa nömrəsi də var.",
+    tr: "Baskı: Sultâniyye (Bulak, 1311h) — Dâru Tavki'n-Necât (2001); numara M. Fuâd Abdülbâkî'nin numarasıdır (Fethu'l-Bârî, 1–7563); parantezde el-Buğa numarası da var.",
+    en: "Edition: al-Sultaniyya (Bulaq, 1311 AH) — Dar Tawq al-Najat (2001); numbering of M. Fuad ʿAbd al-Baqi (Fath al-Bari, 1–7563); al-Bugha number in brackets.",
+    ru: "Издание: ас-Султания (Булак, 1311 г. х.) — Дар Таук ан-Наджат (2001); нумерация М. Фуада Абд аль-Баки («Фатх аль-Бари», 1–7563); в скобках — номер аль-Буги.",
+    ar: "الطبعة: السلطانية (بولاق ١٣١١هـ) — دار طوق النجاة (١٤٢٢هـ)؛ الرقم ترقيم محمد فؤاد عبد الباقي (ترقيم فتح الباري، ١–٧٥٦٣)، ويُذكر بين القوسين رقمه في ط البغا.",
   },
   1727: {
     az: "Çap: M. Fuad Əbdülbaqi nəşri (Qahirə, 1955); nömrə onun ümumi nömrəsidir (kitab daxilindəki alt nömrə yox); başqa çaplarda fərqli ola bilər.",

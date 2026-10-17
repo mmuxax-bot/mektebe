@@ -97,7 +97,7 @@ test("rəvayətçi: səhabə mövqeyi əvvəldə, isnadda ad var, «davam» işl
 });
 
 test("çap qeydi: hər hədis blokunda bir sətir, cavab dilində", async () => {
-  const cases = [["Buxari 1", "Mustafa əl-Buğa"], ["Müslim 8", "Əbdülbaqi"], ["Əbu Davud 1", "Arnaut"], ["Tirmizi 1", "Arnaut"], ["Nəsai 1", "Əbu Ğuddə"], ["İbn Macə 1", "İsam Musa Hadi"], ["صحيح مسلم 8", "عبد الباقي"], ["سنن ابن ماجه 1", "عصام موسى هادي"]];
+  const cases = [["Buxari 1", "Fuad Əbdülbaqi"], ["Müslim 8", "Əbdülbaqi"], ["Əbu Davud 1", "Arnaut"], ["Tirmizi 1", "Arnaut"], ["Nəsai 1", "Əbu Ğuddə"], ["İbn Macə 1", "İsam Musa Hadi"], ["صحيح مسلم 8", "عبد الباقي"], ["سنن ابن ماجه 1", "عصام موسى هادي"]];
   for (const [q, want] of cases) {
     const r = await hadithReply(q, []);
     const blocks = r.split("::tafsir hadith::").slice(1);

@@ -124,12 +124,15 @@ function locate(idx, g) {
   }
   return { book: idx.books[lo], local: g - idx.books[lo].start };
 }
-/** Hədis sətri: {id, book, kitab, bab, no, noInt, grading, text} */
+/** Hədis sətri: {id, book, kitab, bab, no, noInt, grading, text, src, front, extra, alt}
+ *   front: çapdakı kimi hədisdən əvvəl gələn başlıqlar / tərcümə ([[basmala|kitab|bab|text, mətn]]), yalnız yeni bölmənin ilk hədisində
+ *   extra: eyni mətnə düşən əlavə nömrələr (Fuad nömrələməsində bir hədisə 2-3 nömrə), alt: Buxari üçün əl-Buğa çapındakı nömrə (ikinci dərəcəli qeyd) */
 export async function getHadith(idx, g) {
   const { book, local } = locate(idx, g);
   const shard = await loadShard(book.id, Math.floor(local / SHARD));
   const r = shard[local % SHARD];
-  return { id: g, bookId: book.id, kitab: r[0], bab: r[1], no: r[2], noInt: r[3], grading: r[4], text: r[5], src: r[6] || "" };
+  const m = r[7] || {};
+  return { id: g, bookId: book.id, kitab: r[0], bab: r[1], no: r[2], noInt: r[3], grading: r[4], text: r[5], src: r[6] || "", front: m.f || [], extra: m.x || [], alt: m.bg || "" };
 }
 
 // ---------------------------------------------------------------- axtarış
@@ -216,7 +219,7 @@ export async function searchHadith(phrase) {
 
 // ---------------------------------------------------------------- mənbə / hökm sətirləri
 export const BOOK_META = {
-  735: { author: "البخاري", title: "صحيح البخاري", ed: "ت البغا" },
+  735: { author: "البخاري", title: "صحيح البخاري", ed: "ط السلطانية، ترقيم محمد فؤاد عبد الباقي", alt: "ط البغا" },
   1727: { author: "مسلم", title: "صحيح مسلم", ed: "ت عبد الباقي" },
   117359: { author: "أبو داود", title: "سنن أبي داود", ed: "ت الأرنؤوط", grader: "شعيب الأرنؤوط ومحمد كامل قره بللي (في الحاشية)" },
   1363: { author: "الترمذي", title: "سنن الترمذي", ed: "ط الرسالة", grader: "شعيب الأرنؤوط وآخرون، محققو ط الرسالة (في الحاشية)" },
@@ -235,7 +238,9 @@ export function sourceLine(h) {
   let b = clean1(h.bab);
   if (b && norm(b).split(" ")[0] !== "باب" && !/^باب/.test(norm(b))) b = "باب " + b;
   // h.src: نص مكمَّل من نشرة أخرى (الصفوف التي سقط نصها من الشاملة) — يُذكر صراحةً
-  return [m.author, m.title, k, b, "رقم " + asciiDigits(h.no)].filter(Boolean).join("، ") + ` (${m.ed}${h.src ? " — " + h.src : ""})`;
+  // Buxari: əsas nömrə Fuad Əbdülbaqinin (Fəthul-Bari) nömrəsidir; əl-Buğa çapındakı nömrə ikinci dərəcəli qeyd kimi
+  const alt = h.alt && m.alt ? `؛ وفي ${m.alt}: ${asciiDigits(h.alt)}` : "";
+  return [m.author, m.title, k, b, "رقم " + asciiDigits(h.no)].filter(Boolean).join("، ") + ` (${m.ed}${alt}${h.src ? " — " + h.src : ""})`;
 }
 export function gradeLine(h) {
   const m = BOOK_META[h.bookId];
@@ -368,7 +373,7 @@ const BOOK_RE = [
   ["1339", /(?:sunen\s+|sunan\s+)?(?:(?:en|an|el|al)[- ]?)?(?:nesai|nasai|nesei|nesaiy)\b|(?:سنن\s+)?(?:ال)?نسائي|(?:сунан\s+)?насаи/],
   ["1194", /(?:sunen\s+|sunan\s+)?ibn\s*(?:mace|majah|maja|maca|macah)\b|(?:سنن\s+)?ابن\s+ماجه?|(?:сунан\s+)?ибн\s+маджа/],
 ];
-const BOOK_MAX = { 735: 7123, 1727: 3033, 117359: 5274, 1363: 4300, 1339: 5758, 1194: 4341 };
+const BOOK_MAX = { 735: 7563, 1727: 3033, 117359: 5274, 1363: 4300, 1339: 5758, 1194: 4341 };
 const BOOK_NAME_AR = { 735: "صحيح البخاري", 1727: "صحيح مسلم", 117359: "سنن أبي داود", 1363: "جامع الترمذي", 1339: "سنن النسائي", 1194: "سنن ابن ماجه" };
 const BOOK_NAME = { 735: "Səhih əl-Buxari", 1727: "Səhih Müslim", 117359: "Sünən Əbu Davud", 1363: "Camiu't-Tirmizi", 1339: "Sünən ən-Nəsai", 1194: "Sünən İbn Macə" };
 
@@ -885,14 +890,14 @@ async function runNarrator(q, lang) {
   return t.narrNone(n, q.alts[0]);
 }
 
-async function numberIds(book, num) {
+export async function numberIds(book, num) {
   const idx = await loadIndex();
   const b = idx.books.find((x) => x.id === book);
   const ids = [];
   // hədis nömrəsi artan olduğuna görə tam keçid (hissə-hissə): yalnız lazım olan hissələr yüklənir
   for (let s = 0; s < b.shards; s++) {
     const sh = await loadShard(book, s);
-    for (let i = 0; i < sh.length; i++) if (sh[i][3] === num) ids.push(b.start + s * SHARD + i);
+    for (let i = 0; i < sh.length; i++) if (sh[i][3] === num || (sh[i][7] && sh[i][7].x && sh[i][7].x.includes(num))) ids.push(b.start + s * SHARD + i);
     if (sh.length && sh[sh.length - 1][3] > num + 40 && ids.length) break;
   }
   return ids;

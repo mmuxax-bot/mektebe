@@ -96,7 +96,11 @@ function pageHTML(d) {
   const head = `<div class="phead"><span class="rh">${esc(d.title || b.ar)}</span><span class="rf">${esc(d.ref || "")}</span></div>`;
   let body = "";
   if (b.kind === "hd") {
-    body += d.head.map((x) => `<div class="bab">${esc(x)}</div>`).join("");
+    // çapdakı kimi: besmələ / kitab / bab başlığı / tərcümə mətni, sonra hədis
+    const fr = d.front || [];
+    body += fr.map((x) => (x.k === "basmala" ? `<div class="fr-basm">${esc(x.t)}</div>` : x.k === "kitab" ? `<div class="fr-kitab">${esc(x.t)}</div>` : x.k === "bab" ? `<div class="bab">${esc(x.t)}</div>` : `<p class="fr-text">${esc(x.t)}</p>`)).join("");
+    if (fr.some((x) => x.k === "text")) body += `<div class="fr-end"></div>`;
+    body += (d.head || []).map((x) => `<div class="bab">${esc(x)}</div>`).join("");
     body += textHTML(d.text, d.hl);
     body += `<div class="grade">${esc(d.foot[0] || "")}</div><div class="src">${esc(d.foot[1] || "")}</div>`;
   } else {

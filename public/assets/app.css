@@ -124,6 +124,12 @@ body.reader { overflow: hidden; height: 100vh; height: 100dvh; display: flex; fl
 .pbody p { margin: 0 0 0.55em; }
 .pbody .hd { color: var(--ink2); font-weight: 700; text-align: center; margin-bottom: 0.4em; }
 .pbody .bab { color: #5a3a12; font-weight: 700; margin-bottom: 0.5em; }
+/* hədis kitabları: çapdakı kimi besmələ, kitab başlığı, bab başlığı və tərcümə (yalnız bölmənin ilk hədisində) */
+.pbody .fr-basm { text-align: center; font-size: 1.3em; color: #5a3a12; margin: 0.1em 0 0.35em; }
+.pbody .fr-kitab { text-align: center; font-weight: 700; font-size: 1.22em; color: #4a2d0c; margin: 0.2em 0 0.55em; }
+.pbody .fr-kitab::after { content: ""; display: block; width: 38%; margin: 0.35em auto 0; border-top: 1px solid rgba(122, 75, 20, 0.35); }
+.pbody .fr-text { color: #3d3020; font-size: 0.94em; }
+.pbody .fr-end { width: 22%; margin: 0.25em auto 0.75em; border-top: 1px dotted rgba(122, 75, 20, 0.45); }
 .pbody .fn { font-size: 0.78em; line-height: 1.75; color: #4a3d2c; border-top: 1px solid rgba(122, 75, 20, 0.3); padding-top: 0.5em; margin-top: 0.8em; }
 .pbody .src { font-size: 0.72em; color: #6b5a40; line-height: 1.7; margin-top: 0.8em; }
 .pbody .grade { font-size: 0.8em; color: #2f5d2a; font-weight: 700; }

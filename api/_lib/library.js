@@ -95,10 +95,13 @@ export async function getPage(id, pIn, q = "") {
   } else if (b.kind === "hd") {
     const idx = await HD.__loadIndex();
     const h = await HD.getHadith(idx, b.first + p - 1);
+    // çapdakı kimi: yeni kitab/bab başlayanda besmələ, kitab və bab başlığı, tərcümə mətni (front); qalan hədislərdə bab başlığı (head)
+    const front = (h.front || []).map(([k, t]) => ({ k, t }));
     Object.assign(out, {
       no: h.no,
       title: h.kitab || "",
-      head: [h.bab].filter(Boolean),
+      front,
+      head: front.some((x) => x.k === "bab") ? [] : [h.bab].filter(Boolean),
       text: h.text || "",
       foot: [HD.gradeLine(h), HD.sourceLine(h)],
       ref: "رقم " + h.no,
@@ -386,6 +389,24 @@ function titleMatches(q) {
   return out;
 }
 
+// «Buxari 1», «Bukhari 7563», «صحيح البخاري ٣٠٠», «Müslim 8»: hədis nömrəsi — birbaşa o hədisin səhifəsi (Buxari: M. Fuad Əbdülbaqi nömrələməsi)
+async function numberSection(q, b, off, lim) {
+  const pn = HD.parseNumberQuery(q);
+  if (!pn) return null;
+  const idx = await HD.__loadIndex();
+  const meta = idx.books.find((x) => x.id === pn.book);
+  const bk = meta && bookMeta("hd-" + meta.slug);
+  if (!bk || (b && b.id !== bk.id)) return null;
+  const ids = await HD.numberIds(pn.book, pn.num);
+  const results = [];
+  for (const g of ids.slice(off, off + lim)) {
+    const h = await HD.getHadith(idx, g);
+    const p = g - meta.start + 1;
+    results.push({ book: bk.id, p, ref: "رقم " + h.no, title: h.kitab || "", tier: 3, ...snippet(h.text, [], hSpans), url: `/kitab/${encodeURIComponent(bk.id)}?p=${p}` });
+  }
+  return { total: ids.length, results, via: "", top: ids.length ? 3 : -1, number: { book: bk.id, num: pn.num } };
+}
+
 // «Əbu Hureyrə namaz», «hadith of Ibn Umar about prayer», «حديث أبي هريرة في الصلاة»: hədis bölməsində rəvayətçi süzgəci.
 //   Mövzu sözü varsa ifadə variantları rəvayətçinin hədisləri içində axtarılır; heç nə tapılmasa adi axtarışa qayıdılır (null).
 async function narratorSection(q, b, off, lim) {
@@ -409,6 +430,12 @@ export async function search(q, id = null, off = 0, lim = PER) {
   off = Math.max(0, Math.floor(Number(off) || 0));
   lim = Math.min(50, Math.max(1, Math.floor(Number(lim) || PER)));
   if (!q) return { q, total: 0, results: [] };
+  const num = await numberSection(q, id ? bookMeta(id) : null, off, lim).catch(() => null);
+  if (num) {
+    if (id) return { q, book: id, offset: off, expanded: [], ...num };
+    const order = ["ibn-taymiyyah", "majmu", "hadith", "nahw"];
+    return { q, total: num.total, expanded: [], books: /[\u0621-\u064A]/.test(q) ? [] : titleMatches(q), sections: order.map((sid) => (sid === "hadith" ? { id: sid, ...num } : { id: sid, total: 0, results: [], via: "" })) };
+  }
   const ex = expandQuery(q);
   const meta = { expanded: [...new Set([...ex.names, ...ex.general, ...ex.nahw])].slice(0, 8), ...(ex.corrected ? { corrected: ex.corrected } : {}) };
   if (id) {
