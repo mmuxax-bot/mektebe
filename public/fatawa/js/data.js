@@ -80,5 +80,7 @@ export async function resolve(vol, pg) {
   if (!v || !(pg >= 1)) return null;
   for (let d = v.first; d < v.first + v.count; d++) if (!m.pa[d] && Number(m.pp[d]) === pg) return d;
   for (let d = v.first; d < v.first + v.count; d++) if (!m.pa[d] && Number(m.pp[d]) > pg) return d;
+  // cildin son səhifəsindən böyük nömrə: son əsas (ملحق olmayan) səhifə
+  for (let d = v.first + v.count - 1; d >= v.first; d--) if (!m.pa[d]) return d;
   return v.first + v.count - 1;
 }

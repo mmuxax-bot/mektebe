@@ -337,3 +337,37 @@ html[data-theme="sepia"] .sov { background: rgba(60, 40, 15, 0.35); }
 .sov .ovchips .chip { border-color: rgba(212, 175, 95, 0.28); }
 .sov .ovchips .chip:hover { border-color: var(--gold); color: var(--gold2); }
 body.is-set .wrap + footer, body.is-set > footer { display: none; }
+/* dil seçimi: bir kart, toxunanda açılır */
+.lpick { border-radius: 14px; background: var(--bg2); border: 1px solid var(--line); overflow: hidden; }
+.lpick summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; cursor: pointer; }
+.lpick summary::-webkit-details-marker { display: none; }
+.lpick summary:hover { background: rgba(212, 175, 95, 0.05); }
+.lpick summary:focus-visible { outline: 2px solid rgba(212, 175, 95, 0.6); outline-offset: -2px; }
+.lcur { display: flex; flex-direction: column; gap: 2px; }
+.lcur b { font-size: 16px; color: var(--gold2); }
+.lcur small { font-size: 12.5px; }
+.lchev { display: inline-flex; color: var(--gold); transition: transform 0.25s ease; }
+.lchev svg { width: 20px; height: 20px; }
+.lpick[open] .lchev { transform: rotate(180deg); }
+.lopts { display: flex; flex-direction: column; padding: 4px 8px 8px; border-top: 1px solid var(--line); animation: fade 0.18s ease; }
+.lopt { display: flex; align-items: center; justify-content: space-between; padding: 11px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--text); font-size: 15px; cursor: pointer; text-align: start; }
+.lopt:hover { background: rgba(212, 175, 95, 0.08); }
+.lopt .lck { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--line); flex: none; }
+.lopt.on { color: var(--gold2); font-weight: 600; }
+.lopt.on .lck { border-color: var(--gold); background: radial-gradient(circle, var(--gold) 0 4px, transparent 5px); }
+/* AI qeydi, məxfilik keçidi, əlaqə */
+.ainote { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 4px !important; padding: 12px; border-radius: 12px; background: rgba(212, 175, 95, 0.07); border: 1px dashed rgba(212, 175, 95, 0.35); font-size: 13.5px !important; }
+.ainote .sic { width: 26px; height: 26px; }
+.lnk.priv { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; }
+.lnk.priv .sic { width: 24px; height: 24px; background: transparent; }
+.mailto { display: inline-flex; align-items: center; gap: 10px; margin-top: 8px; padding: 11px 16px; border-radius: 14px; font-weight: 600; font-size: 15px; color: #2a1d06; background: linear-gradient(180deg, #f3dc93, #d4af5f); box-shadow: 0 6px 16px -8px rgba(212, 175, 95, 0.8); }
+.mailto svg { width: 18px; height: 18px; }
+.mailto .sic { width: auto; height: auto; background: transparent; color: inherit; }
+.mailto:hover { filter: brightness(1.05); }
+.scard > p { margin: 6px 0; line-height: 1.75; font-size: 14.5px; }
+.privacy .pmeta { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--gold2); font-size: 13.5px !important; font-weight: 600; }
+.privacy .psec h2 { margin-bottom: 8px; }
+.pnum { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-size: 13px; color: #2a1d06; background: linear-gradient(180deg, #f3dc93, #d4af5f); flex: none; }
+.pother { text-align: center; margin: 4px 0 0; }
+/* oxucu: üfüqi sürüşdürmə yalnız səhifə çevirmə üçündür (brauzerin «geri» jesti və üfüqi sürüşmə ilə toqquşmasın) */
+body.reading .paper { touch-action: pan-y pinch-zoom; }

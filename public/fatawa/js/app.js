@@ -1,11 +1,13 @@
 // Məcmuul-fətava: müstəqil bölmə (qovluq başqa yerə və ya tətbiqə köçürülə bilər). Marşrutlar hash ilə:
 //   #/            yalnız 35 cild (kitab üz qabıqları); axtarış — başlıqdakı lupa, ayarlar — dişli çarx
 //   #/settings    ayarlar: dil, şrift ölçüsü, görünüş, ərəb şrifti, hərəkələr, davam et, cild/səhifə keçidi, kitab haqqında
+//   #/privacy     məxfilik siyasəti (müstəqil nüsxə: privacy.html)
 //   #/v/3         3-cü cildin mündəricatı
 //   #/s?q=…&v=3   axtarış (v: yalnız həmin cild)
 //   #/p/1234?q=…  oxucu (1-dən başlayan ardıcıl səhifə; q: vurğulanan sözlər)
 //   #/j/3/10      3-cü cild, 10-cu səhifə (çap nömrəsi) -> oxucu
 import { t, fmt, arNum, lang, LANGS } from "./i18n.js";
+import { PRIVACY, EMAIL } from "./privacy-text.js";
 import { meta, page, prefetch, volToc, resolve } from "./data.js";
 import { tokens, tokenSpans } from "./tok.js";
 
@@ -74,7 +76,12 @@ const SIC = {
   globe: sv(`<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>`),
   link: sv(`<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>`),
   info: sv(`<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>`),
+  mail: sv(`<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/>`),
+  shield: sv(`<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/>`),
+  spark: sv(`<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>`),
+  chev: sv(`<path d="m6 9 6 6 6-6"/>`),
 };
+const LNAME = { ar: "العربية", az: "Azərbaycanca", en: "English", tr: "Türkçe", ru: "Русский" };
 const ICON = {
   book: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h4v14H4zM10 5h4v14h-4zM16 6l3.5-1 3 13.5-3.5 1z"/></svg>`,
   search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>`,
@@ -97,11 +104,12 @@ function route() {
   const parts = path.split("/").filter(Boolean);
   document.body.classList.toggle("reading", parts[0] === "p");
   document.body.classList.toggle("is-home", !parts.length);
-  document.body.classList.toggle("is-set", parts[0] === "settings");
+  document.body.classList.toggle("is-set", parts[0] === "settings" || parts[0] === "privacy");
   closeSearch(true);
   window.scrollTo(0, 0);
   updCont();
   if (parts[0] === "settings") return viewSettings();
+  if (parts[0] === "privacy") return viewPrivacy();
   if (parts[0] === "v") return viewVolume(Number(parts[1]));
   if (parts[0] === "s") return viewSearch(q.get("q") || "", Number(q.get("v")) || 0);
   if (parts[0] === "p") return viewReader(Number(parts[1]) || 1, q.get("q") || "");
@@ -236,9 +244,11 @@ async function viewSettings() {
       ${row("size", t("fontSize"), `<div class="fsrow"><button type="button" class="rbtn" id="sfd" aria-label="${esc(t("fontDown"))}">A−</button><input type="range" id="sfr" min="15" max="34" step="1" value="${fsz}" aria-label="${esc(t("fontSize"))}"><button type="button" class="rbtn" id="sfu" aria-label="${esc(t("fontUp"))}">A+</button><b id="sfv">${fmt(fsz)}</b></div>`)}
       ${row("font", t("arFont"), seg("font", [["amiri", t("fAmiri")], ["naskh", t("fNaskh")]], SET.font))}
       ${row("tashkil", t("tashkil"), `<label class="switch"><input type="checkbox" id="tk" ${SET.tashkil ? "checked" : ""}><span class="track"><span class="knob"></span></span><span class="swl" id="tkl">${esc(SET.tashkil ? t("tkShow") : t("tkHide"))}</span></label>`)}`)}
-    ${card("globe", t("language"), seg("lang", LANGS.map(([k]) => [k, { ar: "العربية", az: "Azərbaycanca", en: "English", tr: "Türkçe", ru: "Русский" }[k]]), lang))}
+    ${card("globe", t("language"), `<details class="lpick" id="lpick"><summary><span class="lcur"><b>${esc(LNAME[lang])}</b><small class="muted">${esc(t("chooseLang"))}</small></span><span class="lchev">${SIC.chev}</span></summary>
+      <div class="lopts" role="radiogroup" aria-label="${esc(t("language"))}">${["ar", "az", "en", "tr", "ru"].map((k) => `<button type="button" role="radio" aria-checked="${k === lang}" class="lopt${k === lang ? " on" : ""}" data-l="${k}" lang="${k}"><span>${esc(LNAME[k])}</span><i class="lck" aria-hidden="true"></i></button>`).join("")}</div></details>`)}
     ${LIB || CFG.aiUrl !== null ? card("link", t("links"), `<div class="links">${LIB ? `<a class="lnk" href="${esc(LIB)}">${esc(t("library"))}</a>` : ""}${CFG.aiUrl !== null ? `<a class="lnk" href="${esc(CFG.aiUrl || "/ai")}">Library AI</a>` : ""}${CFG.siteLink === false ? "" : `<a class="lnk" href="https://nibrascode.com">nibrascode.com</a>`}</div>`) : ""}
-    ${card("info", t("about"), `<div class="about"><p class="ar big gold">مجموع الفتاوى</p><p>${esc(t("aboutAuthor"))}</p><p>${esc(t("aboutComp"))}</p><p>${esc(t("aboutEd"))}</p><p class="muted">${esc(t("textNote"))}</p></div>`)}
+    ${card("info", t("about"), `<div class="about"><p class="ar big gold">مجموع الفتاوى</p><p>${esc(t("aboutAuthor"))}</p><p>${esc(t("aboutComp"))}</p><p>${esc(t("aboutEd"))}</p><p class="muted">${esc(t("textNote"))}</p><p class="ainote"><span class="sic">${SIC.spark}</span><span>${esc(t("aiNote"))}</span></p><a class="lnk priv" href="#/privacy"><span class="sic">${SIC.shield}</span>${esc(t("privacy"))}</a></div>`)}
+    ${card("mail", t("contact"), `<p class="muted">${esc(t("contactTxt"))}</p><a class="mailto" dir="ltr" href="mailto:${EMAIL}?subject=${encodeURIComponent("مجموع الفتاوى — Majmu' al-Fatawa")}"><span class="sic">${SIC.mail}</span>${EMAIL}</a>`)}
     <footer class="ver"><span class="gold">V1.0.0</span><span dir="ltr">© Nibras Code 2026</span></footer>
   </div>`;
   bindJump();
@@ -259,6 +269,11 @@ async function viewSettings() {
     $("#tkl").textContent = t(SET.tashkil ? "tkShow" : "tkHide");
     $("#pv").innerHTML = shown(esc(t("preview")));
   };
+  app.querySelectorAll(".lopt").forEach((b) => (b.onclick = () => {
+    if (b.dataset.l === lang) return ($("#lpick").open = false);
+    try { localStorage.setItem("nl:lang", b.dataset.l); } catch {}
+    location.reload();
+  }));
   app.querySelectorAll(".seg").forEach((g) => g.addEventListener("click", (e) => {
     const bt = e.target.closest("button");
     if (!bt) return;
@@ -273,6 +288,18 @@ async function viewSettings() {
     if (n === "font") SET.font = v, store.set("ft:font", v);
     applySettings();
   }));
+}
+
+// ---------------------------------------------------------------- məxfilik siyasəti
+function viewPrivacy() {
+  const P = PRIVACY[lang] || PRIVACY.ar;
+  document.title = `${P.title} — ${t("title")}`;
+  crumbs([...baseCrumbs(), ["#/settings", t("settings")], ["", P.title]]);
+  app.innerHTML = `<div class="settings privacy"><header class="shead"><span class="sic hero">${SIC.shield}</span><div><h1>${esc(P.title)}</h1><p class="muted">${esc(P.app)}</p></div></header>
+    <section class="scard"><p class="pmeta"><span>${esc(P.eff)}</span><span>${esc(P.dev)}</span></p><p>${esc(P.intro)}</p></section>
+    ${P.s.map(([h, b], i) => `<section class="scard psec"><h2><span class="pnum">${fmt(i + 1)}</span>${esc(h)}</h2><p>${esc(b)}</p></section>`).join("")}
+    <section class="scard"><h2><span class="sic big">${SIC.mail}</span>${esc(t("contact"))}</h2><p class="muted">${esc(P.contact)}</p><a class="mailto" dir="ltr" href="mailto:${EMAIL}">${SIC.mail}${EMAIL}</a></section>
+    <footer class="ver"><span class="gold">V1.0.0</span><span dir="ltr">© Nibras Code 2026</span></footer></div>`;
 }
 
 // ---------------------------------------------------------------- cild
@@ -442,8 +469,12 @@ async function viewReader(P, hq) {
   $("#rback").href = "#/v/" + p.vol;
   $("#ph").textContent = p.title;
   $("#pr").textContent = ref(p);
+  // ملحق səhifələri (c.3): ilk sətir çapdakı hərfli səhifə nömrəsidir — (ا)، (ب)… — mətndən çıxarılıb səhifə altında göstərilir
+  let foot = arNum(p.page);
+  const lm = p.ap && /^\((\S{1,3})\)\n/.exec(p.text);
+  if (lm) (foot = `(${lm[1]})`), (p = { ...p, text: p.text.slice(lm[0].length) });
   $("#pb").innerHTML = shown((p.startTitle ? `<div class="bab">${esc(p.startTitle)}</div>` : "") + (textHTML(p, set) || `<p class="muted">—</p>`));
-  $("#pf").textContent = arNum(p.page);
+  $("#pf").textContent = foot;
   $("#rjv").value = p.vol;
   $("#rjp").value = p.ap ? "" : p.page;
   store.set("ft:last", { p: P, at: Date.now() });
