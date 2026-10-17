@@ -2,7 +2,17 @@
 const BASE = new URL("../data/", import.meta.url);
 
 async function bin(name) {
-  const r = await fetch(new URL(name, BASE));
+  // keçici şəbəkə xətalarında 2 dəfə təkrar cəhd (0.6 s, 1.5 s)
+  let r;
+  for (let i = 0; ; i++) {
+    try {
+      r = await fetch(new URL(name, BASE));
+      if (r.ok || (r.status < 500 && r.status !== 429) || i >= 2) break;
+    } catch (e) {
+      if (i >= 2) throw e;
+    }
+    await new Promise((ok) => setTimeout(ok, i ? 1500 : 600));
+  }
   if (!r.ok) throw new Error("HTTP " + r.status);
   const u = new Uint8Array(await r.arrayBuffer());
   // server/brauzer artıq açıbsa (Content-Encoding), olduğu kimi qalır

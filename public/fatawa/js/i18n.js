@@ -1,6 +1,7 @@
 // İnterfeys mətnləri. Kitab mətni heç vaxt tərcümə olunmur. Dil kitabxana saytı ilə ortaqdır (localStorage «nl:lang»), standart: ərəbcə.
 const S = {
   ar: {
+    retry: "إعادة المحاولة",
    privacy: "سياسة الخصوصية", aiNote: "استُعين بالذكاء الاصطناعي في إعداد هذا التطبيق، فقد تقع بعض الأخطاء. نرجو إبلاغنا بأي خطأ تلاحظونه.", contact: "تواصل معنا", contactTxt: "للملاحظات والإبلاغ عن الأخطاء:", chooseLang: "اختر اللغة", privShort: "لا نجمع أي بيانات شخصية؛ الإعدادات تُحفظ على جهازك فقط.",
     settings: "الإعدادات", language: "اللغة", fontSize: "حجم خط القراءة", theme: "المظهر", thDark: "داكن", thLight: "فاتح", thSepia: "ورقي", arFont: "الخط العربي", fAmiri: "أميري", fNaskh: "نسخ (خط الجهاز)", tashkil: "التشكيل", tkShow: "إظهار", tkHide: "إخفاء", contRead: "متابعة القراءة", noLast: "لم تبدأ القراءة بعد.", links: "روابط", about: "عن الكتاب", aboutAuthor: "المؤلف: شيخ الإسلام أحمد بن عبد الحليم ابن تيمية (ت ٧٢٨ هـ).", aboutComp: "الجمع والترتيب: عبد الرحمن بن محمد بن قاسم (ت ١٣٩٢ هـ)، وساعده ابنه محمد.", aboutEd: "ترقيم المجلدات والصفحات: طبعة مجمع الملك فهد لطباعة المصحف الشريف، المدينة النبوية.", close: "إغلاق", preview: "قَالَ شَيْخُ الْإِسْلَامِ رَحِمَهُ اللَّهُ: الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ.", searchIn: "ابحث في", 
     title: "مجموع الفتاوى", by: "لشيخ الإسلام أحمد بن عبد الحليم ابن تيمية (ت ٧٢٨ هـ)",
@@ -21,6 +22,7 @@ const S = {
     ex: "أمثلة:", textNote: "النص كما هو في المطبوع، دون اختصار أو تعديل.", back: "رجوع", home: "مجموع الفتاوى",
   },
   az: {
+    retry: "Yenidən cəhd et",
    privacy: "Məxfilik siyasəti", aiNote: "Tətbiqin hazırlanmasında süni intellektdən kömək alınıb, xətalar ola bilər. Gördüyünüz səhvi bizə bildirməyinizi xahiş edirik.", contact: "Əlaqə", contactTxt: "Qeydlər və xətaları bildirmək üçün:", chooseLang: "Dili seçin", privShort: "Heç bir şəxsi məlumat toplamırıq; ayarlar yalnız cihazınızda saxlanılır.",
     settings: "Ayarlar", language: "Dil", fontSize: "Oxu şriftinin ölçüsü", theme: "Görünüş", thDark: "Tünd", thLight: "Açıq", thSepia: "Kağız", arFont: "Ərəb şrifti", fAmiri: "Amiri", fNaskh: "Nəsx (cihazın şrifti)", tashkil: "Hərəkələr (təşkil)", tkShow: "Göstər", tkHide: "Gizlət", contRead: "Oxumağa davam et", noLast: "Hələ oxumağa başlamamısan.", links: "Keçidlər", about: "Kitab haqqında", aboutAuthor: "Müəllif: Şeyxul-İslam Əhməd ibn Əbdülhəlim İbn Teymiyyə (ö. 728 h.).", aboutComp: "Toplayan və tərtib edən: Əbdürrəhman ibn Muhəmməd ibn Qasim (ö. 1392 h.), oğlu Muhəmmədin köməyi ilə.", aboutEd: "Cild və səhifə nömrələri: Kral Fəhd Mushaf Çapı Kompleksi nəşri, Mədinə.", close: "Bağla", preview: "قَالَ شَيْخُ الْإِسْلَامِ رَحِمَهُ اللَّهُ: الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ.", searchIn: "Axtarış yeri", 
     title: "Məcmuul-Fətava", by: "Şeyxul-İslam Əhməd ibn Əbdülhəlim İbn Teymiyyə (ö. 728 h.)",
@@ -41,6 +43,7 @@ const S = {
     ex: "Nümunələr:", textNote: "Mətn çap nəşrindəki kimidir, qısaldılmayıb və dəyişdirilməyib.", back: "Geri", home: "Məcmuul-Fətava",
   },
   en: {
+    retry: "Try again",
    privacy: "Privacy Policy", aiNote: "AI assistance was used in preparing this app, so some errors are possible. Please report any mistake you notice.", contact: "Contact", contactTxt: "Feedback and error reports:", chooseLang: "Choose language", privShort: "We collect no personal data; settings stay on your device.",
     settings: "Settings", language: "Language", fontSize: "Reading font size", theme: "Theme", thDark: "Dark", thLight: "Light", thSepia: "Sepia", arFont: "Arabic font", fAmiri: "Amiri", fNaskh: "Naskh (device font)", tashkil: "Diacritics (tashkil)", tkShow: "Show", tkHide: "Hide", contRead: "Continue reading", noLast: "You have not started reading yet.", links: "Links", about: "About the book", aboutAuthor: "Author: Shaykh al-Islam Ahmad ibn 'Abd al-Halim Ibn Taymiyyah (d. 728 AH).", aboutComp: "Compiled and arranged by 'Abd al-Rahman ibn Muhammad ibn Qasim (d. 1392 AH), assisted by his son Muhammad.", aboutEd: "Volume and page numbering: King Fahd Complex for the Printing of the Holy Quran edition, Madinah.", close: "Close", preview: "قَالَ شَيْخُ الْإِسْلَامِ رَحِمَهُ اللَّهُ: الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ.", searchIn: "Search in", 
     title: "Majmu' al-Fatawa", by: "Shaykh al-Islam Ahmad ibn 'Abd al-Halim Ibn Taymiyyah (d. 728 AH)",
@@ -61,6 +64,7 @@ const S = {
     ex: "Examples:", textNote: "The text is as printed, unabridged and unaltered.", back: "Back", home: "Majmu' al-Fatawa",
   },
   tr: {
+    retry: "Tekrar dene",
    privacy: "Gizlilik Politikası", aiNote: "Bu uygulamanın hazırlanmasında yapay zekâdan yardım alınmıştır; bazı hatalar olabilir. Fark ettiğiniz hataları bize bildirmenizi rica ederiz.", contact: "İletişim", contactTxt: "Görüş ve hata bildirimi:", chooseLang: "Dil seçin", privShort: "Hiçbir kişisel veri toplamıyoruz; ayarlar yalnızca cihazınızda kalır.",
     settings: "Ayarlar", language: "Dil", fontSize: "Okuma yazı boyutu", theme: "Görünüm", thDark: "Koyu", thLight: "Açık", thSepia: "Kâğıt", arFont: "Arapça yazı tipi", fAmiri: "Amiri", fNaskh: "Nesih (cihaz yazı tipi)", tashkil: "Harekeler", tkShow: "Göster", tkHide: "Gizle", contRead: "Okumaya devam et", noLast: "Henüz okumaya başlamadınız.", links: "Bağlantılar", about: "Kitap hakkında", aboutAuthor: "Müellif: Şeyhülislam Ahmed b. Abdülhalîm İbn Teymiyye (ö. 728 h.).", aboutComp: "Derleyen: Abdurrahman b. Muhammed b. Kâsım (ö. 1392 h.), oğlu Muhammed'in yardımıyla.", aboutEd: "Cilt ve sayfa numaraları: Kral Fahd Mushaf Matbaası baskısı, Medine.", close: "Kapat", preview: "قَالَ شَيْخُ الْإِسْلَامِ رَحِمَهُ اللَّهُ: الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ.", searchIn: "Arama yeri", 
     title: "Mecmûu'l-Fetâvâ", by: "Şeyhülislam Ahmed b. Abdülhalîm İbn Teymiyye (ö. 728 h.)",
@@ -81,6 +85,7 @@ const S = {
     ex: "Örnekler:", textNote: "Metin matbu nüshadaki gibidir; kısaltılmamış ve değiştirilmemiştir.", back: "Geri", home: "Mecmûu'l-Fetâvâ",
   },
   ru: {
+    retry: "Повторить",
    privacy: "Политика конфиденциальности", aiNote: "При подготовке приложения использовалась помощь искусственного интеллекта, поэтому возможны ошибки. Пожалуйста, сообщайте нам о замеченных ошибках.", contact: "Связь", contactTxt: "Отзывы и сообщения об ошибках:", chooseLang: "Выберите язык", privShort: "Мы не собираем персональных данных; настройки хранятся только на устройстве.",
     settings: "Настройки", language: "Язык", fontSize: "Размер шрифта", theme: "Тема", thDark: "Тёмная", thLight: "Светлая", thSepia: "Сепия", arFont: "Арабский шрифт", fAmiri: "Amiri", fNaskh: "Насх (шрифт устройства)", tashkil: "Огласовки (ташкиль)", tkShow: "Показать", tkHide: "Скрыть", contRead: "Продолжить чтение", noLast: "Вы ещё не начали чтение.", links: "Ссылки", about: "О книге", aboutAuthor: "Автор: шейх-уль-ислам Ахмад ибн Абд аль-Халим Ибн Таймийя (ум. 728 г. х.).", aboutComp: "Собрал и упорядочил Абд ар-Рахман ибн Мухаммад ибн Касим (ум. 1392 г. х.) с помощью сына Мухаммада.", aboutEd: "Нумерация томов и страниц: издание Комплекса короля Фахда, Медина.", close: "Закрыть", preview: "قَالَ شَيْخُ الْإِسْلَامِ رَحِمَهُ اللَّهُ: الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ.", searchIn: "Где искать", 
     title: "Маджму аль-фатава", by: "Шейх-уль-ислам Ахмад ибн Абд аль-Халим Ибн Таймийя (ум. 728 г. х.)",

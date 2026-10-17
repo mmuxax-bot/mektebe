@@ -118,7 +118,10 @@ function route() {
 }
 addEventListener("hashchange", route);
 const loading = () => (app.innerHTML = `<p class="muted pad">${esc(t("loading"))}</p>`);
-const failed = () => (app.innerHTML = `<p class="muted pad">${esc(t("error"))}</p>`);
+const failed = () => {
+  app.innerHTML = `<div class="pad"><p class="muted">${esc(t("error"))}</p><button class="btn ghost sm" id="retry" type="button">↻ ${esc(t("retry"))}</button></div>`;
+  $("#retry").onclick = () => route();
+};
 
 async function jumpTo(v, pg) {
   const d = await resolve(v, pg).catch(() => null);
