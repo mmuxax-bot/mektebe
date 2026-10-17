@@ -1,5 +1,6 @@
 // Məcmuul-fətava: müstəqil bölmə (qovluq başqa yerə və ya tətbiqə köçürülə bilər). Marşrutlar hash ilə:
-//   #/            cildlər, axtarış, cild/səhifə keçidi
+//   #/            yalnız 35 cild (kitab üz qabıqları); axtarış — başlıqdakı lupa, ayarlar — dişli çarx
+//   #/settings    ayarlar: dil, şrift ölçüsü, görünüş, ərəb şrifti, hərəkələr, davam et, cild/səhifə keçidi, kitab haqqında
 //   #/v/3         3-cü cildin mündəricatı
 //   #/s?q=…&v=3   axtarış (v: yalnız həmin cild)
 //   #/p/1234?q=…  oxucu (1-dən başlayan ardıcıl səhifə; q: vurğulanan sözlər)
@@ -21,27 +22,66 @@ const store = {
 };
 const ref = (p) => "ج " + arNum(p.vol) + "، " + (p.ap ? "ملحق " : "") + "ص " + arNum(p.page);
 
+// ---------------------------------------------------------------- ayarlar (localStorage)
+const SET = {
+  theme: store.get("ft:theme", "dark"), // dark | light | sepia
+  font: store.get("ft:font", "amiri"), // amiri | naskh
+  tashkil: store.get("ft:tashkil", true),
+};
+function applySettings() {
+  const h = document.documentElement;
+  h.dataset.theme = SET.theme;
+  h.dataset.font = SET.font;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", SET.theme === "light" ? "#f6f7fb" : SET.theme === "sepia" ? "#efe4c9" : "#05060c");
+}
+applySettings();
+// hərəkələri gizlətmək (yalnız göstərişdə; mətnin özü dəyişmir)
+const TASH = /[\u064B-\u0652\u0670]/g;
+const shown = (html) => (SET.tashkil ? html : html.replace(TASH, ""));
+
 // ---------------------------------------------------------------- başlıq / altlıq
 function chrome() {
   const top = document.createElement("header");
   top.className = "top";
-  top.innerHTML = `<a class="brand" href="#/"><span class="logo" aria-hidden="true">${ICON.book}</span><span>${esc(t("home"))}</span></a>
-    <nav class="nav">${LIB ? `<a href="${esc(LIB)}" class="lib">${esc(t("library"))}</a>` : ""}${CFG.aiUrl !== null ? `<a href="${esc(CFG.aiUrl || "/ai")}" class="ai">Library AI</a>` : ""}
-    <select class="lang" aria-label="Language">${LANGS.map(([k, l]) => `<option value="${k}" ${k === lang ? "selected" : ""}>${l}</option>`).join("")}</select></nav>`;
-  top.querySelector(".lang").onchange = (e) => {
-    try { localStorage.setItem("nl:lang", e.target.value); } catch {}
-    location.reload();
-  };
+  top.innerHTML = `<a class="brand" href="#/"><span class="logo" aria-hidden="true">${ICON.book}</span><span class="ar">${esc(t("home"))}</span></a>
+    <nav class="nav"><a class="hbtn hidden" id="hCont" href="#/" title="${esc(t("contRead"))}" aria-label="${esc(t("contRead"))}">${ICON.bookmark}</a>
+    <button class="hbtn" id="hSearch" type="button" title="${esc(t("search"))}" aria-label="${esc(t("search"))}">${ICON.search}</button>
+    <a class="hbtn" id="hSet" href="#/settings" title="${esc(t("settings"))}" aria-label="${esc(t("settings"))}">${ICON.gear}</a></nav>`;
   document.body.prepend(top);
+  $("#hSearch").onclick = () => openSearch();
   const f = document.createElement("footer");
   f.className = "foot";
-  f.innerHTML = `<span dir="ltr">© Nibras Code 2026</span>${CFG.siteLink === false ? "" : ` · <a href="https://nibrascode.com">nibrascode.com</a>`}`;
+  f.innerHTML = `<span dir="ltr">© Nibras Code 2026</span>`;
   document.body.append(f);
 }
+// başlıqdakı «davam et» nişanı: yalnız oxunan səhifə varsa
+function updCont() {
+  const last = store.get("ft:last", null);
+  const el = $("#hCont");
+  if (!el) return;
+  el.classList.toggle("hidden", !(last && last.p) || document.body.classList.contains("reading"));
+  if (last && last.p) el.href = "#/p/" + last.p;
+}
+const sv = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const SIC = {
+  book: sv(`<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/>`),
+  jump: sv(`<path d="M5 12h14M13 6l6 6-6 6"/>`),
+  palette: sv(`<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.8 1.6-1.6 0-.5-.2-.8-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.7-1.6 1.6-1.6H16a5 5 0 0 0 5-5C21 6.6 17 3 12 3Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="14.5" cy="7" r="1"/>`),
+  sun: sv(`<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>`),
+  size: sv(`<path d="M4 18 9 6l5 12M5.8 14h6.4M15 18l3-7 3 7M16 16h4"/>`),
+  font: sv(`<path d="M5 19c3 0 4-3 5-7s2-7 5-7M7 11h8M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>`),
+  tashkil: sv(`<path d="M4 17h16M7 9l4-2M13 7l4-2M9 21h.01M15 21h.01"/>`),
+  globe: sv(`<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>`),
+  link: sv(`<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>`),
+  info: sv(`<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>`),
+};
 const ICON = {
   book: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h4v14H4zM10 5h4v14h-4zM16 6l3.5-1 3 13.5-3.5 1z"/></svg>`,
   search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>`,
   toc: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>`,
+  gear: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>`,
+  bookmark: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>`,
+  x: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`,
 };
 function crumbs(list) {
   $("#crumbs").innerHTML = list.map(([href, label], i) => (i === list.length - 1 ? `<b>${esc(label)}</b>` : `<a href="${esc(href)}">${esc(label)}</a><span>›</span>`)).join("");
@@ -56,7 +96,12 @@ function route() {
   const q = new URLSearchParams(qs || "");
   const parts = path.split("/").filter(Boolean);
   document.body.classList.toggle("reading", parts[0] === "p");
+  document.body.classList.toggle("is-home", !parts.length);
+  document.body.classList.toggle("is-set", parts[0] === "settings");
+  closeSearch(true);
   window.scrollTo(0, 0);
+  updCont();
+  if (parts[0] === "settings") return viewSettings();
   if (parts[0] === "v") return viewVolume(Number(parts[1]));
   if (parts[0] === "s") return viewSearch(q.get("q") || "", Number(q.get("v")) || 0);
   if (parts[0] === "p") return viewReader(Number(parts[1]) || 1, q.get("q") || "");
@@ -106,44 +151,128 @@ function bindJump() {
 }
 async function viewHome() {
   document.title = `${t("title")} — Nibras Library`;
-  crumbs(baseCrumbs());
+  $("#crumbs").hidden = true;
   loading();
   let m;
   try { m = await meta(); } catch { return failed(); }
   const heads = await Promise.all(m.vols.map((v) => volToc(v.n).then((x) => x.length)));
-  const totalHeads = heads.reduce((a, b) => a + b, 0);
-  const last = store.get("ft:last", null);
-  const lastP = last && last.p ? await page(last.p - 1).catch(() => null) : null;
   // hər cild ayrıca kitab: ortaq dəri üz qabığı (img/cover.webp: çərçivə, «مجموع الفتاوى», «شيخ الإسلام ابن تيمية»), üstündə cild nömrəsi və mövzusu
   const tile = (v, i) => {
     const [a, b] = v.title.split(/:\s*/);
     const len = a.length;
     return `<a class="vbook" href="#/v/${v.n}" title="الجزء ${arNum(v.n)}: ${esc(v.title)}"><div class="bk"><div class="vcover" style="--fs:${len > 16 ? 0.86 : len > 11 ? 0.95 : 1.05}"><span class="vnum"><b>${arNum(v.n)}</b></span><span class="vtt"><span class="gold">${esc(a)}</span>${b ? `<small class="gold">${esc(b)}</small>` : ""}</span></div></div><div class="vmeta">${esc(t("pagesN", { n: fmt(v.count) }))} · ${esc(t("headsN", { n: fmt(heads[i]) }))}</div></a>`;
   };
-  app.innerHTML = `
-    <section class="fhero">
-      <div class="fcover" aria-hidden="true"><div class="ct">مجموع الفتاوى</div><div class="ca">شيخ الإسلام ابن تيمية</div><div class="cp">٣٥</div></div>
-      <div class="ftext">
-        <h1 class="ar">مجموع الفتاوى</h1>
-        ${lang !== "ar" ? `<p class="tr">${esc(t("title"))}</p>` : ""}
-        <p class="by">${esc(t("by"))}</p>
-        <p class="muted">${esc(t("compiled"))}</p>
-        <p class="muted sm">${esc(t("edition"))}</p>
-        <div class="stats"><span>${esc(t("volsN", { n: fmt(m.vols.length) }))}</span><span>${esc(t("pagesN", { n: fmt(m.N) }))}</span><span>${esc(t("headsN", { n: fmt(totalHeads) }))}</span></div>
-        <div class="acts"><a class="btn" href="#/p/1">${esc(t("start"))}</a>${lastP ? `<a class="btn ghost" href="#/p/${last.p}">${esc(t("resume", { r: ref(lastP) }))}</a>` : ""}</div>
-      </div>
-    </section>
-    <section class="tools">
-      <div class="tcard"><h2>${esc(t("searchTitle"))}</h2>${searchForm("", 0, [])}
-        <p class="ex muted">${esc(t("ex"))} ${["التوسل", "لا تشد الرحال", "الصبر على البلاء", "طلاق الثلاث"].map((x) => `<a href="#/s?q=${encodeURIComponent(x)}" class="ar">${x}</a>`).join(" · ")}</p></div>
-      <div class="tcard"><h2>${esc(t("jumpTitle"))}</h2>${jumpForm(m.vols, 1)}</div>
-    </section>
-    <section class="volumes"><h2>${esc(t("volumes"))}</h2>
-      <div class="shelf">${m.vols.map((v, i) => tile(v, i)).join("")}</div>
-      <p class="note muted">${esc(t("indexVols"))}</p>
-    </section>`;
-  bindSearch();
+  app.innerHTML = `<h1 class="sr">${esc(t("title"))}</h1><section class="volumes"><div class="shelf">${m.vols.map((v, i) => tile(v, i)).join("")}</div></section>`;
+}
+
+// ---------------------------------------------------------------- axtarış paneli (başlıqdakı lupa)
+const EXAMPLES = ["التوسل", "لا تشد الرحال", "الصبر على البلاء", "طلاق الثلاث", "زيارة القبور", "الأسماء والصفات"];
+let ovOpen = false;
+async function openSearch() {
+  if (ovOpen) return;
+  ovOpen = true;
+  const m = await meta().catch(() => ({ vols: [] }));
+  const cur = (location.hash.match(/^#\/(?:v|p)\/(\d+)/) || [])[1];
+  const curVol = location.hash.startsWith("#/v/") ? Number(cur) : location.hash.startsWith("#/p/") && m.pv ? m.pv[Number(cur) - 1] : 0;
+  const ov = document.createElement("div");
+  ov.className = "sov";
+  ov.id = "sov";
+  ov.setAttribute("role", "dialog");
+  ov.setAttribute("aria-modal", "true");
+  ov.innerHTML = `<div class="sovin"><div class="sovhd"><h2>${esc(t("searchTitle"))}</h2><button class="hbtn" id="sovx" type="button" aria-label="${esc(t("close"))}">${ICON.x}</button></div>
+    <form class="sform" id="ovf"><div class="sbox">${ICON.search}<input id="ovq" type="search" dir="rtl" lang="ar" enterkeyhint="search" autocomplete="off" placeholder="${esc(t("searchPh"))}"></div><button class="btn" type="submit">${esc(t("search"))}</button></form>
+    <label class="ovvol">${esc(t("searchIn"))}<select id="ovv"><option value="0">${esc(t("allVols"))}</option>${m.vols.map((v) => `<option value="${v.n}" ${v.n === curVol ? "selected" : ""}>${esc(t("vol"))} ${fmt(v.n)} — ${esc(v.title)}</option>`).join("")}</select></label>
+    <p class="ovex muted">${esc(t("ex"))}</p><div class="ovchips">${EXAMPLES.map((x) => `<button type="button" class="chip ar" data-q="${esc(x)}">${esc(x)}</button>`).join("")}</div></div>`;
+  document.body.append(ov);
+  document.body.classList.add("ov-open");
+  history.pushState({ ov: 1 }, "", location.href);
+  const go = (q) => {
+    q = q.trim();
+    if (!q) return;
+    const v = Number($("#ovv").value);
+    // panelin tarix qeydi nəticə səhifəsi ilə əvəz olunur: «geri» əvvəlki səhifəyə qayıdır
+    closeSearch(true);
+    history.replaceState(null, "", "#/s?q=" + encodeURIComponent(q) + (v ? "&v=" + v : ""));
+    route();
+  };
+  $("#ovf").onsubmit = (e) => (e.preventDefault(), go($("#ovq").value));
+  ov.querySelectorAll(".ovchips .chip").forEach((c) => (c.onclick = () => go(c.dataset.q)));
+  $("#sovx").onclick = () => history.back();
+  ov.onclick = (e) => { if (e.target === ov) history.back(); };
+  setTimeout(() => $("#ovq")?.focus(), 30);
+}
+function closeSearch(silent) {
+  const ov = $("#sov");
+  if (!ov) return (ovOpen = false);
+  ov.remove();
+  document.body.classList.remove("ov-open");
+  ovOpen = false;
+  void silent;
+}
+addEventListener("popstate", () => ovOpen && closeSearch());
+addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && ovOpen) history.back();
+  else if (e.key === "/" && !ovOpen && !e.target.closest("input, select, textarea")) (e.preventDefault(), openSearch());
+});
+
+// ---------------------------------------------------------------- ayarlar
+async function viewSettings() {
+  document.title = `${t("settings")} — ${t("title")}`;
+  crumbs([...baseCrumbs(), ["", t("settings")]]);
+  let m;
+  try { m = await meta(); } catch { return failed(); }
+  const last = store.get("ft:last", null);
+  const lastP = last && last.p ? await page(last.p - 1).catch(() => null) : null;
+  const seg = (name, opts, cur) => `<div class="seg" role="radiogroup" data-name="${name}">${opts.map(([v, l, sw]) => `<button type="button" role="radio" aria-checked="${String(v) === String(cur)}" class="${String(v) === String(cur) ? "on" : ""}" data-v="${v}">${sw ? `<i class="sw sw-${v}"></i>` : ""}${esc(l)}</button>`).join("")}</div>`;
+  const row = (icon, title, body, cls = "") => `<div class="srow ${cls}"><div class="slabel"><span class="sic">${SIC[icon]}</span><span>${esc(title)}</span></div><div class="sctl">${body}</div></div>`;
+  const card = (icon, title, rows) => `<section class="scard"><h2><span class="sic big">${SIC[icon]}</span>${esc(title)}</h2>${rows}</section>`;
+  const lastVol = lastP ? lastP.vol : 1;
+  app.innerHTML = `<div class="settings"><header class="shead"><span class="sic hero">${ICON.gear}</span><div><h1>${esc(t("settings"))}</h1><p class="muted ar">مجموع الفتاوى</p></div></header>
+    ${card("book", t("contRead"), `${lastP ? `<a class="cont" href="#/p/${last.p}"><span class="cref ar">${esc(ref(lastP))}</span><span class="ctt ar">${esc(lastP.title || lastP.volTitle)}</span><span class="carr" aria-hidden="true">‹</span></a>` : `<div class="srow"><p class="muted">${esc(t("noLast"))}</p><a class="btn ghost sm" href="#/p/1">${esc(t("start"))}</a></div>`}
+      <div class="sub"><div class="slabel"><span class="sic">${SIC.jump}</span><span>${esc(t("jumpTitle"))}</span></div>${jumpForm(m.vols, lastVol)}</div>`)}
+    ${card("palette", t("theme"), `
+      <div class="pvwrap"><div class="pvpaper" id="pvp"><div class="pvh ar"><span>توحيد الألوهية</span><span>ج ١، ص ١</span></div><p class="ar" id="pv">${shown(esc(t("preview")))}</p></div></div>
+      ${row("sun", t("theme"), seg("theme", [["dark", t("thDark"), 1], ["light", t("thLight"), 1], ["sepia", t("thSepia"), 1]], SET.theme))}
+      ${row("size", t("fontSize"), `<div class="fsrow"><button type="button" class="rbtn" id="sfd" aria-label="${esc(t("fontDown"))}">A−</button><input type="range" id="sfr" min="15" max="34" step="1" value="${fsz}" aria-label="${esc(t("fontSize"))}"><button type="button" class="rbtn" id="sfu" aria-label="${esc(t("fontUp"))}">A+</button><b id="sfv">${fmt(fsz)}</b></div>`)}
+      ${row("font", t("arFont"), seg("font", [["amiri", t("fAmiri")], ["naskh", t("fNaskh")]], SET.font))}
+      ${row("tashkil", t("tashkil"), `<label class="switch"><input type="checkbox" id="tk" ${SET.tashkil ? "checked" : ""}><span class="track"><span class="knob"></span></span><span class="swl" id="tkl">${esc(SET.tashkil ? t("tkShow") : t("tkHide"))}</span></label>`)}`)}
+    ${card("globe", t("language"), seg("lang", LANGS.map(([k]) => [k, { ar: "العربية", az: "Azərbaycanca", en: "English", tr: "Türkçe", ru: "Русский" }[k]]), lang))}
+    ${LIB || CFG.aiUrl !== null ? card("link", t("links"), `<div class="links">${LIB ? `<a class="lnk" href="${esc(LIB)}">${esc(t("library"))}</a>` : ""}${CFG.aiUrl !== null ? `<a class="lnk" href="${esc(CFG.aiUrl || "/ai")}">Library AI</a>` : ""}${CFG.siteLink === false ? "" : `<a class="lnk" href="https://nibrascode.com">nibrascode.com</a>`}</div>`) : ""}
+    ${card("info", t("about"), `<div class="about"><p class="ar big gold">مجموع الفتاوى</p><p>${esc(t("aboutAuthor"))}</p><p>${esc(t("aboutComp"))}</p><p>${esc(t("aboutEd"))}</p><p class="muted">${esc(t("textNote"))}</p></div>`)}
+    <footer class="ver"><span class="gold">V1.0.0</span><span dir="ltr">© Nibras Code 2026</span></footer>
+  </div>`;
   bindJump();
+  const fsUpd = () => {
+    $("#sfv").textContent = fmt(fsz);
+    $("#sfr").value = fsz;
+    $("#pv").style.fontSize = fsz + "px";
+    document.documentElement.style.setProperty("--rfs", fsz + "px");
+    store.set("ft:fs", fsz);
+  };
+  $("#pv").style.fontSize = fsz + "px";
+  $("#sfd").onclick = () => ((fsz = Math.max(15, fsz - 1)), fsUpd());
+  $("#sfu").onclick = () => ((fsz = Math.min(34, fsz + 1)), fsUpd());
+  $("#sfr").oninput = (e) => ((fsz = Number(e.target.value)), fsUpd());
+  $("#tk").onchange = (e) => {
+    SET.tashkil = e.target.checked;
+    store.set("ft:tashkil", SET.tashkil);
+    $("#tkl").textContent = t(SET.tashkil ? "tkShow" : "tkHide");
+    $("#pv").innerHTML = shown(esc(t("preview")));
+  };
+  app.querySelectorAll(".seg").forEach((g) => g.addEventListener("click", (e) => {
+    const bt = e.target.closest("button");
+    if (!bt) return;
+    g.querySelectorAll("button").forEach((x) => (x.classList.toggle("on", x === bt), x.setAttribute("aria-checked", String(x === bt))));
+    const v = bt.dataset.v;
+    const n = g.dataset.name;
+    if (n === "lang") {
+      try { localStorage.setItem("nl:lang", v); } catch {}
+      return location.reload();
+    }
+    if (n === "theme") SET.theme = v, store.set("ft:theme", v);
+    if (n === "font") SET.font = v, store.set("ft:font", v);
+    applySettings();
+  }));
 }
 
 // ---------------------------------------------------------------- cild
@@ -169,12 +298,10 @@ async function viewVolume(n) {
       <div class="acts"><a class="btn" href="#/p/${v.first + 1}">${esc(t("readVol"))}</a>
         ${prev ? `<a class="btn ghost sm" href="#/v/${prev.n}">→ ${esc(t("prevVol"))}</a>` : ""}${next ? `<a class="btn ghost sm" href="#/v/${next.n}">${esc(t("nextVol"))} ←</a>` : ""}</div></div>
     </section>
-    <section class="tools one"><div class="tcard">${searchForm("", n, m.vols)}</div></section>
     <section class="tocbox">
       <div class="tocbar"><input id="tf" type="search" dir="rtl" placeholder="${esc(t("tocFilter"))}"><div class="chips">${["all", ...kinds].map((k) => `<button type="button" class="chip ${k === "all" ? "on" : ""}" data-k="${k}">${esc(t(k === "all" ? "kAll" : "k" + k))} <small>${fmt(k === "all" ? items.length : items.filter((x) => x.k === k).length)}</small></button>`).join("")}</div></div>
       <ol class="toc" id="toc">${items.map((x) => `<li class="k-${x.k}" data-k="${x.k}"><a href="#/p/${x.d + 1}"><span class="tk" aria-hidden="true"></span><span class="tt ar">${esc(x.t)}</span><span class="tp">${x.ap ? esc(t("appendix")) + " " : ""}ص ${arNum(x.pg)}</span></a></li>`).join("")}</ol>
     </section>`;
-  bindSearch();
   let kind = "all";
   const apply = () => {
     const q = $("#tf").value.trim();
@@ -246,7 +373,9 @@ async function viewSearch(q, vol) {
     const slice = r.list.slice(off, off + 20);
     off += slice.length;
     const pages = await Promise.all(slice.map((d) => page(d)));
-    $("#hits").insertAdjacentHTML("beforeend", pages.map((p) => `<a class="hit" href="#/p/${p.d + 1}?q=${encodeURIComponent(q)}"><div class="h1"><b>${esc(ref(p))}</b><span>${esc(p.title)}</span></div><div class="s ar">${snippet(p.text, set)}</div><div class="vt muted">${esc(p.volTitle)}</div></a>`).join(""));
+    const hits = $("#hits");
+    if (!hits || !hits.isConnected || !box.isConnected) return; // istifadəçi artıq başqa səhifəyə keçib
+    hits.insertAdjacentHTML("beforeend", pages.map((p) => `<a class="hit" href="#/p/${p.d + 1}?q=${encodeURIComponent(q)}"><div class="h1"><b>${esc(ref(p))}</b><span>${esc(p.title)}</span></div><div class="s ar">${shown(snippet(p.text, set))}</div><div class="vt muted">${esc(p.volTitle)}</div></a>`).join(""));
     if (off < r.list.length) $("#hits").insertAdjacentHTML("afterend", `<button class="btn ghost moreb" id="moreb">${esc(t("more"))}</button>`), ($("#moreb").onclick = more);
   };
   await more();
@@ -254,6 +383,7 @@ async function viewSearch(q, vol) {
 
 // ---------------------------------------------------------------- oxucu
 let fsz = store.get("ft:fs", 21);
+document.documentElement.style.setProperty("--rfs", fsz + "px");
 const FN_SEP = /^\s*[_ـ\-–—]{5,}\s*$/;
 const N_BASM = /^بسم الله الرحمن الرحيم/;
 const plain = (s) => s.replace(/[\u064B-\u065F\u0670\u0640]/g, "").replace(/[أإآ]/g, "ا");
@@ -312,7 +442,7 @@ async function viewReader(P, hq) {
   $("#rback").href = "#/v/" + p.vol;
   $("#ph").textContent = p.title;
   $("#pr").textContent = ref(p);
-  $("#pb").innerHTML = (p.startTitle ? `<div class="bab">${esc(p.startTitle)}</div>` : "") + (textHTML(p, set) || `<p class="muted">—</p>`);
+  $("#pb").innerHTML = shown((p.startTitle ? `<div class="bab">${esc(p.startTitle)}</div>` : "") + (textHTML(p, set) || `<p class="muted">—</p>`));
   $("#pf").textContent = arNum(p.page);
   $("#rjv").value = p.vol;
   $("#rjp").value = p.ap ? "" : p.page;
