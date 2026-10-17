@@ -179,26 +179,37 @@ body.reading .wrap { max-width: 900px; padding-bottom: 20px; }
   .rbar { top: 49px; }
 }
 
-/* cildlər: hər cild ayrıca kitab üz qabığı */
-.shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 22px 18px; }
-.vbook { display: block; color: var(--text); transition: transform 0.18s; }
-.vbook:hover { transform: translateY(-4px); }
-.vcover { position: relative; aspect-ratio: 2 / 3; border-radius: 5px 10px 10px 5px; overflow: hidden; color: #f3e3b5; background: linear-gradient(135deg, #1f4a3c, #0c2219); box-shadow: 0 12px 26px rgba(0, 0, 0, 0.5), inset 6px 0 0 rgba(0, 0, 0, 0.28), inset 8px 0 0 rgba(255, 255, 255, 0.04); display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; padding: 18px 12px 14px 16px; direction: rtl; font-family: var(--ar); }
-.vcover::before { content: ""; position: absolute; inset: 7px 7px 7px 11px; border: 1.5px solid rgba(232, 200, 120, 0.6); border-radius: 4px; box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.15), inset 0 0 0 4px rgba(232, 200, 120, 0.2); pointer-events: none; }
-.vbook:hover .vcover::before { border-color: rgba(240, 214, 150, 0.9); }
-.vcover .vk { font-size: 13px; font-weight: 700; color: var(--gold2); opacity: 0.95; }
-.vcover .vnum { display: flex; align-items: center; justify-content: center; width: 2.1em; height: 2.1em; font-size: 26px; font-weight: 700; color: var(--gold2); border: 1.5px solid rgba(232, 200, 120, 0.6); border-radius: 50%; line-height: 1; box-shadow: inset 0 0 0 3px rgba(12, 34, 25, 0.9), inset 0 0 0 4px rgba(232, 200, 120, 0.25); }
-.vcover .vtt { font-size: var(--fs, 16px); font-weight: 700; line-height: 1.35; display: flex; flex-direction: column; gap: 2px; }
-.vcover .vtt small { font-size: 0.82em; font-weight: 400; opacity: 0.85; }
-.vcover .vby { font-size: 11px; opacity: 0.7; }
-.vmeta { font-size: 12px; color: var(--muted); padding: 7px 2px 0; text-align: center; }
+/* cildlər: hər cild ayrıca kitab — həqiqi kitab görünüşü (ortaq dəri faktura img/cover.webp, sağda cild/çiyin, solda vərəq qalınlığı) */
+.shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 30px 26px; padding: 6px 8px 0 14px; }
+.vbook { display: block; color: var(--text); perspective: 900px; outline: none; }
+.bk { position: relative; transform-style: preserve-3d; transform-origin: right center; transition: transform 0.35s cubic-bezier(.2, .7, .2, 1), filter 0.35s; filter: drop-shadow(0 14px 16px rgba(0, 0, 0, 0.55)) drop-shadow(0 3px 4px rgba(0, 0, 0, 0.4)); }
+.vbook:hover .bk, .vbook:focus-visible .bk { transform: translateY(-8px) rotateY(-14deg); filter: drop-shadow(0 22px 22px rgba(0, 0, 0, 0.6)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4)); }
+/* vərəq qalınlığı (sol kənar; ərəb kitabı sağdan cildlənir) */
+.bk::before { content: ""; position: absolute; top: 2.2%; bottom: 2.2%; left: -6px; width: 8px; border-radius: 3px 0 0 3px; background: repeating-linear-gradient(90deg, #efe3c4 0 1px, #d9caa3 1px 2px), linear-gradient(#f3e9cf, #d8c9a2); box-shadow: inset 1px 0 2px rgba(0, 0, 0, 0.25); }
+.bk::after { content: ""; position: absolute; top: 2.2%; bottom: 2.2%; left: -6px; width: 8px; border-radius: 3px 0 0 3px; background: linear-gradient(rgba(0, 0, 0, 0.18), transparent 12%, transparent 88%, rgba(0, 0, 0, 0.22)); }
+.vcover { position: relative; aspect-ratio: 768 / 1376; border-radius: 7px 3px 3px 7px; overflow: hidden; background: #16302a url(img/cover.webp) center / cover no-repeat; display: block; direction: rtl; font-family: var(--ar); }
+/* çiyin: sağ kənar, qızılı zolaqlar */
+.vcover::before { content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 9%; background:
+    linear-gradient(transparent 7%, #c9a253 7%, #f1d996 7.6%, #a37c34 8.3%, transparent 8.3%, transparent 10.2%, #a37c34 10.2%, #e9cf8a 10.8%, transparent 11.4%) ,
+    linear-gradient(transparent 88.6%, #a37c34 88.6%, #e9cf8a 89.2%, transparent 89.8%, transparent 91.7%, #c9a253 91.7%, #f1d996 92.4%, #a37c34 93%, transparent 93%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(255, 255, 255, 0.07) 35%, rgba(0, 0, 0, 0.18) 60%, rgba(0, 0, 0, 0.6));
+  box-shadow: -1px 0 0 rgba(0, 0, 0, 0.5), -2px 0 0 rgba(255, 240, 200, 0.06); }
+/* işıq və dəri parıltısı */
+.vcover::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, rgba(255, 255, 255, 0.10), transparent 32%, transparent 70%, rgba(0, 0, 0, 0.25)), radial-gradient(120% 70% at 30% 0%, rgba(255, 255, 255, 0.06), transparent 60%); }
+.gold { background: linear-gradient(180deg, #fff1c2 0%, #e9c96f 38%, #b88a32 62%, #f3dc93 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.vcover .vnum { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 25%; aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(9, 26, 20, 0.92) 58%, rgba(9, 26, 20, 0.6) 70%, transparent 72%); box-shadow: 0 0 0 1.5px #c9a253, 0 0 0 3px rgba(9, 26, 20, 0.8), 0 0 0 4px rgba(233, 207, 138, 0.55); z-index: 1; }
+.vcover .vnum b { font-size: 22px; font-weight: 700; line-height: 1; background: linear-gradient(180deg, #fff1c2, #e2bf63 50%, #b88a32); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.vcover .vtt { position: absolute; top: 69%; left: 12%; right: 15%; display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; z-index: 1; padding: 5px 4px; border-radius: 6px; background: radial-gradient(closest-side, rgba(9, 26, 20, 0.85), rgba(9, 26, 20, 0.45) 75%, transparent); }
+.vcover .vtt > span { font-size: calc(17px * var(--fs, 1)); font-weight: 700; line-height: 1.3; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.7)); }
+.vcover .vtt small { font-size: calc(12.5px * var(--fs, 1)); line-height: 1.35; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.7)); }
+.vmeta { font-size: 12px; color: var(--muted); padding: 10px 2px 0; text-align: center; }
 @media (max-width: 760px) {
-  .shelf { grid-template-columns: repeat(3, 1fr); gap: 16px 10px; }
-  .vcover { padding: 12px 6px 9px 9px; border-radius: 4px 8px 8px 4px; }
-  .vcover::before { inset: 5px 5px 5px 8px; }
-  .vcover .vk { font-size: 10px; }
-  .vcover .vnum { font-size: 18px; }
-  .vcover .vtt { font-size: calc(var(--fs, 16px) - 4px); }
-  .vcover .vby { font-size: 9px; }
-  .vmeta { font-size: 10.5px; }
+  .shelf { grid-template-columns: repeat(3, 1fr); gap: 22px 14px; padding: 4px 4px 0 10px; }
+  .bk::before, .bk::after { left: -4px; width: 5px; }
+  .vcover .vnum b { font-size: 15px; }
+  .vcover .vtt { left: 9%; right: 12%; padding: 3px 2px; }
+  .vcover .vtt > span { font-size: calc(12.5px * var(--fs, 1)); }
+  .vcover .vtt small { font-size: calc(9.5px * var(--fs, 1)); }
+  .vmeta { font-size: 10.5px; padding-top: 8px; }
 }
+@media (prefers-reduced-motion: reduce) { .bk { transition: none; } }

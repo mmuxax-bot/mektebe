@@ -114,11 +114,11 @@ async function viewHome() {
   const totalHeads = heads.reduce((a, b) => a + b, 0);
   const last = store.get("ft:last", null);
   const lastP = last && last.p ? await page(last.p - 1).catch(() => null) : null;
-  // hər cild ayrıca kitab: yaşıl üz qabığı, qızılı çərçivə, cild nömrəsi və mövzusu
+  // hər cild ayrıca kitab: ortaq dəri üz qabığı (img/cover.webp: çərçivə, «مجموع الفتاوى», «شيخ الإسلام ابن تيمية»), üstündə cild nömrəsi və mövzusu
   const tile = (v, i) => {
     const [a, b] = v.title.split(/:\s*/);
-    const len = v.title.length;
-    return `<a class="vbook" href="#/v/${v.n}" title="الجزء ${arNum(v.n)}: ${esc(v.title)}"><div class="vcover" style="--fs:${len > 26 ? 13 : len > 16 ? 15 : 17}px"><span class="vk">مجموع الفتاوى</span><span class="vnum">${arNum(v.n)}</span><span class="vtt">${esc(a)}${b ? `<small>${esc(b)}</small>` : ""}</span><span class="vby">ابن تيمية</span></div><div class="vmeta">${esc(t("pagesN", { n: fmt(v.count) }))} · ${esc(t("headsN", { n: fmt(heads[i]) }))}</div></a>`;
+    const len = a.length;
+    return `<a class="vbook" href="#/v/${v.n}" title="الجزء ${arNum(v.n)}: ${esc(v.title)}"><div class="bk"><div class="vcover" style="--fs:${len > 16 ? 0.86 : len > 11 ? 0.95 : 1.05}"><span class="vnum"><b>${arNum(v.n)}</b></span><span class="vtt"><span class="gold">${esc(a)}</span>${b ? `<small class="gold">${esc(b)}</small>` : ""}</span></div></div><div class="vmeta">${esc(t("pagesN", { n: fmt(v.count) }))} · ${esc(t("headsN", { n: fmt(heads[i]) }))}</div></a>`;
   };
   app.innerHTML = `
     <section class="fhero">
