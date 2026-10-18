@@ -1,4 +1,4 @@
-import { $, esc, t, fmt, pick, header, footer, catalog, api, secTitle, secDesc, sectionBooks, bookCard } from "./common.js?v=e5c0v3r";
+import { $, esc, t, fmt, pick, header, footer, catalog, api, secTitle, secDesc, sectionBooks, bookCard } from "./common.js?v=m4j0nly";
 
 header("home");
 footer();
@@ -53,14 +53,9 @@ $("#shelf").innerHTML = groups
 if (mj) {
   $("#shelf").insertAdjacentHTML(
     "afterbegin",
-    `<section class="group feature" id="majmu"><div class="fhead">${bookCard(mj)}<div class="ftext"><h3><a href="/fatawa/">${esc(secTitle("majmu"))}</a> <small>${esc(t("volsN", { n: fmt(mj.volumes) }))}</small></h3><p class="muted">${esc(t("majmuNote"))}</p><a class="btn sm" href="/fatawa/">${esc(t("majmuOpen"))}</a></div></div><div class="vols" id="vols"></div></section>`,
+    `<section class="group feature" id="majmu"><div class="fhead">${bookCard(mj)}<div class="ftext"><h3><a href="/fatawa/">${esc(secTitle("majmu"))}</a> <small>${esc(t("volsN", { n: fmt(mj.volumes) }))}</small></h3><p class="muted">${esc(t("majmuNote"))}</p><a class="btn sm" href="/fatawa/">${esc(t("majmuOpen"))}</a></div></div></section>`,
   );
-  api("/api/toc?book=majmu")
-    .then((r) => {
-      $("#vols").innerHTML = r.volumes.map((v) => `<a class="vtile" href="/fatawa/#/v/${v.v}"><span class="vn">${fmt(v.v)}</span><span class="vt ar">${esc(v.t)}</span></a>`).join("");
-      if (location.hash === "#majmu") $("#majmu").scrollIntoView();
-    })
-    .catch(() => {});
+  if (location.hash === "#majmu") $("#majmu").scrollIntoView();
 }
 
 $("#filter").addEventListener("input", (e) => {

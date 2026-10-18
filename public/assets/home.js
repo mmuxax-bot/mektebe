@@ -1,4 +1,4 @@
-import { quranCoverHTML, $, esc, t, fmt, header, footer, catalog, coverHTML, bookUrl, bookName, lastRead, removeLast, clearLast, api, SECTIONS, secTitle, secDesc, sectionUrl, sectionBooks, hitHTML } from "./common.js?v=e5c0v3r";
+import { quranCoverHTML, $, esc, t, fmt, header, footer, catalog, coverHTML, bookUrl, bookName, lastRead, removeLast, clearLast, api, SECTIONS, secTitle, secDesc, sectionUrl, sectionBooks, hitHTML } from "./common.js?v=m4j0nly";
 
 header("home");
 footer();
