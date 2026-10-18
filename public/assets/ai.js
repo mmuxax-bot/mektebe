@@ -1,12 +1,56 @@
-import { $, esc, t, header } from "./common.js?v=rtl2pg1";
+import { $, esc, t, header } from "./common.js?v=aigold1";
 
 header("ai");
-$("#sub").textContent = t("aiSub");
 $("#note").textContent = t("aiNote");
 $("#m").placeholder = t("aiPh");
-$("#send").textContent = t("send");
-$("#ex").innerHTML = t("ex").map((x) => `<button type="button">${esc(x)}</button>`).join("");
-$("#ex").addEventListener("click", (e) => e.target.closest("button") && ask(e.target.textContent));
+$("#send").setAttribute("aria-label", t("send"));
+$("#send").title = t("send");
+const ta = $("#m");
+const grow = () => {
+  ta.style.height = "auto";
+  ta.style.height = Math.min(ta.scrollHeight, 200) + "px";
+  $("#send").disabled = busy || !ta.value.trim();
+};
+ta.addEventListener("input", grow);
+
+// cavab yavaş-yavaş görünür: mətn düyünləri hərf-hərf doldurulur (linklər və düymələr elə əvvəldən işləkdir)
+const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function reveal(bub) {
+  if (calm) return;
+  const nodes = [];
+  const w = document.createTreeWalker(bub, NodeFilter.SHOW_TEXT);
+  while (w.nextNode()) if (w.currentNode.nodeValue.trim()) nodes.push([w.currentNode, w.currentNode.nodeValue]);
+  const total = nodes.reduce((a, [, v]) => a + v.length, 0);
+  if (!total) return;
+  for (const [n] of nodes) n.nodeValue = "";
+  const hide = [...bub.querySelectorAll(".openb, .sug button, .srcs")];
+  hide.forEach((e) => (e.style.visibility = "hidden"));
+  bub.classList.add("rev");
+  const caret = document.createElement("span");
+  caret.className = "caret";
+  const dur = Math.min(4500, Math.max(700, total * 9));
+  const t0 = performance.now();
+  let i = 0;
+  let shown = 0;
+  const step = (now) => {
+    const goal = Math.min(total, Math.ceil(((now - t0) / dur) * total));
+    while (shown < goal && i < nodes.length) {
+      const [n, v] = nodes[i];
+      const take = Math.min(v.length - n.nodeValue.length, goal - shown);
+      n.nodeValue = v.slice(0, n.nodeValue.length + take);
+      shown += take;
+      if (n.nodeValue.length >= v.length) i++;
+    }
+    if (i < nodes.length) nodes[i][0].parentNode.insertBefore(caret, nodes[i][0].nextSibling);
+    if (shown < total) requestAnimationFrame(step);
+    else {
+      caret.remove();
+      bub.classList.remove("rev");
+      hide.forEach((e) => (e.style.visibility = ""));
+    }
+  };
+  requestAnimationFrame(step);
+}
 
 const KEY = "nl:chat";
 let hist = [];
@@ -99,10 +143,12 @@ async function ask(q) {
   q = String(q || "").trim();
   if (!q || busy) return;
   busy = true;
-  $("#ex").classList.add("hidden");
+  $("#send").disabled = true;
+  $("#send").classList.add("busy");
+  $(".chat").classList.add("on");
   add("user", q);
   const wait = add("assistant", "");
-  wait.querySelector(".bub").innerHTML = `<span class="dots muted">${esc(t("loading").replace(/…$/, ""))}</span>`;
+  wait.querySelector(".bub").innerHTML = `<span class="typing" aria-label="${esc(t("loading"))}"><i></i><i></i><i></i></span>`;
   let reply = t("aiErr");
   let links = [];
   let sources = [];
@@ -113,23 +159,30 @@ async function ask(q) {
     if (j && Array.isArray(j.links)) links = j.links;
     if (j && Array.isArray(j.sources)) sources = j.sources;
   } catch {}
-  wait.querySelector(".bub").innerHTML = render(reply, links, sources);
+  const bub = wait.querySelector(".bub");
+  bub.innerHTML = render(reply, links, sources);
+  reveal(bub);
   hist.push({ role: "user", text: q }, { role: "assistant", text: reply, links, sources });
   hist = hist.slice(-20);
   sessionStorage.setItem(KEY, JSON.stringify(hist));
   busy = false;
+  $("#send").classList.remove("busy");
+  grow();
 }
 $("#f").addEventListener("submit", (e) => {
   e.preventDefault();
-  const v = $("#m").value;
-  $("#m").value = "";
+  const v = ta.value;
+  if (!v.trim() || busy) return;
+  ta.value = "";
+  grow();
   ask(v);
 });
 $("#m").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
     e.preventDefault();
     $("#f").requestSubmit();
   }
 });
 for (const m of hist) add(m.role, m.text, false, m.links || [], m.sources || []);
-if (hist.length) $("#ex").classList.add("hidden");
+if (hist.length) $(".chat").classList.add("on");
+grow();

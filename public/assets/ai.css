@@ -1,0 +1,53 @@
+/* ---------- Library AI: qaranlıq-qızılı görünüş (mehrab, fənər, rəhl üstündə kitab) */
+.aipage { --gold: #d4af6a; --gold2: #f1d79a; --glass: rgba(16, 24, 38, 0.72); --gline: rgba(212, 175, 106, 0.22);
+  background: radial-gradient(900px 600px at 50% 110%, rgba(20, 36, 60, 0.3), transparent 70%), #050e19; }
+.aipage .top { background: rgba(5, 14, 25, 0.8); border-bottom-color: rgba(212, 175, 106, 0.12); }
+.aipage .nav a.ai { color: #1a1206; background: linear-gradient(135deg, #c99a4e, #f1d79a); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.aicorner { position: fixed; z-index: 0; width: 190px; height: 200px; pointer-events: none; opacity: 0.85; background: url(/assets/img/ai-corner.webp) 0 0 / contain no-repeat; }
+.aicorner.tl { top: 52px; left: 0; }
+.aicorner.br { bottom: 0; right: 0; transform: rotate(180deg); }
+@media (max-width: 640px) { .aicorner { width: 120px; height: 127px; opacity: 0.7; } .aicorner.tl { top: 46px; } }
+.aipage .chat { position: relative; z-index: 1; max-width: 800px; padding: 20px 16px calc(150px + env(safe-area-inset-bottom)); }
+.aihero { display: flex; justify-content: center; align-items: center; min-height: calc(100svh - 230px); padding: 8px 0; animation: aiIn 0.9s ease both; }
+.aihero img { width: min(420px, 88vw); height: auto; animation: aiGlow 5s ease-in-out infinite; }
+.chat.on .aihero { display: none; }
+@keyframes aiIn { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+@keyframes aiGlow { 50% { filter: brightness(1.08); } }
+
+/* mesajlar */
+.aipage .msg { margin: 18px 0; animation: aiIn 0.35s ease both; }
+.aipage .msg .bub { background: linear-gradient(180deg, rgba(18, 27, 43, 0.82), rgba(12, 19, 31, 0.82)); border: 1px solid rgba(212, 175, 106, 0.14); border-radius: 18px; padding: 14px 17px; line-height: 1.75; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); }
+.aipage .msg:not(.me) .bub { border-start-start-radius: 6px; position: relative; }
+.aipage .msg:not(.me) .bub::before { content: ""; position: absolute; inset-block: 14px; inset-inline-start: -1px; width: 2px; border-radius: 2px; background: linear-gradient(var(--gold2), rgba(212, 175, 106, 0)); }
+.aipage .msg.me .bub { background: linear-gradient(135deg, #2a2213, #3a2e17); border: 1px solid rgba(212, 175, 106, 0.35); color: #f6ead0; border-start-end-radius: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
+.aipage .blk { background: linear-gradient(180deg, #f7eed8, #efe2c4); box-shadow: inset 0 0 0 1px rgba(122, 75, 20, 0.15); border-radius: 14px; }
+.aipage .openb { background: rgba(212, 175, 106, 0.14); color: var(--gold2); border: 1px solid rgba(212, 175, 106, 0.35); }
+.aipage .openb:hover { background: rgba(212, 175, 106, 0.26); }
+.aipage .blk .openb { background: #3a2a12; color: #f6e2b0; border-color: transparent; }
+.aipage .blk .openb:hover { background: #5a4019; }
+.aipage .srcs { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; white-space: normal; }
+.aipage .srcs .sl { width: 100%; color: var(--muted); font-size: 13px; }
+.aipage .srcs .openb { margin-top: 0; }
+.aipage .sug button { background: rgba(212, 175, 106, 0.08); border-color: rgba(212, 175, 106, 0.25); }
+.aipage .sug button:hover { background: rgba(212, 175, 106, 0.16); }
+.typing { display: inline-flex; gap: 5px; padding: 4px 2px; }
+.typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); opacity: 0.35; animation: aiDot 1.2s infinite ease-in-out; }
+.typing i:nth-child(2) { animation-delay: 0.15s; } .typing i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes aiDot { 40% { opacity: 1; transform: translateY(-3px); } }
+.bub.rev .caret { display: inline-block; width: 2px; height: 1.05em; margin-inline-start: 2px; vertical-align: -0.15em; background: var(--gold2); animation: blink 0.9s infinite; }
+
+/* yazı yeri */
+.aipage .composer { z-index: 5; padding: 18px 14px calc(10px + env(safe-area-inset-bottom)); background: linear-gradient(rgba(5, 14, 25, 0), #050e19 42%); }
+.cbox { position: relative; max-width: 800px; margin: 0 auto; display: flex; align-items: flex-end; gap: 8px; padding: 8px 8px 8px 8px; border-radius: 26px; background: var(--glass); border: 1px solid var(--gline); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04); transition: border-color 0.2s, box-shadow 0.2s; }
+.cbox:focus-within { border-color: rgba(212, 175, 106, 0.55); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(212, 175, 106, 0.09), 0 0 28px rgba(212, 175, 106, 0.14); }
+.cbox textarea { flex: 1; resize: none; min-height: 40px; max-height: 200px; padding: 9px 10px; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 16px; line-height: 1.45; outline: none; overflow-y: auto; scrollbar-width: thin; }
+.cbox textarea::placeholder { color: #7f8aa3; }
+.sendb { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; color: #1a1206; background: linear-gradient(135deg, #c99a4e, #f1d79a); box-shadow: 0 4px 14px rgba(212, 160, 80, 0.3); transition: transform 0.15s, opacity 0.2s, background 0.2s; }
+.sendb svg { width: 20px; height: 20px; }
+.sendb:hover:not(:disabled) { transform: scale(1.06); }
+.sendb:active:not(:disabled) { transform: scale(0.94); }
+.sendb:disabled { cursor: default; color: #6f7890; background: rgba(255, 255, 255, 0.07); box-shadow: none; }
+.sendb.busy svg { animation: aiDot 1s infinite; }
+.aipage .composer .note { max-width: 800px; margin: 7px auto 0; text-align: center; font-size: 11.5px; color: #677189; }
+@media (prefers-reduced-motion: reduce) { .aihero, .aihero img, .aipage .msg { animation: none; } }

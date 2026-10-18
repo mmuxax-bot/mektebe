@@ -26,22 +26,25 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <!--/seo-->
-<meta name="theme-color" content="#05060c">
+<meta name="theme-color" content="#050e19">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap">
-<link rel="stylesheet" href="/assets/app.css?v=rtl2pg1">
+<link rel="stylesheet" href="/assets/app.css?v=aigold1">
+<link rel="stylesheet" href="/assets/ai.css?v=aigold1">
+<link rel="preload" as="image" href="/assets/img/ai-hero@2x.webp" imagesrcset="/assets/img/ai-hero.webp 300w, /assets/img/ai-hero@2x.webp 526w" imagesizes="(max-width: 520px) 88vw, 420px">
 </head>
-<body>
+<body class="aipage">
+<div class="aicorner tl" aria-hidden="true"></div><div class="aicorner br" aria-hidden="true"></div>
 <main class="chat">
-  <h1>Library AI</h1>
-  <p class="muted" id="sub"></p>
-  <div class="examples" id="ex"></div>
-  <div id="log"></div>
-  <p class="note" id="note"></p>
+  <h1 class="sr">Library AI</h1>
+  <section class="aihero" id="hero" aria-hidden="true">
+    <img src="/assets/img/ai-hero.webp" srcset="/assets/img/ai-hero.webp 300w, /assets/img/ai-hero@2x.webp 526w" sizes="(max-width: 520px) 88vw, 420px" width="526" height="532" alt="" decoding="async" fetchpriority="high">
+  </section>
+  <div id="log" aria-live="polite"></div>
 </main>
-<div class="composer"><form id="f"><textarea id="m" rows="1" dir="auto"></textarea><button class="btn" id="send" type="submit"></button></form></div>
-<script type="module" src="/assets/ai.js?v=rtl2pg1"></script>
+<div class="composer"><form id="f" class="cbox"><textarea id="m" rows="1" dir="auto" enterkeyhint="send"></textarea><button class="sendb" id="send" type="submit" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></form><p class="note" id="note"></p></div>
+<script type="module" src="/assets/ai.js?v=aigold1"></script>
 </body>
 </html>
