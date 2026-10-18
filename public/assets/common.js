@@ -68,7 +68,8 @@ export function coverHTML(b, cls = "") {
   return `<div class="cover ${cls}" style="--h:${hueOf(b).toFixed(0)};--fs:${fs}px"><div class="ct">${esc(title)}</div><div class="ca">${esc(b.author)}</div><div class="cp">${esc(countLabel(b))}</div></div>`;
 }
 export const bookName = (b) => (lang === "ar" ? b.ar : pick(b.name) || b.ar);
-export const bookUrl = (b, p) => `/kitab/${encodeURIComponent(b.id)}${p ? "?p=" + p : ""}`;
+// Məcmuul-fətava öz müstəqil səhifəsində açılır (/fatawa/); səhifə nömrəsi eynidir (1-dən ardıcıl)
+export const bookUrl = (b, p) => (b.id === "majmu" ? `/fatawa/${p ? "#/p/" + p : ""}` : `/kitab/${encodeURIComponent(b.id)}${p ? "?p=" + p : ""}`);
 
 // ---------- son oxunan səhifələr (localStorage)
 const KEY = "nl:last";
@@ -130,6 +131,6 @@ export const bookCard = (b) =>
   `<a class="book" href="${bookUrl(b)}" data-f="${esc((b.ar + " " + Object.values(b.name || {}).join(" ") + " " + b.author).toLowerCase())}">${coverHTML(b)}<div class="meta"><div class="nm">${esc(bookName(b))}</div><div class="sub">${esc(bookSub(b))}</div></div></a>`;
 export function hitHTML(h, cat, q) {
   const b = cat.byId.get(h.book);
-  const url = h.url || `${bookUrl(b, h.p)}&q=${encodeURIComponent(q)}`;
+  const url = h.url || `${bookUrl(b, h.p)}${b.id === "majmu" ? "?" : "&"}q=${encodeURIComponent(q)}`;
   return `<div class="hit"><a class="h1" href="${esc(url)}"><b>${esc(b.ar)}</b><span>${esc(h.ref)}${h.title ? " · " + esc(h.title) : ""}</span></a><a class="s" href="${esc(url)}">${markHTML(h.s, h.hl)}</a><a class="openb sm" href="${esc(url)}">${esc(t("openInBook"))} →</a></div>`;
 }

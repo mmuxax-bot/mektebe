@@ -4,6 +4,12 @@ const id = decodeURIComponent((location.pathname.match(/^\/kitab\/([^/?#]+)/) ||
 const qs = new URLSearchParams(location.search);
 const hlQuery = qs.get("q") || "";
 let FLIP_MS = 620;
+// köhnə /kitab/majmu linkləri yeni Məcmuul-fətava səhifəsinə keçir (səhifə nömrəsi eynidir)
+if (id === "majmu") {
+  const p = parseInt(qs.get("p"), 10);
+  location.replace(`/fatawa/${p > 0 ? `#/p/${p}${hlQuery ? "?q=" + encodeURIComponent(hlQuery) : ""}` : ""}`);
+  throw new Error("redirect");
+}
 
 $("#homeLbl").textContent = t("library");
 $("#tocLbl").textContent = t("toc");

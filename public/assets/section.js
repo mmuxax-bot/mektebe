@@ -1,4 +1,4 @@
-import { $, esc, t, fmt, pick, header, footer, catalog, api, bookUrl, secTitle, secDesc, sectionBooks, bookCard } from "./common.js";
+import { $, esc, t, fmt, pick, header, footer, catalog, api, secTitle, secDesc, sectionBooks, bookCard } from "./common.js";
 
 header("home");
 footer();
@@ -49,11 +49,11 @@ $("#shelf").innerHTML = groups
   .map((g) => `<section class="group">${g.title ? `<h3>${esc(g.title)} <small>${esc(t("booksN", { n: fmt(g.books.length) }))}</small></h3>` : ""}<div class="grid">${g.books.map(bookCard).join("")}</div></section>`)
   .join("");
 
-// Məcmuul-fətava: 4-cü mərhələdən sonra ayrıca vurğulanmış blok, cildlər birbaşa açılır
+// Məcmuul-fətava: kitabların ən başında ayrıca vurğulanmış blok; üz qabığı və düymə yeni səhifəni (/fatawa/) açır, cildlər birbaşa açılır
 if (mj) {
   $("#shelf").insertAdjacentHTML(
-    "beforeend",
-    `<section class="group feature" id="majmu"><div class="fhead">${bookCard(mj)}<div class="ftext"><h3>${esc(secTitle("majmu"))} <small>${esc(t("volsN", { n: fmt(mj.volumes) }))}</small></h3><p class="muted">${esc(t("majmuNote"))}</p><a class="btn sm" href="/fatawa/">${esc(t("majmuOpen"))}</a> <a class="btn ghost sm" href="${bookUrl(mj)}">${esc(t("openBook"))}</a></div></div><div class="vols" id="vols"></div></section>`,
+    "afterbegin",
+    `<section class="group feature" id="majmu"><div class="fhead">${bookCard(mj)}<div class="ftext"><h3><a href="/fatawa/">${esc(secTitle("majmu"))}</a> <small>${esc(t("volsN", { n: fmt(mj.volumes) }))}</small></h3><p class="muted">${esc(t("majmuNote"))}</p><a class="btn sm" href="/fatawa/">${esc(t("majmuOpen"))}</a></div></div><div class="vols" id="vols"></div></section>`,
   );
   api("/api/toc?book=majmu")
     .then((r) => {

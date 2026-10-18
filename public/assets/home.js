@@ -45,7 +45,7 @@ function renderSections() {
       const mj = all.find((b) => b.id === "majmu");
       const books = all.filter((b) => b !== mj);
       const count = mj ? t("itCount", { a: fmt(books.length), b: fmt(mj.volumes) }) : t("booksN", { n: fmt(books.length) });
-      const fan = books.slice(0, 3).map((b, i) => `<div class="fan f${i}">${coverHTML(b, "mini")}</div>`).join("");
+      const fan = (mj ? [mj, ...books] : books).slice(0, 3).map((b, i) => `<div class="fan f${i}">${coverHTML(b, "mini")}</div>`).join("");
       const icon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${SECTIONS[s.id].icon}"/></svg>`;
       return `<a class="seccard" data-s="${s.id}" href="${sectionUrl(s.id)}"><div class="fanbox">${fan}</div><div class="sbody"><div class="sic">${icon}</div><h2>${esc(secTitle(s.id))}</h2><p>${esc(secDesc(s.id))}</p><div class="sfoot"><span class="scount">${esc(count)}</span><span class="cta" aria-label="${esc(t("goSection"))}">${esc(t("goSection"))}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></div></div></a>`;
     })
