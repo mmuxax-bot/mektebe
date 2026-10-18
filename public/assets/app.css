@@ -123,7 +123,7 @@ body.reader { overflow: hidden; height: 100vh; height: 100dvh; display: flex; fl
 .ibtn:hover { border-color: rgba(79, 140, 255, 0.5); }
 .ibtn svg { width: 18px; height: 18px; }
 .stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 18px 12px; position: relative; }
-.book3d { position: relative; display: flex; flex-direction: row-reverse; perspective: 2400px; width: min(1240px, calc(100vw - 130px), calc((100dvh - 150px) * 1.36)); aspect-ratio: 1.36; }
+.book3d { position: relative; display: flex; direction: ltr; flex-direction: row-reverse; perspective: 2400px; width: min(1240px, calc(100vw - 130px), calc((100dvh - 150px) * 1.36)); aspect-ratio: 1.36; }
 .book3d.single { width: min(620px, calc(100vw - 130px), calc((100dvh - 150px) * 0.7)); aspect-ratio: 0.7; }
 .book3d.single .leaf.l { display: none; }
 .leaf { position: relative; flex: 1; height: 100%; }

@@ -1,4 +1,4 @@
-import { t, lang, LANGS, pick } from "./i18n.js?v=m4j0nly";
+import { t, lang, LANGS, pick } from "./i18n.js?v=rtl2pg1";
 export { t, lang, pick };
 
 document.documentElement.lang = lang;
