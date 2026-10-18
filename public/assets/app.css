@@ -76,44 +76,30 @@ button, input, select { font: inherit; color: inherit; }
 .more-row { margin-top: 14px; }
 
 /* ---------- generated cover */
-/* Üz qabığı: Məcmuul-fətava cildləri ilə eyni üslub — dəri faktura (grain.webp + SVG həndəsi naxış), qızılı ikiqat çərçivə,
-   sağda çiyin (qızılı zolaqlar), solda vərəq qalınlığı, yuxarıda Nibras Code medalyonu, aşağıda «NibrasCode.com».
-   Bütün kitablarda dizayn eynidir; yalnız bölmə rəngi fərqlidir (--c1/--c2). Ölçülər üz qabığının enindən (cqw) asılıdır. */
-.cover { --c1: #1f4a3b; --c2: #0b2119; position: relative; aspect-ratio: 2 / 3; container-type: inline-size; border-radius: 6px 3px 3px 6px; overflow: hidden; color: #f3e3b5; direction: rtl; text-align: center;
-  background:
-    url(/assets/img/grain.webp) 0 0 / 96px 96px,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cg fill='none' stroke='%23e8c878' stroke-opacity='.11' stroke-width='.7'%3E%3Crect x='9' y='9' width='18' height='18'/%3E%3Crect x='9' y='9' width='18' height='18' transform='rotate(45 18 18)'/%3E%3Cpath d='M0 0l5.3 5.3M36 0l-5.3 5.3M0 36l5.3-5.3M36 36l-5.3-5.3M18 0v3.3M18 36v-3.3M0 18h3.3M36 18h-3.3'/%3E%3C/g%3E%3C/svg%3E") center / 26px 26px,
-    radial-gradient(120% 80% at 50% 45%, var(--c1), var(--c2));
-  background-blend-mode: overlay, normal, normal;
-  box-shadow: -3px 0 0 #efe3c4, -4px 0 0 #cdbd94, -5px 0 0 #e6d8b2, 0 12px 22px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.35);
-  display: block; }
-.cover .cbd { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 34cqw 16cqw 26cqw 10cqw; }
-.cover[data-s="nahw"] { --c1: #5a2028; --c2: #23090d; }
-.cover[data-s="hadith"] { --c1: #1f3866; --c2: #0a142c; }
-.cover[data-s="quran"] { --c1: #4a3a12; --c2: #1d1505; }
-/* çiyin (ərəb kitabı sağdan cildlənir) */
-.cover::before { content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 9%; pointer-events: none; background:
-    linear-gradient(transparent 7%, #c9a253 7%, #f1d996 7.6%, #a37c34 8.3%, transparent 8.3%, transparent 10.2%, #a37c34 10.2%, #e9cf8a 10.8%, transparent 11.4%),
-    linear-gradient(transparent 88.6%, #a37c34 88.6%, #e9cf8a 89.2%, transparent 89.8%, transparent 91.7%, #c9a253 91.7%, #f1d996 92.4%, #a37c34 93%, transparent 93%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(255, 255, 255, 0.07) 35%, rgba(0, 0, 0, 0.18) 60%, rgba(0, 0, 0, 0.6)); }
-/* işıq və dəri parıltısı */
-.cover::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, rgba(255, 255, 255, 0.1), transparent 32%, transparent 70%, rgba(0, 0, 0, 0.28)), radial-gradient(120% 70% at 30% 0%, rgba(255, 255, 255, 0.06), transparent 60%); }
-.cover .cfr { position: absolute; inset: 5cqw 13cqw 5cqw 5cqw; border: 1px solid rgba(226, 191, 99, 0.75); border-radius: 2px; box-shadow: inset 0 0 0 2.5cqw transparent, inset 0 0 0 calc(2.5cqw + 1px) rgba(226, 191, 99, 0.4); pointer-events: none; }
-.cover .cfr::before, .cover .cfr::after { content: ""; position: absolute; left: 50%; width: 5cqw; height: 5cqw; transform: translate(-50%, -50%) rotate(45deg); background: var(--c2); border: 1px solid rgba(226, 191, 99, 0.8); }
-.cover .cfr::before { top: 0; }
-.cover .cfr::after { top: 100%; }
-.cover .cem { position: absolute; top: 13cqw; left: calc(50% - 4cqw); transform: translateX(-50%); width: 21cqw; height: 21cqw; border-radius: 50%; display: grid; place-items: center; color: #e2bf63;
-  background: radial-gradient(circle, var(--c2) 60%, transparent 62%); box-shadow: 0 0 0 1px #c9a253, 0 0 0 2.2cqw rgba(0, 0, 0, 0.25), 0 0 0 calc(2.2cqw + 1px) rgba(233, 207, 138, 0.55); }
-.cover .cem svg { width: 70%; height: 70%; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.6)); }
-.cover .ct { position: relative; font-family: var(--ar); font-weight: 700; line-height: 1.35; font-size: calc(var(--k, 1) * 13.5cqw); filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.75)); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
-  background: linear-gradient(180deg, #fff1c2 0%, #e9c96f 38%, #b88a32 62%, #f3dc93 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.cover .ca { position: relative; font-family: var(--ar); font-size: 8cqw; line-height: 1.3; margin-top: 4cqw; color: #e9d7a6; opacity: 0.9; }
-.cover .ca::before { content: ""; display: block; width: 24cqw; height: 1px; margin: 0 auto 3.5cqw; background: linear-gradient(90deg, transparent, rgba(226, 191, 99, 0.85), transparent); }
-.cover .cbr { position: absolute; bottom: 9cqw; left: 5cqw; right: 13cqw; font-family: var(--ui); direction: ltr; font-size: 5.6cqw; font-weight: 600; letter-spacing: 0.06em; color: #d9bd75; opacity: 0.9; white-space: nowrap; }
-.mini.cover .cbd { padding: 30cqw 15cqw 16cqw 9cqw; }
+/* Üz qabığı (sadə, səliqəli — /fatawa/ cildləri kimi): sakit dəri rəngi + çox zəif faktura, tək nazik qızılı çərçivə,
+   sağda çiyin (iki nazik qızılı zolaq), solda vərəq qalınlığı, kiçik Nibras medalyonu, ortada başlıq, altda kiçik «NibrasCode.com».
+   Bölmə rəngi --c1/--c2. Ölçülər üz qabığının enindən (cqw); başlıq --k ilə avtomatik kiçilir, ən çox 3 sətir. */
+.cover { --c1: #1d4537; --c2: #10291f; position: relative; aspect-ratio: 2 / 3; container-type: inline-size; border-radius: 5px 3px 3px 5px; overflow: hidden; direction: rtl; text-align: center; color: #ecd9a4;
+  background: url(/assets/img/grain.webp) 0 0 / 96px 96px, linear-gradient(160deg, var(--c1), var(--c2));
+  background-blend-mode: soft-light, normal;
+  box-shadow: -2px 0 0 #eadfc2, -3px 0 0 #c9b98f, -4px 0 0 #e2d5b0, 0 10px 20px -6px rgba(0, 0, 0, 0.6); }
+.cover[data-s="nahw"] { --c1: #5b2129; --c2: #351116; }
+.cover[data-s="hadith"] { --c1: #22396a; --c2: #131f3d; }
+.cover::before { content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 8%; pointer-events: none; background:
+    linear-gradient(transparent 9%, rgba(226, 191, 99, 0.85) 9%, rgba(226, 191, 99, 0.85) 9.8%, transparent 9.8%, transparent 90.2%, rgba(226, 191, 99, 0.85) 90.2%, rgba(226, 191, 99, 0.85) 91%, transparent 91%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.45), rgba(255, 255, 255, 0.05) 40%, rgba(0, 0, 0, 0.35)); }
+.cover::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(120deg, rgba(255, 255, 255, 0.07), transparent 40%); }
+.cover .cfr { position: absolute; inset: 6cqw 13cqw 6cqw 6cqw; border: 1px solid rgba(226, 191, 99, 0.6); border-radius: 2px; pointer-events: none; }
+.cover .cem { position: absolute; top: 14cqw; left: calc(50% - 3.5cqw); transform: translateX(-50%); width: 15cqw; height: 15cqw; border-radius: 50%; display: grid; place-items: center; color: #e2bf63; border: 1px solid rgba(226, 191, 99, 0.75); }
+.cover .cem svg { width: 64%; height: 64%; }
+.cover .cbd { position: absolute; inset: 34cqw 18cqw 24cqw 11cqw; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+.cover .ct { max-width: 100%; font-family: var(--ar); font-weight: 700; line-height: 1.5; font-size: calc(var(--k, 1) * 12cqw); color: #ecd393; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.cover .ca { max-width: 100%; font-family: var(--ar); font-size: 7cqw; line-height: 1.4; margin-top: 3cqw; padding-top: 3cqw; border-top: 1px solid rgba(226, 191, 99, 0.35); color: #d8c595; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cover .cbr { position: absolute; bottom: 10cqw; left: 6cqw; right: 13cqw; font-family: var(--ui); direction: ltr; font-size: 5cqw; letter-spacing: 0.04em; color: #cdb274; opacity: 0.75; white-space: nowrap; }
 .mini.cover .ca, .mini.cover .cbr { display: none; }
-.mini.cover .cem { top: 9cqw; }
-.mini.cover .ct { -webkit-line-clamp: 3; }
+.mini.cover .cem { top: 11cqw; width: 17cqw; height: 17cqw; }
+.mini.cover .cbd { inset: 32cqw 17cqw 12cqw 10cqw; }
+.mini.cover .ct { font-size: calc(var(--k, 1) * 13cqw); }
 
 /* ---------- search results */
 .results { margin-top: 18px; }
@@ -261,7 +247,7 @@ body.reader { overflow: hidden; height: 100vh; height: 100dvh; display: flex; fl
 .fan.f0 { left: 22px; z-index: 3; }
 .fan.f1 { left: 11px; top: 6px; z-index: 2; transform: rotate(-6deg); opacity: 0.85; }
 .fan.f2 { left: 0; top: 12px; z-index: 1; transform: rotate(-12deg); opacity: 0.7; }
-.fan .mini.cover .ct { -webkit-line-clamp: 3; }
+.fan .mini.cover .ct { font-size: calc(var(--k, 1) * 13cqw); }
 .sbody { flex: 1; min-width: 0; }
 .sic { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: rgba(79, 140, 255, 0.14); color: var(--accent2); margin-bottom: 10px; }
 .sic svg { width: 19px; height: 19px; }
@@ -525,9 +511,12 @@ div.hit .s { display: block; }
 
 /* ---------- faza 8: naxışsız hero, Quran kartında real mushaf fotosu */
 .seccard .fanbox.qphoto { display: flex; align-items: center; justify-content: center; }
-.qphoto img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 14px; box-shadow: 0 14px 28px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(212, 175, 95, 0.35); transition: transform 0.3s; background: #000; }
-.seccard:hover .qphoto img { transform: translateY(-4px) scale(1.02); }
-@media (prefers-reduced-motion: reduce) { .seccard:hover .qphoto img { transform: none; } }
+.qphoto .qcover { height: 100%; width: auto; transition: transform 0.3s; }
+.seccard:hover .qphoto .qcover { transform: translateY(-4px) scale(1.02); }
+@media (prefers-reduced-motion: reduce) { .seccard:hover .qphoto .qcover { transform: none; } }
+/* Mushaf: tünd firuzəyi-qara dəri, daha sıx naxış; mətn və bəzək SVG-də (ölçü ilə miqyaslanır) */
+.cover.qcover { --c1: #123f41; --c2: #071c1f; --qc2: #0a2427; }
+.cover.qcover .qsvg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .foot .credit { display: block; margin-top: 4px; font-size: 11px; opacity: 0.7; }
 .foot .credit a { color: inherit; text-decoration: underline; }
 .group.feature:first-child { margin-top: 8px; margin-bottom: 44px; }
@@ -547,3 +536,5 @@ div.hit .s { display: block; }
 .siteintro a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
 .siteintro a:hover { color: var(--text); }
 @media (max-width: 520px) { .aboutbox { padding: 20px 16px; } }
+/* mobil: kitab şəbəkəsi 3 sütun (fətava cildləri kimi), bərabər hündürlük */
+@media (max-width: 560px) { .grid, .airy .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 12px; } .book .nm { font-size: 12px; } .book .sub { font-size: 11px; } }

@@ -1,4 +1,4 @@
-import { $, esc, t, fmt, header, footer, catalog, coverHTML, bookUrl, bookName, lastRead, removeLast, clearLast, api, SECTIONS, secTitle, secDesc, sectionUrl, sectionBooks, hitHTML } from "./common.js";
+import { quranCoverHTML, $, esc, t, fmt, header, footer, catalog, coverHTML, bookUrl, bookName, lastRead, removeLast, clearLast, api, SECTIONS, secTitle, secDesc, sectionUrl, sectionBooks, hitHTML } from "./common.js?v=e5c0v3r";
 
 header("home");
 footer();
@@ -53,11 +53,11 @@ function renderSections() {
   $("#sections").insertAdjacentHTML("afterbegin", quranCard());
 }
 
-// Quran kartı: digər bölmə kartları ilə eyni komponent, ilk yerdə; qızılı vurğu və real mushaf fotosu (assets/img/CREDITS.txt)
+// Quran kartı: digər bölmə kartları ilə eyni komponent, ilk yerdə; qızılı vurğu və Mushaf üz qabığı (quranCoverHTML)
 function quranCard() {
   const icon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2-1.5-5-2-8-1.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13C17 4 14 4.5 12 6Zm0 0v13"/></svg>`;
   const arrow = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>`;
-  return `<a class="seccard" data-s="quran" href="/quran"><div class="fanbox qphoto"><img src="/assets/img/mushaf.webp" width="600" height="504" alt="${esc(t("sec_quran"))}" decoding="async"></div><div class="sbody"><div class="sic">${icon}</div><h2>${esc(t("sec_quran"))}</h2><p>${esc(t("desc_quran"))}</p><div class="sfoot"><span class="scount">${esc(t("surasN", { n: fmt(114) }))}</span><span class="cta" aria-label="${esc(t("goSection"))}">${esc(t("goSection"))}${arrow}</span></div></div></a>`;
+  return `<a class="seccard" data-s="quran" href="/quran"><div class="fanbox qphoto">${quranCoverHTML()}</div><div class="sbody"><div class="sic">${icon}</div><h2>${esc(t("sec_quran"))}</h2><p>${esc(t("desc_quran"))}</p><div class="sfoot"><span class="scount">${esc(t("surasN", { n: fmt(114) }))}</span><span class="cta" aria-label="${esc(t("goSection"))}">${esc(t("goSection"))}${arrow}</span></div></div></a>`;
 }
 
 // bütün kitabxanada axtarış

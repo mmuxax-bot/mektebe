@@ -1,6 +1,6 @@
 // /quran/<n> — surənin oxunuşu: Tanzil ərəbcə mətni sözbəsöz, ayə nömrələri, «Mənaca tərcümə» (QuranEnc) seçimi və hər ayə üçün «Təfsir».
 // Quran mətni heç bir tərcümə xidmətinə göndərilmir; azərbaycanca mənalar yalnız /api/quran-dan (mövcud məlumat) gəlir.
-import { $, esc, t, fmt, lang, header, footer, api } from "./common.js";
+import { $, esc, t, fmt, lang, header, footer, api } from "./common.js?v=e5c0v3r";
 
 header("home");
 footer();

@@ -1,4 +1,4 @@
-import { t, lang, LANGS, pick } from "./i18n.js";
+import { t, lang, LANGS, pick } from "./i18n.js?v=e5c0v3r";
 export { t, lang, pick };
 
 document.documentElement.lang = lang;
@@ -48,8 +48,6 @@ export function footer() {
   const f = document.createElement("footer");
   f.className = "foot";
   f.innerHTML = `<span dir="ltr">© Nibras Code 2026</span> · <a href="/about">${esc(t("about"))}</a> · <a href="https://nibrascode.com">nibrascode.com</a>`;
-  // CC BY 4.0 müəllif qeydi (yalnız foto olan ana səhifədə)
-  if (document.querySelector("main.home")) f.insertAdjacentHTML("beforeend", `<small class="credit" dir="ltr">Quran photo: <a href="https://commons.wikimedia.org/wiki/File:Qur%27an_and_Rehal.jpg" target="_blank" rel="noopener">sayyed shahab-o-din vajedi</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> (cropped)</small>`);
   document.body.append(f);
 }
 
@@ -57,9 +55,15 @@ export function footer() {
 // bölmə rəngi CSS-də (.cover[data-s]); Məcmuul-fətava İbn Teymiyyə bölməsinin rəngindədir
 export const countLabel = (b) => (b.kind === "hd" ? t("hadithN", { n: fmt(b.pages) }) : t("pagesN", { n: fmt(b.pages) }));
 const EMBLEM = `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20c7-3 13.5-2 19 2.4v26.4c-5.5-4-12-5-19-2.4z" fill="currentColor"/><path d="M52 20c-7-3-13.5-2-19 2.4v26.4c5.5-4 12-5 19-2.4z" fill="currentColor" opacity=".72"/><path d="M32 7l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z" fill="currentColor"/></svg>`;
+// ---------- Mushaf üz qabığı (Quran kartı): kitab üz qabıqları ailəsindən, daha zərif — tünd firuzəyi-qara dəri, qızılı şəmsə, «القرآن الكريم»
+export function quranCoverHTML(cls = "") {
+  return `<div class="cover qcover ${cls}" data-s="mushaf" role="img" aria-label="القرآن الكريم — NibrasCode.com"><svg class="qsvg" viewBox="0 0 200 300" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="qg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0bd"/><stop offset=".45" stop-color="#e2bd62"/><stop offset=".7" stop-color="#a97b2c"/><stop offset="1" stop-color="#f0d68b"/></linearGradient><radialGradient id="qgd"><stop offset="0" stop-color="#f3d98c"/><stop offset="1" stop-color="#a97b2c"/></radialGradient></defs><rect x="11" y="11" width="160" height="278" rx="2" fill="none" stroke="url(#qg)" stroke-width="1"/><g transform="translate(91 44)"><circle r="13" fill="var(--qc2)" stroke="url(#qg)" stroke-width="1"/><circle r="15.5" fill="none" stroke="url(#qg)" stroke-width=".5" opacity=".7"/><g transform="translate(-9 -10) scale(.28)" fill="url(#qg)"><path d="M12 20c7-3 13.5-2 19 2.4v26.4c-5.5-4-12-5-19-2.4z"/><path d="M52 20c-7-3-13.5-2-19 2.4v26.4c5.5-4 12-5 19-2.4z" opacity=".75"/><path d="M32 7l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z"/></g></g><polygon points="91.0,86.0 101.1,99.0 115.5,90.9 119.9,106.8 136.3,104.7 134.2,121.1 150.1,125.5 142.0,139.9 155.0,150.0 142.0,160.1 150.1,174.5 134.2,178.9 136.3,195.3 119.9,193.2 115.5,209.1 101.1,201.0 91.0,214.0 80.9,201.0 66.5,209.1 62.1,193.2 45.7,195.3 47.8,178.9 31.9,174.5 40.0,160.1 27.0,150.0 40.0,139.9 31.9,125.5 47.8,121.1 45.7,104.7 62.1,106.8 66.5,90.9 80.9,99.0" fill="url(#qgd)" opacity=".1"/><polygon points="91.0,86.0 101.1,99.0 115.5,90.9 119.9,106.8 136.3,104.7 134.2,121.1 150.1,125.5 142.0,139.9 155.0,150.0 142.0,160.1 150.1,174.5 134.2,178.9 136.3,195.3 119.9,193.2 115.5,209.1 101.1,201.0 91.0,214.0 80.9,201.0 66.5,209.1 62.1,193.2 45.7,195.3 47.8,178.9 31.9,174.5 40.0,160.1 27.0,150.0 40.0,139.9 31.9,125.5 47.8,121.1 45.7,104.7 62.1,106.8 66.5,90.9 80.9,99.0" fill="none" stroke="url(#qg)" stroke-width="1.3"/><circle cx="91" cy="150" r="49" fill="var(--qc2)" stroke="url(#qg)" stroke-width="1"/><polygon points="91.0,108.0 103.2,120.4 120.7,120.3 120.6,137.8 133.0,150.0 120.6,162.2 120.7,179.7 103.2,179.6 91.0,192.0 78.8,179.6 61.3,179.7 61.4,162.2 49.0,150.0 61.4,137.8 61.3,120.3 78.8,120.4" fill="none" stroke="url(#qg)" stroke-width=".6" opacity=".55"/><text x="91" y="146" text-anchor="middle" font-family="Amiri, 'Noto Naskh Arabic', serif" font-weight="700" font-size="25" fill="url(#qg)" direction="rtl">القرآن</text><text x="91" y="172" text-anchor="middle" font-family="Amiri, 'Noto Naskh Arabic', serif" font-weight="700" font-size="21" fill="url(#qg)" direction="rtl">الكريم</text><path d="M61 238h24M97 238h24" stroke="url(#qg)" stroke-width=".7"/><path d="M91 233l5 5-5 5-5-5z" fill="url(#qg)"/><text x="91" y="276" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="600" font-size="9.5" letter-spacing=".6" fill="#d9bd75" direction="ltr">NibrasCode.com</text></svg></div>`;
+}
 export function coverHTML(b, cls = "") {
   const title = String(b.ar || "").split(" - ")[0];
-  const k = title.length > 60 ? 0.62 : title.length > 40 ? 0.72 : title.length > 26 ? 0.82 : title.length > 14 ? 0.95 : 1.12;
+  // başlıq uzunluğuna görə avtomatik ölçü (ən uzun söz də nəzərə alınır) — 3 sətrə sığsın
+  const n = title.length, w = Math.max(...title.split(/\s+/).map((x) => x.length), 1);
+  const k = Math.min(n > 48 ? 0.66 : n > 34 ? 0.76 : n > 22 ? 0.86 : n > 12 ? 1 : 1.12, w > 9 ? 0.8 : w > 7 ? 0.92 : 1.12);
   const sec = b.section === "majmu" ? "ibn-taymiyyah" : b.section || "";
   return `<div class="cover ${cls}" data-s="${esc(sec)}" style="--k:${k}"><i class="cfr"></i><span class="cem" title="Nibras Code">${EMBLEM}</span><div class="cbd"><div class="ct">${esc(title)}</div>${b.author ? `<div class="ca">${esc(b.author)}</div>` : ""}</div><div class="cbr">NibrasCode.com</div></div>`;
 }

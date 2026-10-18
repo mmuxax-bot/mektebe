@@ -1,4 +1,4 @@
-import { $, esc, t, fmt, pick, header, footer, catalog, api, secTitle, secDesc, sectionBooks, bookCard } from "./common.js";
+import { $, esc, t, fmt, pick, header, footer, catalog, api, secTitle, secDesc, sectionBooks, bookCard } from "./common.js?v=e5c0v3r";
 
 header("home");
 footer();
