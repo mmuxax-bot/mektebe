@@ -17,7 +17,7 @@ let _cat = null;
 export function catalog() {
   if (!_cat) _cat = api("/api/books").then((c) => {
     const byId = new Map();
-    for (const s of c.sections) for (const g of s.groups) for (const b of g.books) byId.set(b.id, { ...b, section: g.id === "majmu" ? "majmu" : s.id });
+    for (const s of c.sections) for (const g of s.groups) for (const b of g.books) { b.section = g.id === "majmu" ? "majmu" : s.id; byId.set(b.id, b); }
     c.byId = byId;
     return c;
   });
@@ -53,19 +53,15 @@ export function footer() {
   document.body.append(f);
 }
 
-// ---------- örtük (üz qabığı): ərəbcə ad, müəllif, səhifə sayı
-const HUE = { "ibn-taymiyyah": [200, 165], nahw: [350, 20], hadith: [140, 110], majmu: [222, 222] };
-function hueOf(b) {
-  const [a, z] = HUE[b.section] || [220, 220];
-  let h = 0;
-  for (const c of b.id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return a + ((h % 1000) / 1000) * (z - a);
-}
+// ---------- örtük (üz qabığı): Məcmuul-fətava cildləri ilə eyni üslub; ərəbcə ad, müəllif, Nibras Code medalyonu, «NibrasCode.com»
+// bölmə rəngi CSS-də (.cover[data-s]); Məcmuul-fətava İbn Teymiyyə bölməsinin rəngindədir
 export const countLabel = (b) => (b.kind === "hd" ? t("hadithN", { n: fmt(b.pages) }) : t("pagesN", { n: fmt(b.pages) }));
+const EMBLEM = `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20c7-3 13.5-2 19 2.4v26.4c-5.5-4-12-5-19-2.4z" fill="currentColor"/><path d="M52 20c-7-3-13.5-2-19 2.4v26.4c5.5-4 12-5 19-2.4z" fill="currentColor" opacity=".72"/><path d="M32 7l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z" fill="currentColor"/></svg>`;
 export function coverHTML(b, cls = "") {
   const title = String(b.ar || "").split(" - ")[0];
-  const fs = title.length > 60 ? 14 : title.length > 40 ? 16 : title.length > 22 ? 18 : title.length > 12 ? 21 : 25;
-  return `<div class="cover ${cls}" style="--h:${hueOf(b).toFixed(0)};--fs:${fs}px"><div class="ct">${esc(title)}</div><div class="ca">${esc(b.author)}</div><div class="cp">${esc(countLabel(b))}</div></div>`;
+  const k = title.length > 60 ? 0.62 : title.length > 40 ? 0.72 : title.length > 26 ? 0.82 : title.length > 14 ? 0.95 : 1.12;
+  const sec = b.section === "majmu" ? "ibn-taymiyyah" : b.section || "";
+  return `<div class="cover ${cls}" data-s="${esc(sec)}" style="--k:${k}"><i class="cfr"></i><span class="cem" title="Nibras Code">${EMBLEM}</span><div class="cbd"><div class="ct">${esc(title)}</div>${b.author ? `<div class="ca">${esc(b.author)}</div>` : ""}</div><div class="cbr">NibrasCode.com</div></div>`;
 }
 export const bookName = (b) => (lang === "ar" ? b.ar : pick(b.name) || b.ar);
 // Məcmuul-fətava öz müstəqil səhifəsində açılır (/fatawa/); səhifə nömrəsi eynidir (1-dən ardıcıl)

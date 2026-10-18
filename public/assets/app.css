@@ -76,15 +76,44 @@ button, input, select { font: inherit; color: inherit; }
 .more-row { margin-top: 14px; }
 
 /* ---------- generated cover */
-.cover { position: relative; aspect-ratio: 2 / 3; border-radius: 6px 10px 10px 6px; overflow: hidden; color: #f3e3b5; background: linear-gradient(135deg, hsl(var(--h) 45% 24%), hsl(var(--h) 50% 12%)); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), inset 6px 0 0 rgba(0, 0, 0, 0.25), inset 8px 0 0 rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 18% 12%; direction: rtl; }
-.cover::before { content: ""; position: absolute; inset: 7px 7px 7px 11px; border: 1.5px solid rgba(232, 200, 120, 0.55); border-radius: 4px; box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.15), inset 0 0 0 4px rgba(232, 200, 120, 0.25); pointer-events: none; }
-.cover::after { content: ""; position: absolute; top: 9%; left: 50%; width: 12px; height: 12px; transform: translateX(-50%) rotate(45deg); border: 1.5px solid rgba(232, 200, 120, 0.7); }
-.cover .ct { font-family: var(--ar); font-weight: 700; line-height: 1.35; font-size: var(--fs, 20px); text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4); display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
-.cover .ca { font-family: var(--ar); font-size: 13px; opacity: 0.85; margin-top: 10px; }
-.cover .cp { position: absolute; bottom: 8%; left: 0; right: 0; font-family: var(--ui); direction: ltr; font-size: 10.5px; letter-spacing: 0.6px; opacity: 0.7; }
-.mini.cover { padding: 4px; }
-.mini.cover::after, .mini.cover .ca, .mini.cover .cp { display: none; }
-.mini.cover .ct { font-size: 9px; -webkit-line-clamp: 3; }
+/* Üz qabığı: Məcmuul-fətava cildləri ilə eyni üslub — dəri faktura (grain.webp + SVG həndəsi naxış), qızılı ikiqat çərçivə,
+   sağda çiyin (qızılı zolaqlar), solda vərəq qalınlığı, yuxarıda Nibras Code medalyonu, aşağıda «NibrasCode.com».
+   Bütün kitablarda dizayn eynidir; yalnız bölmə rəngi fərqlidir (--c1/--c2). Ölçülər üz qabığının enindən (cqw) asılıdır. */
+.cover { --c1: #1f4a3b; --c2: #0b2119; position: relative; aspect-ratio: 2 / 3; container-type: inline-size; border-radius: 6px 3px 3px 6px; overflow: hidden; color: #f3e3b5; direction: rtl; text-align: center;
+  background:
+    url(/assets/img/grain.webp) 0 0 / 96px 96px,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cg fill='none' stroke='%23e8c878' stroke-opacity='.11' stroke-width='.7'%3E%3Crect x='9' y='9' width='18' height='18'/%3E%3Crect x='9' y='9' width='18' height='18' transform='rotate(45 18 18)'/%3E%3Cpath d='M0 0l5.3 5.3M36 0l-5.3 5.3M0 36l5.3-5.3M36 36l-5.3-5.3M18 0v3.3M18 36v-3.3M0 18h3.3M36 18h-3.3'/%3E%3C/g%3E%3C/svg%3E") center / 26px 26px,
+    radial-gradient(120% 80% at 50% 45%, var(--c1), var(--c2));
+  background-blend-mode: overlay, normal, normal;
+  box-shadow: -3px 0 0 #efe3c4, -4px 0 0 #cdbd94, -5px 0 0 #e6d8b2, 0 12px 22px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.35);
+  display: block; }
+.cover .cbd { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 34cqw 16cqw 26cqw 10cqw; }
+.cover[data-s="nahw"] { --c1: #5a2028; --c2: #23090d; }
+.cover[data-s="hadith"] { --c1: #1f3866; --c2: #0a142c; }
+.cover[data-s="quran"] { --c1: #4a3a12; --c2: #1d1505; }
+/* çiyin (ərəb kitabı sağdan cildlənir) */
+.cover::before { content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 9%; pointer-events: none; background:
+    linear-gradient(transparent 7%, #c9a253 7%, #f1d996 7.6%, #a37c34 8.3%, transparent 8.3%, transparent 10.2%, #a37c34 10.2%, #e9cf8a 10.8%, transparent 11.4%),
+    linear-gradient(transparent 88.6%, #a37c34 88.6%, #e9cf8a 89.2%, transparent 89.8%, transparent 91.7%, #c9a253 91.7%, #f1d996 92.4%, #a37c34 93%, transparent 93%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(255, 255, 255, 0.07) 35%, rgba(0, 0, 0, 0.18) 60%, rgba(0, 0, 0, 0.6)); }
+/* işıq və dəri parıltısı */
+.cover::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, rgba(255, 255, 255, 0.1), transparent 32%, transparent 70%, rgba(0, 0, 0, 0.28)), radial-gradient(120% 70% at 30% 0%, rgba(255, 255, 255, 0.06), transparent 60%); }
+.cover .cfr { position: absolute; inset: 5cqw 13cqw 5cqw 5cqw; border: 1px solid rgba(226, 191, 99, 0.75); border-radius: 2px; box-shadow: inset 0 0 0 2.5cqw transparent, inset 0 0 0 calc(2.5cqw + 1px) rgba(226, 191, 99, 0.4); pointer-events: none; }
+.cover .cfr::before, .cover .cfr::after { content: ""; position: absolute; left: 50%; width: 5cqw; height: 5cqw; transform: translate(-50%, -50%) rotate(45deg); background: var(--c2); border: 1px solid rgba(226, 191, 99, 0.8); }
+.cover .cfr::before { top: 0; }
+.cover .cfr::after { top: 100%; }
+.cover .cem { position: absolute; top: 13cqw; left: calc(50% - 4cqw); transform: translateX(-50%); width: 21cqw; height: 21cqw; border-radius: 50%; display: grid; place-items: center; color: #e2bf63;
+  background: radial-gradient(circle, var(--c2) 60%, transparent 62%); box-shadow: 0 0 0 1px #c9a253, 0 0 0 2.2cqw rgba(0, 0, 0, 0.25), 0 0 0 calc(2.2cqw + 1px) rgba(233, 207, 138, 0.55); }
+.cover .cem svg { width: 70%; height: 70%; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.6)); }
+.cover .ct { position: relative; font-family: var(--ar); font-weight: 700; line-height: 1.35; font-size: calc(var(--k, 1) * 13.5cqw); filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.75)); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+  background: linear-gradient(180deg, #fff1c2 0%, #e9c96f 38%, #b88a32 62%, #f3dc93 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.cover .ca { position: relative; font-family: var(--ar); font-size: 8cqw; line-height: 1.3; margin-top: 4cqw; color: #e9d7a6; opacity: 0.9; }
+.cover .ca::before { content: ""; display: block; width: 24cqw; height: 1px; margin: 0 auto 3.5cqw; background: linear-gradient(90deg, transparent, rgba(226, 191, 99, 0.85), transparent); }
+.cover .cbr { position: absolute; bottom: 9cqw; left: 5cqw; right: 13cqw; font-family: var(--ui); direction: ltr; font-size: 5.6cqw; font-weight: 600; letter-spacing: 0.06em; color: #d9bd75; opacity: 0.9; white-space: nowrap; }
+.mini.cover .cbd { padding: 30cqw 15cqw 16cqw 9cqw; }
+.mini.cover .ca, .mini.cover .cbr { display: none; }
+.mini.cover .cem { top: 9cqw; }
+.mini.cover .ct { -webkit-line-clamp: 3; }
 
 /* ---------- search results */
 .results { margin-top: 18px; }
@@ -232,7 +261,7 @@ body.reader { overflow: hidden; height: 100vh; height: 100dvh; display: flex; fl
 .fan.f0 { left: 22px; z-index: 3; }
 .fan.f1 { left: 11px; top: 6px; z-index: 2; transform: rotate(-6deg); opacity: 0.85; }
 .fan.f2 { left: 0; top: 12px; z-index: 1; transform: rotate(-12deg); opacity: 0.7; }
-.fan .mini.cover .ct { font-size: 12px; -webkit-line-clamp: 4; }
+.fan .mini.cover .ct { -webkit-line-clamp: 3; }
 .sbody { flex: 1; min-width: 0; }
 .sic { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: rgba(79, 140, 255, 0.14); color: var(--accent2); margin-bottom: 10px; }
 .sic svg { width: 19px; height: 19px; }
