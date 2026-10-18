@@ -1,5 +1,5 @@
 // /quran — 114 surənin siyahısı (ərəbcə ad, azərbaycanca ad, ayə sayı). Mənbə: Tanzil (daxili məlumat).
-import { $, esc, t, fmt, lang, header, footer, api } from "./common.js?v=aigold1";
+import { $, esc, t, fmt, lang, header, footer, api } from "./common.js?v=aifab1";
 
 header("home");
 footer();

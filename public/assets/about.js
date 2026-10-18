@@ -1,3 +1,3 @@
-import { header, footer } from "./common.js?v=aigold1";
+import { header, footer } from "./common.js?v=aifab1";
 header("");
 footer();

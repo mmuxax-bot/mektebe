@@ -1,4 +1,4 @@
-import { $, esc, t, header } from "./common.js?v=aigold1";
+import { $, esc, t, header } from "./common.js?v=aifab1";
 
 header("ai");
 $("#note").textContent = t("aiNote");

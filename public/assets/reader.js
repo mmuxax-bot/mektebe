@@ -1,4 +1,4 @@
-import { $, esc, t, lang, fmt, catalog, api, saveLast, lastRead, markHTML, toast, bookName } from "./common.js?v=aigold1";
+import { $, esc, t, lang, fmt, catalog, api, saveLast, lastRead, markHTML, toast, bookName } from "./common.js?v=aifab1";
 
 const id = decodeURIComponent((location.pathname.match(/^\/kitab\/([^/?#]+)/) || [])[1] || new URLSearchParams(location.search).get("b") || "");
 const qs = new URLSearchParams(location.search);

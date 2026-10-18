@@ -1,7 +1,12 @@
-import { quranCoverHTML, $, esc, t, fmt, header, footer, catalog, coverHTML, bookUrl, bookName, lastRead, removeLast, clearLast, api, SECTIONS, secTitle, secDesc, sectionUrl, sectionBooks, hitHTML } from "./common.js?v=aigold1";
+import { quranCoverHTML, $, esc, t, fmt, header, footer, catalog, coverHTML, bookUrl, bookName, lastRead, removeLast, clearLast, api, SECTIONS, secTitle, secDesc, sectionUrl, sectionBooks, hitHTML } from "./common.js?v=aifab1";
 
 header("home");
 footer();
+{
+  const fl = { az: "Library AI-dən soruş", en: "Ask Library AI", ar: "اسأل مساعد المكتبة", tr: "Library AI'a sor", ru: "Спросить Library AI" }[document.documentElement.lang] || "Library AI";
+  const fab = $("#aifab");
+  if (fab) (fab.setAttribute("aria-label", fl), (fab.title = fl));
+}
 $("#h1").innerHTML = `${esc(t("hero1"))} <span>${esc(t("hero2"))}</span>`;
 $("#q").placeholder = t("searchAll");
 $("#sb").textContent = t("search");

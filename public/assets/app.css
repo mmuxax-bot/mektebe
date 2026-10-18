@@ -538,3 +538,17 @@ div.hit .s { display: block; }
 @media (max-width: 520px) { .aboutbox { padding: 20px 16px; } }
 /* mobil: kitab şəbəkəsi 3 sütun (fətava cildləri kimi), bərabər hündürlük */
 @media (max-width: 560px) { .grid, .airy .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 12px; } .book .nm { font-size: 12px; } .book .sub { font-size: 11px; } }
+
+/* ---------- ana səhifə: üzən Library AI düyməsi (RTL-də də fiziki olaraq sağda) */
+.aifab { position: fixed; z-index: 35; right: calc(18px + env(safe-area-inset-right)); left: auto; bottom: calc(20px + env(safe-area-inset-bottom)); width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; color: #f1d79a;
+  background: radial-gradient(circle at 35% 30%, rgba(60, 72, 96, 0.55), rgba(10, 16, 28, 0.88) 70%); border: 1.5px solid rgba(212, 175, 106, 0.7); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 18px rgba(212, 175, 106, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08); transition: transform 0.18s ease, box-shadow 0.2s; -webkit-tap-highlight-color: transparent; }
+.aifab svg { width: 28px; height: 28px; filter: drop-shadow(0 0 6px rgba(241, 215, 154, 0.55)); }
+.aifab::after { content: ""; position: absolute; inset: -1.5px; border-radius: 50%; border: 1.5px solid rgba(212, 175, 106, 0.55); animation: fabPulse 2.8s ease-out infinite; pointer-events: none; }
+.aifab:hover { transform: scale(1.07); box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55), 0 0 28px rgba(212, 175, 106, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
+.aifab:active { transform: scale(0.93); }
+.aifab:focus-visible { outline: 2px solid #f1d79a; outline-offset: 3px; }
+@keyframes fabPulse { 0% { transform: scale(1); opacity: 0.8; } 70%, 100% { transform: scale(1.45); opacity: 0; } }
+@media (max-width: 640px) { .aifab { width: 56px; height: 56px; right: calc(14px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); } }
+@media (prefers-reduced-motion: reduce) { .aifab::after { animation: none; opacity: 0; } }
+.hasfab .foot { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
