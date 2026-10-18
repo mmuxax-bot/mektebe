@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /api/
 
 Sitemap: https://library.nibrascode.com/sitemap.xml

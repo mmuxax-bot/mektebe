@@ -155,5 +155,6 @@ else {
   }
   fs.writeFileSync(pub("sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${parts.map((p) => `  <sitemap><loc>${SITE}/${p}</loc></sitemap>`).join("\n")}\n</sitemapindex>\n`);
 }
-fs.writeFileSync(pub("robots.txt"), `User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: ${SITE}/sitemap.xml\n`);
+// /api/ bağlanmır: Googlebot səhifələri JS ilə render edəndə kitab mətnini /api/books, /api/page-dən oxuyur
+fs.writeFileSync(pub("robots.txt"), `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
 console.log(`SEO: ${urls.length} URL, sitemap.xml + robots.txt yazıldı`);
