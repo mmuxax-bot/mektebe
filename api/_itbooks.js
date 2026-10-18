@@ -575,6 +575,8 @@ export function parseRecQuery(message, hist) {
   const nameRec = !!name && /\b(?:ne|nec?e)\s+oxu\w*|\b(?:haradan|hardan|nedan|neden|hansindan|hansisindan|hangisinden|nereden)\s+(?:basla\w*|oxu\w*|oku\w*)|\boxumaga\s+(?:basla\w*|hardan)|\bilk\s+(?:hansi|hangi)\s+kitab/.test(f);
   if (name) {
     if (!bookWord && !recCue && !nameRec) return null;
+    // konkret kitab adı çəkilibsə («İbn Teymiyyənin Vasitiyyə kitabı»), məsləhət siyahısı yox, həmin kitab göstərilir (parseBookQuery)
+    if (!recCue && !nameRec && findBook(raw)) return null;
     if (recCue || nameRec) return { kind: "rec", stage: null };
     // «İbn Teymiyyənin kitabları» yalnız (qısa) → siyahı; ərəbcə axtarış sözü varsa axtarışdır
     const content = latKeyed(f).filter((x) => !/^(ibn|taimiia?|taimi\w*|teimi\w*|ai|in|ain|din|in)$/.test(x.k));

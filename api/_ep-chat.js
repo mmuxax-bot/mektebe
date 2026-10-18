@@ -6,7 +6,7 @@ import { tawhidReply, tawhidFallbackReply } from "./_tawhid.js";
 import { tafsirReply, withTafsirSuggest } from "./_tafsir.js";
 import { nextReply } from "./_next.js";
 import { gameReply } from "./_game.js";
-import { ayahReply, finalizeAi, compactHistory, AYAH_PROMPT } from "./_ayah.js";
+import { ayahReply, quranTextReply, finalizeAi, compactHistory, AYAH_PROMPT } from "./_ayah.js";
 import { lughaReply, lughaNotFoundNote, isLexicalQuestion, lexicalFollowup } from "./_lugha.js";
 import { nahwReply } from "./_nahw.js";
 import { LAT_CUE } from "./_nahw/terms.js"; // Nibras Library: qrammatika sualı işarəsi (kitabxana axtarışı üçün)
@@ -41,6 +41,16 @@ const SYSTEM = [
 const LEXICAL_HINT =
   "Bu, ərəbcə (və ya dini) sözün mənası (lüğət) sualıdır, dini hökm və ya fətva sualı deyil. Sözün mənasını qısa və düz izah et. Xəbərdarlıq sitatı yazma. Allahın sifətlərini təvil etmə. " +
   "SƏRT QAYDALAR: kök, məna, etimologiya və ya feil formalarını UYDURMA; dəqiq bilmirsənsə, bunu açıq yaz (məsələn «dəqiq bilmirəm»). Quran ayəsi və ya Quranın ərəbcə mətnini, ﴿ ﴾ içində heç nə, [[ayah:..]] işarəsini YAZMA, ayə nömrəsi də göstərmə. Cavab qısa olsun (2-4 cümlə).";
+
+// Tək ərəbcə söz (ال ilə, məs. «الصبر»): başqa heç bir idarəçi tanımadısa, lüğət mənası (Ibn Faris və s., api/_lugha.js) göstərilir.
+// Zəncirin sonunda işləyir ki, «الفاعل» (nəhv), «التوحيد» (tövhid) kimi sözlər öz idarəçisində qalsın.
+const BARE_AR = /^\s*ال[\u0621-\u064A\u064B-\u065F\u0670]{3,}\s*[؟?.!]?\s*$/;
+const BARE_SKIP = /^(?:السلام|الحمد|الله)$/;
+async function bareWordLugha(m) {
+  const w = String(m || "").replace(/[؟?.!\s\u064B-\u065F\u0670]/g, "");
+  if (!BARE_AR.test(m) || BARE_SKIP.test(w)) return null;
+  return lughaReply("معنى " + w);
+}
 
 export const LIMIT_REPLY = "Bu gün üçün sual limiti bitdi. Sabah yenidən yaz. Hazır cavabı olan suallar isə bu gün də cavablanır.";
 
@@ -130,7 +140,7 @@ export default async function handler(req, res) {
         /* namaz vaxtı tapılmazsa, sual öz axınında qalır */
       }
     }
-    if (!fixed) for (const [kind, fn] of [["game", (m) => gameReply(m, gameHist)], ["book", (m) => translateReply(m, { ip: String(req.headers?.["x-forwarded-for"] || req.headers?.["x-real-ip"] || "").split(",")[0].trim() || "chat" })], ["book", (m) => fatawaReply(m, hist)], ["book", (m) => (body.mode === "code" || body.mode === "create" ? null : itbooksReply(m, hist))], ["book", (m) => hadithReply(m, hist)], ["next", (m) => nextReply(m, hist)], ["tafsir", tafsirReply], ["ayah", ayahReply], ["tawhid", tawhidReply], ["canned", cannedReply], ["quran", quranReply], ["book", (m) => lughaReply(follow || m)], ["book", nahwReply], ["book", hadithBare], ["book", (m) => (lexicalLoose || body.mode === "code" || body.mode === "create" ? null : fatawaNaturalReply(m))], ["din", (m) => (lexicalLoose ? null : dinReply(m))], ["brand", brandReply], ["tawhid", tawhidFallbackReply]]) {
+    if (!fixed) for (const [kind, fn] of [["game", (m) => gameReply(m, gameHist)], ["ayah", (m) => (body.mode === "code" || body.mode === "create" ? null : quranTextReply(m))], ["book", (m) => translateReply(m, { ip: String(req.headers?.["x-forwarded-for"] || req.headers?.["x-real-ip"] || "").split(",")[0].trim() || "chat" })], ["book", (m) => fatawaReply(m, hist)], ["book", (m) => (body.mode === "code" || body.mode === "create" ? null : itbooksReply(m, hist))], ["book", (m) => hadithReply(m, hist)], ["next", (m) => nextReply(m, hist)], ["tafsir", tafsirReply], ["ayah", ayahReply], ["tawhid", tawhidReply], ["canned", cannedReply], ["quran", quranReply], ["book", (m) => lughaReply(follow || m)], ["book", nahwReply], ["book", hadithBare], ["book", (m) => (lexicalLoose || body.mode === "code" || body.mode === "create" ? null : fatawaNaturalReply(m))], ["book", (m) => (body.mode === "code" || body.mode === "create" ? null : bareWordLugha(m))], ["din", (m) => (lexicalLoose ? null : dinReply(m))], ["brand", brandReply], ["tawhid", tawhidFallbackReply]]) {
       let r = await fn(message);
       if (r) {
         if (kind === "ayah") r = withTafsirSuggest(r, message); // təfsir istənilməyib: ayə/surə cavabına təfsir seçimləri əlavə olunur
@@ -184,6 +194,7 @@ export default async function handler(req, res) {
     // Nibras Library: dini və ya kitab/qrammatika sualı AI-yə getməzdən əvvəl kitabxanada axtarılır (api/_lib/ground.js).
     // Yaxşı nəticə varsa, cavab sözbəsöz çıxarışlardır (mənbə + «Kitabda aç»); yoxdursa, tapılan 3–5 çıxarış AI-yə mənbə kimi verilir.
     let grounding = [];
+    let libWeak = null; // zəif kitabxana nəticəsi: AI cavab verə bilməsə, xəta əvəzinə bu çıxarışlar göstərilir
     const bookish = body.mode !== "code" && body.mode !== "create" && !lexicalLoose && (isReligious(message, body.mode) || LAT_CUE.test(fold(message)) || /[\u0621-\u064A]{2}/.test(message));
     if (bookish) {
       try {
@@ -194,6 +205,7 @@ export default async function handler(req, res) {
           return;
         }
         grounding = lib.items || [];
+        if (lib.reply && grounding.length) libWeak = lib;
       } catch {
         /* axtarış alınmadı: sual adi axınla AI-yə gedir */
       }
@@ -250,6 +262,12 @@ export default async function handler(req, res) {
       if (notes.length >= 12) break;
     }
 
+    // AI provayderləri cavab vermədi: kitabxanada tapılan çıxarışlar varsa, xəta yox, onlar göstərilir (sözbəsöz, mənbə ilə)
+    if (libWeak) {
+      track("snippet", "library");
+      res.status(200).json({ success: true, reply: libWeak.reply, usedAI: false, religious: true, links: libWeak.links, library: true });
+      return;
+    }
     track("error", "ai");
     res.status(200).json({
       success: false,
@@ -284,7 +302,7 @@ async function booksOnly(body, message, res) {
     return;
   }
   const code = body.mode === "code" || body.mode === "create";
-  const chain = [["book", (m) => fatawaReply(m, hist)], ["book", (m) => (code ? null : itbooksReply(m, hist))], ["book", (m) => hadithReply(m, hist)], ["next", (m) => nextReply(m, hist)], ["tafsir", tafsirReply], ["ayah", ayahReply], ["tawhid", tawhidReply], ["canned", cannedReply], ["quran", quranReply], ["book", (m) => lughaReply(follow || m)], ["book", nahwReply], ["book", hadithBare], ["book", (m) => (lexicalLoose || code ? null : fatawaNaturalReply(m))], ["tawhid", (m) => ((!lexicalLoose && dinReply(m)) || brandReply(m) ? null : tawhidFallbackReply(m))]];
+  const chain = [["ayah", (m) => (code ? null : quranTextReply(m))], ["book", (m) => fatawaReply(m, hist)], ["book", (m) => (code ? null : itbooksReply(m, hist))], ["book", (m) => hadithReply(m, hist)], ["next", (m) => nextReply(m, hist)], ["tafsir", tafsirReply], ["ayah", ayahReply], ["tawhid", tawhidReply], ["canned", cannedReply], ["quran", quranReply], ["book", (m) => lughaReply(follow || m)], ["book", nahwReply], ["book", hadithBare], ["book", (m) => (lexicalLoose || code ? null : fatawaNaturalReply(m))], ["book", (m) => (code ? null : bareWordLugha(m))], ["tawhid", (m) => ((!lexicalLoose && dinReply(m)) || brandReply(m) ? null : tawhidFallbackReply(m))]];
   // sonuncu: tövhid ehtiyat uyğunlaşdırması (en/ru/tr, qısa ifadə) — nibrascode-un din/brand cavabları qabaqlanmır
   for (const [kind, fn] of chain) {
     let r = await fn(message);

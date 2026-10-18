@@ -420,7 +420,8 @@ export function parseFatawaQuery(message) {
   const book = wasBook(plain, raw);
   const name = NAME_AR.test(nplain) || NAME_LAT.test(f) || NAME_RU.test(raw);
   const fatwa = FATWA_AR.test(nplain) || FATWA_LAT.test(f) || FATWA_RU.test(raw);
-  const intent = INTENT_AR.test(nplain) || INTENT_LAT.test(f) || INTENT_RU.test(raw);
+  // «Ibn Taymiyyah on istighatha», «İbn Teymiyyə üzrə …», «Ибн Таймия о …»: ad + «on/üzrə/о» da niyyət sayılır
+  const intent = INTENT_AR.test(nplain) || INTENT_LAT.test(f) || INTENT_RU.test(raw) || /\b(?:taymiyy?\w*|teymiyy?\w*|taimiy\w*)\s+(?:on|regarding|concerning|uzre)\b/.test(f) || /(?:тайми|теймий|таймий)[а-яё]*\s+(?:о|об|про)\s/i.test(raw);
   if (!(book || (name && (fatwa || intent)))) return null;
   if (!book) {
     if (BIO_AR.test(nplain) || BIO_LAT.test(f) || BIO_RU.test(raw)) return null;

@@ -366,8 +366,8 @@ const toLang = (m) => {
 // ---------------------------------------------------------------- sorğunun aşkarlanması
 const NUM_FILLER = new Set(["hedis", "hadis", "hadith", "hadees", "hadiths", "hadisi", "hedisi", "nomresi", "nomre", "numarasi", "numara", "no", "nr", "number", "num", "n", "#", "№", "numarali", "nomreli", "nomrelisi", "رقم", "حديث", "الحديث", "حديثا", "хадис", "номер", "no.", "nu"]);
 const BOOK_RE = [
-  ["735", /(?:sehih\s+|sahih\s+|sahihi\s+)?(?:(?:el|al)[- ]?)?(?:buxari|bukhari|bukari|buhari|buhari)\b|(?:صحيح\s+)?(?:ال)?بخاري|(?:сахих\s+)?бухари/],
-  ["1727", /(?:sehih\s+|sahih\s+|sahihi\s+)?(?:(?:el|al)[- ]?)?muslim\b|(?:صحيح\s+)?مسلم|(?:сахих\s+)?муслим/],
+  ["735", /(?:sehih\s+|sahih\s+|sahihi\s+)?(?:(?:el|al)[- ]?)?(?:buxari|bukhari|bukari|buhari|bexari|boxari|buxori|bukhary|bokhari|buhary|buxariy|bukhariy)\b|(?:صحيح\s+)?(?:ال)?بخاري|(?:сахих\s+)?бухари/],
+  ["1727", /(?:sehih\s+|sahih\s+|sahihi\s+)?(?:(?:el|al)[- ]?)?(?:muslim|muslum|moslem)\b|(?:صحيح\s+)?مسلم|(?:сахих\s+)?муслим/],
   ["117359", /(?:sunen\s+|sunan\s+|sunni\s+)?(?:ebu|abu|ebi|abi)\s*(?:davud|dawud|dawood|davut|daud|dawood)\b|(?:سنن\s+)?(?:[اأإ]بي|[اأإ]بو)\s+داود|(?:сунан\s+)?абу\s+дауд/],
   ["1363", /(?:sunen\s+|sunan\s+|cami\s+|jami\s+)?(?:(?:et|at|el|al)[- ]?)?(?:tirmizi|tirmidhi|tirmidzi|termizi|tirmiziy)\b|(?:سنن\s+|جامع\s+)?(?:ال)?ترمذي|(?:джами\s+)?тирмизи/],
   ["1339", /(?:sunen\s+|sunan\s+)?(?:(?:en|an|el|al)[- ]?)?(?:nesai|nasai|nesei|nesaiy)\b|(?:سنن\s+)?(?:ال)?نسائي|(?:сунан\s+)?насаи/],

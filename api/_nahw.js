@@ -188,7 +188,12 @@ export function parseNahwQuery(message) {
       if (more.length) hits = more;
     }
     const arRuns = gkey(raw).match(/[\u0621-\u064A]+/g) || [];
-    const latLan = /(?:^|\s)(?:ərəbcə|erebce|arapça|arapca|ərəb\s+dilində)\s+l[eə]n(?:\s|$|[?.!])|\bl[eə]n\s+h[eə]rfi?\b/i.test(raw);
+    // «lən ədatı nədir», «lan negation in Arabic», «particle lan», «частица лан»: «لن» hərfi (hərf/ədat/inkar sözü ilə birlikdə)
+    const LAN_CUE = "(?:edat\\w*|herf\\w*|harf\\w*|particle\\w*|negat\\w*|nefy\\w*|nafy\\w*|inkar\\w*|nasb\\w*|nesb\\w*|nevasib\\w*|nawasib\\w*)";
+    const latLan =
+      /(?:^|\s)(?:ərəbcə|erebce|arapça|arapca|ərəb\s+dilində)\s+l[eə]n(?:\s|$|[?.!])|\bl[eə]n\s+h[eə]rfi?\b|(?:^|\s)lən\s+(?:nədir|nə\s+deməkdir|nə\s+bildirir|nə\s+mənada)/i.test(raw) ||
+      new RegExp("\\b(?:len|lan)\\b[^.?!]{0,25}\\b" + LAN_CUE + "|\\b" + LAN_CUE + "[^.?!]{0,25}\\b(?:len|lan)\\b").test(f) ||
+      /(?:^|\s)(?:лан|лян|лэн)(?:\s|$)[^.?!]{0,25}(?:частиц|отрицан)|(?:частиц|отрицан)[а-яё]*[^.?!]{0,25}(?:^|\s)(?:лан|лян|лэн)(?:\s|$|[?.!])/i.test(raw);
     if (latLan) {
       terms = [];
     } else if (cue && arRuns.length === 1 && PARTS.has(arRuns[0]) && !hits.length) {

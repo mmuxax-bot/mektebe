@@ -783,6 +783,34 @@ export function ayahReply(message, forceLang) {
   return addTrNote(out.join("\n\n"), lang);
 }
 
+// ---- (a2) Quran mətni ilə axtarış: istifadəçi ayənin özünü (və ya bir hissəsini) ərəbcə yazıb: «لن تراني», «وما خلقت الجن والإنس إلا ليعبدون»
+// Yalnız bütün mesaj Quranın ardıcıl sözləri ilə üst-üstə düşəndə cavab verir (Tanzil mətni; AI yoxdur). Qısa ifadələr dəqiq uyğunluq
+// və az sayda yer tələb edir ki, adi ərəbcə sual (məs. «ما حكم الصلاة») ayə sayılmasın. Sual/axtarış sözü olan mesaja toxunmur.
+const QT_CUE = /(?:^|\s)(?:تفسير|التفسير|اعراب|إعراب|أعرب|اعرب|معنى|معني|حكم|شرح|حديث|الحديث|فتوى|فتاوى|فتاوي|ابن\s+تيمي[ةه]|مجموع|النحو|الصرف|ابحث|بحث|اذكر|سورة|سوره|آية|اية|آيه|ايه|كتاب|المجلد|رقم|صحيح|سنن|ماذا|لماذا|كيف|متى|أين|اين)(?=\s|$)/;
+export function quranTextReply(message) {
+  const raw = String(message || "").replace(/[؟?!.,،؛;:«»"“”'()\[\]{}﴿﴾ـ]/g, " ").replace(/[0-9٠-٩]+/g, " ").replace(/\s+/g, " ").trim();
+  if (!raw || raw.length > 400) return null;
+  const ar = (raw.match(/[\u0621-\u064A]/g) || []).length;
+  const other = (raw.match(/[A-Za-z\u00C0-\u024F\u0400-\u04FF]/g) || []).length;
+  if (ar < 6 || other > 0) return null;
+  if (QT_CUE.test(raw.replace(/[\u064B-\u065F\u0670]/g, ""))) return null;
+  const n = raw.split(" ").map(arKey).filter(Boolean).length;
+  if (n < 2) return null;
+  // 2 söz: yalnız dəqiq; 3+ söz: bir hərf fərqi qəbul (الزنا/الزنى); 4 sözədək yalnız Quranda TƏK yer (dua/zikr ifadələri ayə sayılmasın)
+  const mr = matchArabic(raw, { minWords: 2, minScore: n === 2 ? 1 : 0.9 });
+  if (!mr) return null;
+  const uniq = new Set(mr.refs.map((r) => r.s + ":" + r.a1 + "-" + r.a2)).size;
+  if (uniq > (n <= 4 ? 1 : 6)) return null;
+  // ayə/surə idarəçisi bunu özü tanıyırsa («قل هو الله أحد» -> bütün İxlas surəsi), onun cavabı qalır
+  const own = ayahReply(message);
+  if (own) return own;
+  const lang = "ar";
+  // tək yer: ayə(lər) tam göstərilir (axtarılan hissə ayənin içindədir); bir neçə yer: mətn + bütün yerlər
+  const r0 = mr.refs[0];
+  if (uniq === 1 && r0.a2 - r0.a1 < MAX_RANGE) return addTrNote(buildBlock({ s: r0.s, a1: r0.a1, a2: r0.a2, lang }), lang);
+  return addTrNote(renderAmbiguous(mr.refs, lang), lang);
+}
+
 // ======================================================================== (b) AI cavabının işlənməsi
 // ---- ayə indeksi (ilk istifadədə qurulur)
 let IDX = null;
