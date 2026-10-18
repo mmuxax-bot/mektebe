@@ -1,8 +1,9 @@
 // SEO: sitemap.xml + robots.txt + hər kitab/bölmə/surə üçün öz <title>, description, canonical, Open Graph və JSON-LD olan statik HTML.
 //   public/kitab/<id>.html, public/bolme/<id>.html, public/quran/<n>.html — reader/section/sura şablonlarının surəti (yalnız <head> fərqlidir);
-//   Vercel əvvəlcə statik faylı verir (cleanUrls), olmasa vercel.json rewrite-ı köhnə qaydada işləyir. Bu üç qovluq .gitignore-dadır.
+//   Vercel əvvəlcə statik faylı verir (cleanUrls), olmasa vercel.json rewrite-ı köhnə qaydada işləyir. Yaranan fayllar repoya commit olunur.
 //   Statik səhifələrin (ana səhifə, AI, Quran, haqqında, fatawa) <head> bloku da burada yenilənir (<!--seo--> … <!--/seo--> arası).
-// İşlətmək: node scripts/build-seo.mjs   (Vercel-də buildCommand kimi hər deploy-da avtomatik işləyir)
+// İşlətmək: node scripts/build-seo.mjs   — kataloq (api/_lib/catalog.js), şablon HTML-lər və ya statik səhifələr dəyişəndə yenidən işlət və commit et
+//   (Vercel buildCommand kimi işlədəndə deploy alınmadı, ona görə statik fayllar repoda saxlanır).
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
