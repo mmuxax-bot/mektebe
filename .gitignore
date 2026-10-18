@@ -1,3 +1,7 @@
 node_modules
 .vercel
 .DS_Store
+# scripts/build-seo.mjs generasiya edir (Vercel build zamanı)
+public/kitab/
+public/bolme/
+public/quran/
