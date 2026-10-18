@@ -159,9 +159,11 @@ export function parseNahwQuery(message) {
     const unique = stems.some((t) => UNI.has(t));
     // hərf sualı: «ما معنى لن في النحو»، «لن ماذا تفيد»
     const nonStop = gt.filter((t) => !STOP_Q.has(t));
-    const parts = nonStop.filter((t) => PARTS.has(t));
-    const partCue = PARTICLE_CUE.test(g);
-    const partQ = parts.length > 0 && partCue && nonStop.length <= 4 && nonStop.every((t) => PARTS.has(t) || PARTICLE_CUE.test(t) || /^(?:تفيد|تعني|معني|عمل|اعراب|دلاله)$/.test(t) || STRONG_AR.test(t));
+    // «ولن», «فلا»: bağlayıcı و/ف ilə yazılmış hərf də tanınır; «ما الفرق بين لم ولن», «هل لن تفيد التأبيد» də hərf sualıdır
+    const partOf = (t) => (PARTS.has(t) ? t : /^[وف]/.test(t) && t.length > 2 && PARTS.has(t.slice(1)) ? t.slice(1) : null);
+    const parts = nonStop.map(partOf).filter(Boolean);
+    const partCue = PARTICLE_CUE.test(g) || /الفرق|تابيد/.test(g);
+    const partQ = parts.length > 0 && partCue && nonStop.length <= 5 && nonStop.every((t) => partOf(t) || PARTICLE_CUE.test(t) || /^(?:تفيد|تعني|معني|عمل|اعراب|دلاله|الفرق|فرق|التابيد|تابيد|للتابيد|النفي|نفي|الاستقبال|المستقبل|التاكيد)$/.test(t) || STRONG_AR.test(t));
     const contentN = stems.filter((t) => !STOP_Q.has(t)).length;
     const ok = strong || phrase || (unique && contentN <= 1) || partQ;
     if (!ok) return null;
@@ -171,7 +173,11 @@ export function parseNahwQuery(message) {
     terms = stems.filter((t) => !STOP_Q.has(t));
     if (!terms.length) terms = stems.filter((t) => !STOP_Q.has(t) || /عراب/.test(t));
     if (!terms.length) terms = /صرف|تصريف/.test(g) ? tokens(GENERIC_SARF) : /نحو/.test(g) ? tokens(GENERIC_NAHW) : [];
-    if (particle) {
+    if (particle && partQ && new Set(parts).size > 1) {
+      // bir neçə hərf («الفرق بين لم ولن»): hamısı və genişləndirmələri axtarılır
+      const ps = [...new Set(parts)].map((p) => PARTS.get(p));
+      terms = [...new Set([...ps.map((p) => key(p).replace(/ء/g, "ا")), ...ps.flatMap((p) => (PARTICLE_EXPAND[p] || []).flatMap((x) => tokens(x)))])];
+    } else if (particle) {
       const exp = PARTICLE_EXPAND[particle] || [];
       terms = [...new Set([...terms.filter((t) => !PARTS.has(t) || t === key(particle).replace(/ء/g, "ا")), ...exp.flatMap((x) => tokens(x))])];
     }

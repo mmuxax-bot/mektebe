@@ -573,8 +573,15 @@ export function ayahLookup(message, forceLang) {
     const hasQuranWord = toks.some((t, i) => /^(quran|kuran|koran|коран)/.test(folded[i]) || /^(القرآن|قرآن|القران|قران)$/.test(t.raw));
     if (!hasSuraWord && !hasAyahWord && !hasQuranWord) {
       // «saat 10:30» kimi hallar: açıq Quran işarəsi yoxdursa yalnız istinadın özü (və «yaz» kimi sözlər) qəbul olunur
-      const stray = toks.some((t, i) => !/^\d+$/.test(t.raw) && !(AR_LETTER.test(t.raw) ? AR_FILLERS.has(arName(t.raw).join("")) : FILLERS.has(folded[i])));
-      if (stray) return null;
+      const strayIdx = toks.map((t, i) => i).filter((i) => !/^\d+$/.test(toks[i].raw) && !(AR_LETTER.test(toks[i].raw) ? AR_FILLERS.has(arName(toks[i].raw).join("")) : FILLERS.has(folded[i])));
+      // «Al-Baqarah 2:286», «Fatiha 1:2», «البقرة 2:286»: qalan sözlər eyni surənin adıdırsa, istinad qəbul olunur
+      let nameMatches = false;
+      if (strayIdx.length && strayIdx.length <= 4 && strayIdx.every((i, k) => k === 0 || i === strayIdx[k - 1] + 1)) {
+        const sl = strayIdx.map((i) => toks[i]);
+        const hit = sl.every((t) => AR_LETTER.test(t.raw)) ? lookupAr(sl.map((t) => arName(t.raw).join("")), 0) : sl.every((t) => !AR_LETTER.test(t.raw)) ? lookupLat(strayIdx.map((i) => folded[i]), 0, true) : null;
+        nameMatches = !!(hit && hit.len === sl.length && hit.ns.includes(s));
+      }
+      if (strayIdx.length && !nameMatches) return null;
     }
     reps.push({ s, a1, a2, whole: false, bad: a1 < 1 || a2 < a1 || a2 > AYAH_COUNT[s - 1] });
     toks.forEach((t, i) => {

@@ -618,6 +618,17 @@ export function parseBookQuery(message) {
     let m;
     if ((m = /(?:^|\s)(?:المجلد|مجلد|الجز|جز|ج)\s*[:.]?\s*(\d{1,2})(?!\d)/.exec(ar)) || (m = /\b(?:cild\w*|cilt\w*|volume|vol|jild|juz|cuz)\.?\s*[:.]?\s*(\d{1,2})(?!\d)/.exec(f)) || (m = /(?:том|т)\.?\s*(\d{1,2})(?!\d)/.exec(raw.toLowerCase()))) vol = Number(m[1]);
     if ((m = /(?:^|\s)(?:صفحه|الصفحه|ص)\s*[:.]?\s*(\d{1,4})(?!\d)/.exec(ar)) || (m = /\b(?:sehife\w*|sayfa\w*|page|pg|pp|p|s|ss)\.?\s*[:.]?\s*(\d{1,4})(?!\d)/.exec(f)) || (m = /(?:страница|стр|с)\.?\s*(\d{1,4})(?!\d)/.exec(raw.toLowerCase()))) page = Number(m[1]);
+    // «3-cü cild 10-cu səhifə», «3. cilt 10. sayfa», «c.3 s.10», «3/10» (Məcmuul-fətava ilə eyni yazılışlar)
+    const ORD = "\\s*(?:-?\\s*(?:cu|ci|ncu|nci|inci|uncu|unci|th|st|nd|rd)\\b|\\.)\\s*";
+    const preVol = new RegExp("(?<![\\d/:])(\\d{1,2})" + ORD + "(?:cild\\w*|cilt\\w*|volume|vol\\b|jild\\w*)").exec(f);
+    const prePage = new RegExp("(?<![\\d/:])(\\d{1,4})" + ORD + "(?:sehife\\w*|sayfa\\w*|page\\b|pg\\b)").exec(f);
+    if (preVol) vol = Number(preVol[1]);
+    if (prePage) page = Number(prePage[1]);
+    if (vol == null && (m = /(?:^|\s)c\.?\s*(\d{1,2})(?!\d)/.exec(f))) vol = Number(m[1]);
+    if (vol == null && page == null && (m = /(?<![\d/:])(\d{1,2})\s*[/:]\s*(\d{1,4})(?![\d/:])/.exec(asciiDigits(plain)))) {
+      vol = Number(m[1]);
+      page = Number(m[2]);
+    }
     if (page != null) return { mode: "page", slug: b.slug, vol: vol ?? 1, page };
     // ---- kitab daxilində axtarış (ərəbcə qalıq sözlər və ya latın mövzu)
     const toks = arToks(raw);
