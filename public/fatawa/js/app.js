@@ -557,6 +557,11 @@ async function viewReader(P, hq, isIntro) {
   const book = $("#paper");
   book.innerHTML = html.join("");
   if (dir) book.classList.add(dir);
+  if (spread) book.querySelectorAll(".paper:not(.blank)").forEach((pg) => {
+    pg.insertAdjacentHTML("afterbegin", `<button class="pzoom" type="button" aria-label="تكبير هذه الصفحة" title="تكبير هذه الصفحة">⤢</button>`);
+    pg.ondblclick = (e) => { if (!e.target.closest("a,button")) focusPage(pg); };
+    pg.querySelector(".pzoom").onclick = () => focusPage(pg);
+  });
   const fi = slotInfo(m, s);
   const d0 = fi.intro ? m.vols[fi.intro - 1].first : fi.d;
   const p = await page(d0);
@@ -573,6 +578,31 @@ async function viewReader(P, hq, isIntro) {
   prefetch(P + 8); prefetch(P - 2); prefetch(P - 10);
 }
 let rsT = 0, rsMode = null;
+// iki səhifəlik görünüşdə bir səhifəni ayrıca açmaq (tək səhifə böyüdülür; çimdikləmə yalnız bu səhifəyə aiddir)
+function focusPage(pg) {
+  closeFocus();
+  const ov = document.createElement("div");
+  ov.className = "pfocus"; ov.id = "pfocus"; ov.setAttribute("role", "dialog"); ov.dir = "rtl";
+  ov.innerHTML = `<div class="pf-bar"><button class="ibtn" data-z="-1" aria-label="تصغير">−</button><button class="ibtn" data-z="1" aria-label="تكبير">+</button><button class="btn sm" id="pfx" type="button">✕ العودة إلى الصفحتين</button></div><div class="pf-sc"></div>`;
+  const c = pg.cloneNode(true); c.querySelector(".pzoom")?.remove(); c.classList.add("pf-page");
+  ov.querySelector(".pf-sc").append(c);
+  let z = Number(store.get("ft:pz")) || 1.15;
+  const apply = () => (c.style.fontSize = `calc(var(--rfs, 21px) * ${z})`);
+  apply();
+  ov.querySelectorAll("[data-z]").forEach((b) => (b.onclick = () => { z = Math.min(2.6, Math.max(0.8, z + 0.15 * b.dataset.z)); store.set("ft:pz", z); apply(); }));
+  ov.querySelector("#pfx").onclick = closeFocus;
+  ov.ondblclick = (e) => { if (!e.target.closest("a,button")) closeFocus(); };
+  document.body.append(ov); document.body.classList.add("pf-open");
+  history.pushState({ pf: 1 }, "");
+}
+function closeFocus(fromPop) {
+  const o = $("#pfocus"); if (!o) return;
+  o.remove(); document.body.classList.remove("pf-open");
+  if (fromPop !== true && history.state && history.state.pf) history.back();
+}
+addEventListener("popstate", () => closeFocus(true));
+addEventListener("keydown", (e) => { if (e.key === "Escape") closeFocus(); });
+addEventListener("hashchange", () => closeFocus(true));
 addEventListener("resize", () => { clearTimeout(rsT); rsT = setTimeout(() => { if (document.body.classList.contains("reading") && rsMode !== null && rsMode !== spreadMode()) route(); rsMode = spreadMode(); }, 200); });
 rsMode = spreadMode();
 let onkey = null;

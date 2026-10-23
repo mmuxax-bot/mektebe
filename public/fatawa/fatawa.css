@@ -378,8 +378,6 @@ body.reading .paper { touch-action: pan-y pinch-zoom; }
 .book.single .paper { min-height: auto; }
 .book.spread { grid-template-columns: 1fr 1fr; direction: rtl; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5); border-radius: 6px; }
 .book.spread .paper { box-shadow: none; border-radius: 0; }
-.book.spread .paper:first-child { border-radius: 6px 0 0 6px; background: linear-gradient(90deg, rgba(90, 60, 20, 0.22), var(--paper) 7%, var(--paper) 96%, var(--paper2)); }
-.book.spread .paper:last-child { border-radius: 0 6px 6px 0; background: linear-gradient(90deg, var(--paper2), var(--paper) 4%, var(--paper) 93%, rgba(90, 60, 20, 0.22)); }
 .book.spread .paper.blank { background: var(--paper2); }
 .book.spread .pbody { padding: 12px 20px 12px; font-size: calc(var(--rfs, 21px) * 0.86); }
 .book.spread .phead { margin: 0 14px; font-size: 13px; }
@@ -409,8 +407,6 @@ html[data-paper="dark"] .pbody .fr-kitab, html[data-paper="dark"] .intro .in-h {
 html[data-paper="dark"] .pbody .fn { color: #b9b1a1; border-top-color: rgba(226, 194, 122, 0.25); }
 html[data-paper="dark"] .phead { border-bottom-color: rgba(226, 194, 122, 0.2); }
 html[data-paper="dark"] .pbody mark { background: #5a4a17; color: #fff3cf; }
-html[data-paper="dark"] .book.spread .paper:first-child { background: linear-gradient(90deg, #08090b, var(--paper) 7%, var(--paper) 96%, var(--paper2)); }
-html[data-paper="dark"] .book.spread .paper:last-child { background: linear-gradient(90deg, var(--paper2), var(--paper) 4%, var(--paper) 93%, #08090b); }
 html[data-paper="sepia"] { --paper: #f1e0bb; --paper2: #e3cc9c; --ink: #3b2a14; --ink2: #7a4b14; }
 @media (max-width: 520px) { .pc { width: 22px; height: 22px; } .pcol { gap: 3px; padding: 0; } .rbar .lbl { display: none; } }
 
@@ -434,3 +430,25 @@ body.reading .wrap { padding-bottom: 90px; }
 .aitext .cite { color: var(--gold2); white-space: nowrap; } .aitext p { margin: 0 0 0.6em; }
 .aipg { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 0; font-size: 0.9em; }
 .aipg button[disabled] { opacity: 0.4; pointer-events: none; }
+
+/* iki səhifə: təmiz orta qat (cild yeri) — bərabər hündürlük, tək kölgə qradiyenti */
+.book.spread { position: relative; align-items: stretch; background: var(--paper); overflow: hidden; }
+.book.spread > .paper { background: var(--paper); border: 0; margin: 0; height: 100%; }
+.book.spread > .paper:first-child { border-radius: 0 6px 6px 0; box-shadow: inset 10px 0 14px -14px rgba(0,0,0,.25); }
+.book.spread > .paper:last-child { border-radius: 6px 0 0 6px; box-shadow: inset -10px 0 14px -14px rgba(0,0,0,.25); }
+.book.spread > .paper.blank { background: var(--paper2); }
+.book.spread::after { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 56px; transform: translateX(-50%); pointer-events: none; z-index: 2;
+  background: linear-gradient(90deg, transparent, rgba(60,40,10,.05) 30%, rgba(60,40,10,.16) 47%, rgba(40,25,5,.26) 50%, rgba(60,40,10,.16) 53%, rgba(60,40,10,.05) 70%, transparent); }
+html[data-paper="dark"] .book.spread::after { background: linear-gradient(90deg, transparent, rgba(0,0,0,.18) 30%, rgba(0,0,0,.45) 47%, rgba(0,0,0,.6) 50%, rgba(0,0,0,.45) 53%, rgba(0,0,0,.18) 70%, transparent); }
+.book.spread.turn-next::after, .book.spread.turn-prev::after { opacity: .6; }
+.paper { position: relative; }
+.pzoom { position: absolute; top: 6px; inset-inline-end: 6px; z-index: 3; width: 30px; height: 30px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); background: color-mix(in srgb, var(--paper) 85%, transparent); color: var(--ink); opacity: .55; cursor: zoom-in; font-size: 15px; line-height: 1; }
+.pzoom:hover { opacity: 1; }
+.book.single .pzoom { display: none; }
+.pfocus { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.72); display: flex; flex-direction: column; }
+.pf-bar { display: flex; gap: 8px; justify-content: flex-start; align-items: center; padding: 8px 10px; padding-top: max(8px, env(safe-area-inset-top)); background: var(--paper2); }
+.pf-bar #pfx { margin-inline-start: auto; }
+.pf-sc { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y pinch-zoom; padding: 10px; }
+.pf-page { max-width: 820px; margin: 0 auto; min-height: 0 !important; border-radius: 6px; background: var(--paper) !important; }
+.pf-page .pbody { font-size: inherit !important; }
+body.pf-open { overflow: hidden; }
