@@ -6,7 +6,7 @@ async function bin(name) {
   let r;
   for (let i = 0; ; i++) {
     try {
-      r = await fetch(new URL(name + "?v=fx2", BASE));
+      r = await fetch(new URL(name + "?v=fx3", BASE));
       if (r.ok || (r.status < 500 && r.status !== 429) || i >= 2) break;
     } catch (e) {
       if (i >= 2) throw e;
