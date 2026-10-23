@@ -676,7 +676,10 @@ function analyzeQ(raw) {
   const main = (words.length ? words : q.split(" ")).join(" ");
   const alts = [], extra = [];
   for (const w of words) { const s = SYN[w] || SYN["ال" + w] || SYN[w.replace(/^(?:و|ف|ب)?ال/, "ال")] || SYNT.get(tokens(w)[0]); if (s) for (const x of s) (alts.push(main.replace(w, x)), extra.push(x)); }
-  return { main, alts: alts.slice(0, 3), extra, phrase: false };
+  // xalq dilindəki söz kitabın terminologiyasına çevrilir (orijinal da saxlanılır)
+  let main2 = main;
+  for (const w of words) { const s = SYN[w] || SYN["ال" + w] || SYN[w.replace(/^(?:و|ف|ب)?ال/, "ال")] || SYNT.get(tokens(w)[0]); if (s && !s.includes(w)) main2 = main2.replace(w, s[0]); }
+  return { main: main2, alts: [main, ...alts].slice(0, 3), extra: [...extra, ...words], phrase: false };
 }
 // cavab: ən uyğun parçalardan seçilmiş cümlələr (yalnız kitab mətni) + cild/səhifə
 function bestSentences(text, set, n = 2) {
