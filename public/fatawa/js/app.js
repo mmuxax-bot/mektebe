@@ -351,7 +351,7 @@ let seq = 0;
 const waits = new Map();
 function ask(msg) {
   if (!worker) {
-    worker = new Worker(new URL("./search-worker.js?v=sem2", import.meta.url), { type: "module" });
+    worker = new Worker(new URL("./search-worker.js?v=sem3", import.meta.url), { type: "module" });
     worker.onmessage = (e) => {
       const w = waits.get(e.data.id);
       if (!w) return;

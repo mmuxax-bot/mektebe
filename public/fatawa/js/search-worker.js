@@ -201,7 +201,7 @@ async function semantic(phrase, vol, extra) {
   const core = new Map(); // vocabId -> çəki
   for (const t of new Set(lex.terms.length ? lex.terms : tokens(phrase))) { const id = resolve(t); if (id != null && S.tpos.has(id)) core.set(id, 1); }
   const ext = new Map();
-  for (const x of extra) for (const t of tokens(x)) { const id = resolve(t); if (id != null && S.tpos.has(id) && !core.has(id)) ext.set(id, 0.7); }
+  for (const x of extra) for (const t of tokens(x)) { const id = resolve(t); if (id != null && S.tpos.has(id) && !core.has(id)) ext.set(id, 1.0); }
   for (const id of core.keys()) for (const j of S.conc[S.tpos.get(id)] || []) { const v = S.terms[j]; if (!core.has(v) && !ext.has(v)) ext.set(v, 0.35); }
   if (!core.size && !ext.size) return lex;
   const qv = new Float32Array(K);

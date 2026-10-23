@@ -452,3 +452,8 @@ html[data-paper="dark"] .book.spread::after { background: linear-gradient(90deg,
 .pf-page { max-width: 820px; margin: 0 auto; min-height: 0 !important; border-radius: 6px; background: var(--paper) !important; }
 .pf-page .pbody { font-size: inherit !important; }
 body.pf-open { overflow: hidden; }
+/* uzun başlıq telefon ekranını genişləndirməsin */
+.book, .book > .paper { min-width: 0; max-width: 100%; }
+.phead { min-width: 0; overflow: hidden; }
+.phead .rh { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.phead .rf { flex: none; }
