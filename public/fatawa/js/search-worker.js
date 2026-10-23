@@ -169,61 +169,75 @@ async function search(phrase, vol) {
   out.list = scored.slice(0, MAX).map((x) => x[0]);
   return out;
 }
-// ---- mənaya görə axtarış: oflayn hesablanmış LSA (TF-IDF + SVD, 128 ölçü, int8) — sem.bin
+// ---- mənaya görə axtarış: oflayn LSA (TF-IDF + başlıq çəkisi + SVD, int8) + fətva başlıqları indeksi + anlayış xəritəsi — sem.bin
 let _sem = null;
 function loadSem() {
   if (_sem) return _sem;
   _sem = (async () => {
-    const blob = await binFile("sem.bin");
+    const [blob, idx] = await Promise.all([binFile("sem.bin"), load()]);
     const hl = new DataView(blob.buffer, blob.byteOffset).getUint32(0, true);
     const h = JSON.parse(new TextDecoder().decode(blob.subarray(4, 4 + hl)));
     const K = h.K, nt = h.terms.length, off = blob.byteOffset + 4 + hl;
-    const buf = blob.buffer.slice(off, off + K * (nt + h.N));
-    const T = new Int8Array(buf, 0, K * nt), D = new Int8Array(buf, K * nt, K * h.N);
+    const buf = blob.buffer.slice(off, off + K * (nt + h.N + h.NT));
+    const T = new Int8Array(buf, 0, K * nt), D = new Int8Array(buf, K * nt, K * h.N), TT = new Int8Array(buf, K * (nt + h.N), K * h.NT);
     const tpos = new Map(h.terms.map((v, i) => [v, i]));
-    return { K, nt, N: h.N, T, D, tpos, terms: h.terms, idf: h.idf };
+    // başlıq tərs indeksi (hər fətva/fəsil başlığı ayrıca vahid)
+    const tdf = new Map(), tlist = [];
+    for (let t = 0; t < h.NT; t++) { const ids = [...titleTokens(idx, t)].map((w) => idx.vmap.get(w)).filter((x) => x != null); tlist.push(new Set(ids)); for (const i of new Set(ids)) tdf.set(i, (tdf.get(i) || 0) + 1); }
+    const tdocs = Array.from({ length: h.NT }, () => []);
+    for (let d = 0; d < h.N; d++) tdocs[idx.pt[d]].push(d);
+    return { K, nt, N: h.N, NT: h.NT, T, D, TT, tpos, terms: h.terms, idf: h.idf, conc: h.conc, tdf, tlist, tdocs };
   })();
   return _sem;
 }
+const dot = (A, i, q, K) => { let s = 0; const o = i * K; for (let k = 0; k < K; k++) s += q[k] * A[o + k]; return s / 127; };
+const P = Object.assign({ tl: 0.6, tc: 0.5, cs: 0.55, ts: 1.0, cv: 0.6, lx: 0.15, pc: 0.34, pm: 0.7, dv: 1 }, globalThis.__P || {});
 async function semantic(phrase, vol, extra) {
   const [idx, S] = await Promise.all([load(), loadSem()]);
   const lex = await search(phrase, vol);
-  const qt = [...new Set([...lex.terms, ...extra.flatMap((x) => tokens(x))])];
-  const K = S.K, qv = new Float32Array(K);
-  const used = [];
-  for (const t of qt) {
-    let id = idx.vmap.get(t); if (id == null) { const f = nearest(idx, t); if (f) id = idx.vmap.get(f); }
-    const p = id == null ? undefined : S.tpos.get(id);
-    if (p === undefined) continue;
-    used.push(p);
-    const w = S.idf[p];
-    for (let k = 0; k < K; k++) qv[k] += w * S.T[p * K + k];
+  const K = S.K;
+  const resolve = (t) => { let id = idx.vmap.get(t); if (id == null) { const f = nearest(idx, t); if (f) id = idx.vmap.get(f); } return id; };
+  // əsas terminlər (sualdan) və genişləndirmə (sinonim xəritəsi + avtomatik anlayışlar)
+  const core = new Map(); // vocabId -> çəki
+  for (const t of new Set(lex.terms.length ? lex.terms : tokens(phrase))) { const id = resolve(t); if (id != null && S.tpos.has(id)) core.set(id, 1); }
+  const ext = new Map();
+  for (const x of extra) for (const t of tokens(x)) { const id = resolve(t); if (id != null && S.tpos.has(id) && !core.has(id)) ext.set(id, 0.7); }
+  for (const id of core.keys()) for (const j of S.conc[S.tpos.get(id)] || []) { const v = S.terms[j]; if (!core.has(v) && !ext.has(v)) ext.set(v, 0.35); }
+  if (!core.size && !ext.size) return lex;
+  const qv = new Float32Array(K);
+  for (const [id, w0] of [...core, ...ext]) { const p = S.tpos.get(id), w = w0 * S.idf[p]; for (let k = 0; k < K; k++) qv[k] += w * S.T[p * K + k]; }
+  let n = 0; for (let k = 0; k < K; k++) n += qv[k] * qv[k]; n = Math.sqrt(n) || 1; for (let k = 0; k < K; k++) qv[k] /= n;
+  // 1) başlıq (mündəricat) uyğunluğu: BM25-vari termin örtüyü + kosinus
+  const coreIdf = (id) => S.idf[S.tpos.get(id)] || 1;
+  const coreW = [...core.keys()].reduce((a, id) => a + coreIdf(id), 0) || 1;
+  const tsc = new Float32Array(S.NT);
+  for (let t = 0; t < S.NT; t++) {
+    const L = S.tlist[t]; if (!L.size) continue;
+    let lx = 0, cc = 0; for (const id of L) { const w = core.get(id) || ext.get(id); if (w) (lx += w * coreIdf(id)), core.has(id) && cc++; }
+    const cf = core.size ? Math.min(1, (cc + 0.5) / Math.min(core.size, 3)) : 1;
+    tsc[t] = P.tl * Math.min(1, lx / coreW) * cf / Math.sqrt(0.5 + L.size / 6) + P.tc * dot(S.TT, t, qv, K);
   }
-  if (!used.length) return lex;
-  let n = 0; for (let k = 0; k < K; k++) n += qv[k] * qv[k]; n = Math.sqrt(n) || 1;
-  for (let k = 0; k < K; k++) qv[k] /= n;
-  // yaxın anlayışlar (sorğunun genişləndirilməsi; vurğulama üçün)
-  const near = [];
-  for (let i = 0; i < S.nt; i++) { let s = 0; for (let k = 0; k < K; k++) s += qv[k] * S.T[i * K + k]; near.push([i, s]); }
-  near.sort((a, b) => b[1] - a[1]);
-  const exp = near.slice(0, 12).map(([i]) => idx.vocab[S.terms[i]]);
-  const expIds = new Set([...used.map((p) => S.terms[p]), ...near.slice(0, 12).map(([i]) => S.terms[i])]);
-  // sənəd balı: kosinus + genişləndirilmiş terminlərin örtüyü + başlıq siqnalı + leksik nəticə bonusu
+  // 2) sənəd balı + yenidən sıralama (əsas anlayış örtüyü olmayan mövzudankənar səhifələr cəzalanır)
   const lexRank = new Map(lex.list.slice(0, 300).map((d, r) => [d, r]));
   const sc = [];
   for (let d = 0; d < S.N; d++) {
     if (vol && idx.pv[d] !== vol) continue;
-    let s = 0; for (let k = 0; k < K; k++) s += qv[k] * S.D[d * K + k];
-    s /= 127;
-    if (s < 0.15 && !lexRank.has(d)) continue;
-    let hit = 0; const a = idx.dstart[d], b = idx.dstart[d + 1]; const seen = new Set();
-    for (let i = a; i < b; i++) { const t = idx.tok[i]; if (expIds.has(t) && !seen.has(t)) (seen.add(t), hit++); }
-    const tt = titleTokens(idx, idx.pt[d]); let th = 0; for (const t of expIds) if (tt.has(idx.vocab[t])) th++;
+    const cs = dot(S.D, d, qv, K), ts = tsc[idx.pt[d]];
+    if (cs < 0.12 && ts < 0.25 && !lexRank.has(d)) continue;
+    let cov = 0, ex = 0; const a = idx.dstart[d], b = idx.dstart[d + 1]; const seen = new Set();
+    for (let i = a; i < b; i++) { const t = idx.tok[i]; if (seen.has(t)) continue; seen.add(t); if (core.has(t)) cov += coreIdf(t); else if (ext.has(t)) ex++; }
+    for (const t of S.tlist[idx.pt[d]]) if (core.has(t) && !seen.has(t)) cov += coreIdf(t);
+    const covR = cov / coreW;
     const lr = lexRank.get(d);
-    sc.push([d, s + 0.04 * Math.min(hit, 8) + 0.08 * Math.min(th, 3) + (lr === undefined ? 0 : 0.25 / (1 + lr / 20))]);
+    let s = P.cs * cs + P.ts * ts + P.cv * covR + 0.02 * Math.min(ex, 6) + (lr === undefined ? 0 : P.lx / (1 + lr / 15));
+    if (core.size >= 2 && covR < P.pc) s *= P.pm; // mövzudankənar
+    sc.push([d, s]);
   }
   sc.sort((a, b) => b[1] - a[1]);
-  return { ...lex, terms: [...new Set([...lex.terms, ...exp])], list: sc.slice(0, 500).map((x) => x[0]), total: Math.max(lex.total, Math.min(sc.length, 500)), exact: lex.exact, sem: 1, concepts: exp };
+  // müxtəliflik: hər fətva/başlıqdan ilk növbədə yalnız ən uyğun səhifə; qalanları sonra
+  { const seenT = new Map(), A = [], B = []; for (const x of sc) { const t = idx.pt[x[0]], c = seenT.get(t) || 0; seenT.set(t, c + 1); (c < P.dv ? A : B).push(x); } sc.length = 0; sc.push(...A.slice(0, 60), ...B, ...A.slice(60)); }
+  const expW = [...ext.keys()].slice(0, 12).map((v) => idx.vocab[v]);
+  return { ...lex, terms: [...new Set([...lex.terms, ...expW])], list: sc.slice(0, 500).map((x) => x[0]), total: Math.max(lex.total, Math.min(sc.length, 500)), exact: lex.exact, sem: 1 };
 }
 self.onmessage = async (e) => {
   const { id, q, vol, warm, sem: sm, extra } = e.data || {};
