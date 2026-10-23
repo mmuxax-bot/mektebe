@@ -645,7 +645,7 @@ function aiFab() {
   meta().then((m) => ($("#aiv").innerHTML += m.vols.map((v) => `<option value="${v.n}">المجلد ${arNum(v.n)}</option>`).join(""))).catch(() => {});
   $("#aifab").onclick = () => { P.hidden = false; ask({ warm: 1 }).catch(() => {}); setTimeout(() => $("#aiq").focus(), 50); };
   $("#aix").onclick = () => (P.hidden = true);
-  P.onclick = (e) => { if (e.target === P) P.hidden = true; if (e.target.closest("a.hit")) P.hidden = true; };
+  P.onclick = (e) => { if (e.target === P) P.hidden = true; if (e.target.closest("a.hit,a.cite")) P.hidden = true; };
   addEventListener("keydown", (e) => { if (e.key === "Escape" && !P.hidden) P.hidden = true; });
   $("#aif").onsubmit = async (e) => {
     e.preventDefault();
@@ -661,11 +661,21 @@ function aiFab() {
     } catch { return (o.innerHTML = `<p class="muted">تعذّر البحث، حاول مرة أخرى.</p>`); }
     if (!r.list.length) return (o.innerHTML = `<p class="muted">لم أجد نتائج؛ جرّب كلمات أخرى أو صيغة أقصر.</p>`);
     const set = new Set(r.terms);
-    const top = await Promise.all(r.list.slice(0, 20).map((d) => page(d)));
+    const top = await Promise.all(r.list.slice(0, 10).map((d) => page(d)));
     const fx = r.fixed && r.fixed.length ? `<p class="muted">صُحّح: ${r.fixed.map(([a, b]) => `${esc(a)} ← ${esc(b)}`).join("، ")}</p>` : "";
     o.innerHTML = `${fx}<div class="aians" id="aians"><button class="btn ghost sm" id="aiask" type="button" hidden>✦</button></div>
       <p class="rcount">${arNum(r.total)} نتيجة${r.exact ? ` · ${arNum(r.exact)} مطابقة تامة` : ""}</p>
-      ${top.map((p) => `<a class="hit" href="#/p/${p.d + 1}?q=${encodeURIComponent(A.main)}"><div class="h1"><b>${esc(ref(p))}</b><span>${esc(p.title)}</span></div><div class="s ar">${shown(snippet(p.text, set))}</div></a>`).join("")}`;
+      <div id="aih"></div>`;
+    const PER = 10, NP = Math.ceil(r.list.length / PER);
+    const hitHtml = (p) => `<a class="hit" href="#/p/${p.d + 1}?q=${encodeURIComponent(A.main)}"><div class="h1"><b>${esc(ref(p))}</b><span>${esc(p.title)}</span></div><div class="s ar">${shown(snippet(p.text, set))}</div></a>`;
+    const pager = (k) => NP < 2 ? "" : `<div class="aipg"><button class="btn ghost sm" data-g="${k - 1}" ${k ? "" : "disabled"}>→ السابق</button><span>صفحة ${arNum(k + 1)} من ${arNum(NP)} · ${arNum(r.list.length)} نتيجة</span><button class="btn ghost sm" data-g="${k + 1}" ${k + 1 < NP ? "" : "disabled"}>التالي ←</button></div>`;
+    const go = async (k) => {
+      const h = $("#aih"); if (!h) return;
+      const ps = k ? await Promise.all(r.list.slice(k * PER, k * PER + PER).map((d) => page(d))) : top;
+      h.innerHTML = pager(k) + ps.map(hitHtml).join("") + pager(k);
+      h.querySelectorAll("[data-g]").forEach((b) => (b.onclick = () => { go(+b.dataset.g); $("#aih").scrollIntoView({ block: "start" }); }));
+    };
+    await go(0);
     $("#aiask").onclick = () => {
       const picks = [];
       for (const p of top) { if (picks.length >= 3) break; const t = bestSentences(p.text, set); if (t) picks.push([p, t]); }

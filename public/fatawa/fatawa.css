@@ -432,3 +432,5 @@ html[data-paper="sepia"] { --paper: #f1e0bb; --paper2: #e3cc9c; --ink: #3b2a14; 
 .small { font-size: 12px; }
 body.reading .wrap { padding-bottom: 90px; }
 .aitext .cite { color: var(--gold2); white-space: nowrap; } .aitext p { margin: 0 0 0.6em; }
+.aipg { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 0; font-size: 0.9em; }
+.aipg button[disabled] { opacity: 0.4; pointer-events: none; }
