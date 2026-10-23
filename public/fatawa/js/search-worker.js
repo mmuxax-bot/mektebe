@@ -169,10 +169,67 @@ async function search(phrase, vol) {
   out.list = scored.slice(0, MAX).map((x) => x[0]);
   return out;
 }
+// ---- mənaya görə axtarış: oflayn hesablanmış LSA (TF-IDF + SVD, 128 ölçü, int8) — sem.bin
+let _sem = null;
+function loadSem() {
+  if (_sem) return _sem;
+  _sem = (async () => {
+    const blob = await binFile("sem.bin");
+    const hl = new DataView(blob.buffer, blob.byteOffset).getUint32(0, true);
+    const h = JSON.parse(new TextDecoder().decode(blob.subarray(4, 4 + hl)));
+    const K = h.K, nt = h.terms.length, off = blob.byteOffset + 4 + hl;
+    const buf = blob.buffer.slice(off, off + K * (nt + h.N));
+    const T = new Int8Array(buf, 0, K * nt), D = new Int8Array(buf, K * nt, K * h.N);
+    const tpos = new Map(h.terms.map((v, i) => [v, i]));
+    return { K, nt, N: h.N, T, D, tpos, terms: h.terms, idf: h.idf };
+  })();
+  return _sem;
+}
+async function semantic(phrase, vol, extra) {
+  const [idx, S] = await Promise.all([load(), loadSem()]);
+  const lex = await search(phrase, vol);
+  const qt = [...new Set([...lex.terms, ...extra.flatMap((x) => tokens(x))])];
+  const K = S.K, qv = new Float32Array(K);
+  const used = [];
+  for (const t of qt) {
+    let id = idx.vmap.get(t); if (id == null) { const f = nearest(idx, t); if (f) id = idx.vmap.get(f); }
+    const p = id == null ? undefined : S.tpos.get(id);
+    if (p === undefined) continue;
+    used.push(p);
+    const w = S.idf[p];
+    for (let k = 0; k < K; k++) qv[k] += w * S.T[p * K + k];
+  }
+  if (!used.length) return lex;
+  let n = 0; for (let k = 0; k < K; k++) n += qv[k] * qv[k]; n = Math.sqrt(n) || 1;
+  for (let k = 0; k < K; k++) qv[k] /= n;
+  // yaxın anlayışlar (sorğunun genişləndirilməsi; vurğulama üçün)
+  const near = [];
+  for (let i = 0; i < S.nt; i++) { let s = 0; for (let k = 0; k < K; k++) s += qv[k] * S.T[i * K + k]; near.push([i, s]); }
+  near.sort((a, b) => b[1] - a[1]);
+  const exp = near.slice(0, 12).map(([i]) => idx.vocab[S.terms[i]]);
+  const expIds = new Set([...used.map((p) => S.terms[p]), ...near.slice(0, 12).map(([i]) => S.terms[i])]);
+  // sənəd balı: kosinus + genişləndirilmiş terminlərin örtüyü + başlıq siqnalı + leksik nəticə bonusu
+  const lexRank = new Map(lex.list.slice(0, 300).map((d, r) => [d, r]));
+  const sc = [];
+  for (let d = 0; d < S.N; d++) {
+    if (vol && idx.pv[d] !== vol) continue;
+    let s = 0; for (let k = 0; k < K; k++) s += qv[k] * S.D[d * K + k];
+    s /= 127;
+    if (s < 0.15 && !lexRank.has(d)) continue;
+    let hit = 0; const a = idx.dstart[d], b = idx.dstart[d + 1]; const seen = new Set();
+    for (let i = a; i < b; i++) { const t = idx.tok[i]; if (expIds.has(t) && !seen.has(t)) (seen.add(t), hit++); }
+    const tt = titleTokens(idx, idx.pt[d]); let th = 0; for (const t of expIds) if (tt.has(idx.vocab[t])) th++;
+    const lr = lexRank.get(d);
+    sc.push([d, s + 0.04 * Math.min(hit, 8) + 0.08 * Math.min(th, 3) + (lr === undefined ? 0 : 0.25 / (1 + lr / 20))]);
+  }
+  sc.sort((a, b) => b[1] - a[1]);
+  return { ...lex, terms: [...new Set([...lex.terms, ...exp])], list: sc.slice(0, 500).map((x) => x[0]), total: Math.max(lex.total, Math.min(sc.length, 500)), exact: lex.exact, sem: 1, concepts: exp };
+}
 self.onmessage = async (e) => {
-  const { id, q, vol, warm } = e.data || {};
+  const { id, q, vol, warm, sem: sm, extra } = e.data || {};
   try {
-    if (warm) return (await load(), self.postMessage({ id, ok: true }));
+    if (warm) return (await Promise.all([load(), loadSem()]), self.postMessage({ id, ok: true }));
+    if (sm) return self.postMessage({ id, ok: true, r: await semantic(String(q || ""), Number(vol) || 0, extra || []) });
     self.postMessage({ id, ok: true, r: await search(String(q || ""), Number(vol) || 0) });
   } catch (err) {
     self.postMessage({ id, ok: false, err: String(err && err.message || err) });
