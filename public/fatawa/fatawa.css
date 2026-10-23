@@ -457,3 +457,6 @@ body.pf-open { overflow: hidden; }
 .phead { min-width: 0; overflow: hidden; }
 .phead .rh { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .phead .rf { flex: none; }
+.pzoom { top: auto; bottom: 8px; inset-inline-end: auto; }
+.book.spread > .paper:first-child .pzoom { right: 10px; left: auto; }
+.book.spread > .paper:last-child .pzoom { left: 10px; right: auto; }
