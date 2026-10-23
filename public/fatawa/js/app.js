@@ -112,7 +112,7 @@ function route() {
   if (parts[0] === "privacy") return viewPrivacy();
   if (parts[0] === "v") return viewVolume(Number(parts[1]));
   if (parts[0] === "s") return viewSearch(q.get("q") || "", Number(q.get("v")) || 0);
-  if (parts[0] === "p") return viewReader(Number(parts[1]) || 1, q.get("q") || "");
+  if (parts[0] === "p") return viewReader(Number(parts[1]) || 1, q.get("q") || "", q.get("i") === "1");
   if (parts[0] === "j") return jumpTo(parts[1], parts[2]);
   return viewHome();
 }
@@ -239,7 +239,7 @@ async function viewSettings() {
   const card = (icon, title, rows) => `<section class="scard"><h2><span class="sic big">${SIC[icon]}</span>${esc(title)}</h2>${rows}</section>`;
   const lastVol = lastP ? lastP.vol : 1;
   app.innerHTML = `<div class="settings"><header class="shead"><span class="sic hero">${ICON.gear}</span><div><h1>${esc(t("settings"))}</h1><p class="muted ar">مجموع الفتاوى</p></div></header>
-    ${card("book", t("contRead"), `${lastP ? `<a class="cont" href="#/p/${last.p}"><span class="cref ar">${esc(ref(lastP))}</span><span class="ctt ar">${esc(lastP.title || lastP.volTitle)}</span><span class="carr" aria-hidden="true">‹</span></a>` : `<div class="srow"><p class="muted">${esc(t("noLast"))}</p><a class="btn ghost sm" href="#/p/1">${esc(t("start"))}</a></div>`}
+    ${card("book", t("contRead"), `${lastP ? `<a class="cont" href="#/p/${last.p}"><span class="cref ar">${esc(ref(lastP))}</span><span class="ctt ar">${esc(lastP.title || lastP.volTitle)}</span><span class="carr" aria-hidden="true">‹</span></a>` : `<div class="srow"><p class="muted">${esc(t("noLast"))}</p><a class="btn ghost sm" href="#/p/1?i=1">${esc(t("start"))}</a></div>`}
       <div class="sub"><div class="slabel"><span class="sic">${SIC.jump}</span><span>${esc(t("jumpTitle"))}</span></div>${jumpForm(m.vols, lastVol)}</div>`)}
     ${card("palette", t("theme"), `
       <div class="pvwrap"><div class="pvpaper" id="pvp"><div class="pvh ar"><span>توحيد الألوهية</span><span>ج ١، ص ١</span></div><p class="ar" id="pv">${shown(esc(t("preview")))}</p></div></div>
@@ -325,7 +325,7 @@ async function viewVolume(n) {
       <div class="vbig">${fmt(n)}</div>
       <div><p class="muted kicker">${esc(t("vol"))} ${fmt(n)} / ${fmt(m.vols.length)}</p><h1 class="ar">الجزء ${arNum(n)}: ${esc(v.title)}</h1>
       <div class="stats"><span>${esc(t("pagesN", { n: fmt(v.count) }))}</span><span>${esc(t("headsN", { n: fmt(items.length) }))}</span></div>
-      <div class="acts"><a class="btn" href="#/p/${v.first + 1}">${esc(t("readVol"))}</a>
+      <div class="acts"><a class="btn" href="#/p/${v.first + 1}?i=1">${esc(t("readVol"))}</a>
         ${prev ? `<a class="btn ghost sm" href="#/v/${prev.n}">→ ${esc(t("prevVol"))}</a>` : ""}${next ? `<a class="btn ghost sm" href="#/v/${next.n}">${esc(t("nextVol"))} ←</a>` : ""}</div></div>
     </section>
     <section class="tocbox">
@@ -447,20 +447,77 @@ function textHTML(p, set) {
   }
   return main.join("") + (notes.length ? `<div class="fn">${notes.join("")}</div>` : "");
 }
+// ---- girişlər: hər cildin əvvəlində Nibras Code müqəddiməsi (virtual səhifə, mətn məlumatına toxunmur)
+const INTRO = [
+  ["h", "مقدمة نِبراس كود"],
+  ["s", "حول كتاب مجموع الفتاوى لشيخ الإسلام ابن تيمية رحمه الله"],
+  ["p", "الحمد لله رب العالمين، والصلاة والسلام على نبينا محمد، وعلى آله وصحبه أجمعين، أما بعد:"],
+  ["p", "فإن العلم الشرعي من أجلِّ ما تُبذل فيه الأوقات، ومن أعظم ما تُصرف فيه الجهود؛ إذ به يعرف العبد دينه، ويعبد ربَّه على بصيرة، ويميّز بين الحق والباطل، والهدى والضلال."],
+  ["p", "وإن كتاب «مجموع الفتاوى» لشيخ الإسلام أحمد بن عبد الحليم بن عبد السلام ابن تيمية رحمه الله من المصنفات العلمية النفيسة التي جمعت طائفة واسعة من بحوثه ورسائله وفتاواه في أبواب متعددة من الدين، متناولةً مسائل الاعتقاد والعبادة والعلم والسلوك وغيرها من المسائل التي يحتاج إليها طالب العلم والباحث."],
+  ["p", "وانطلاقًا من أهمية تيسير الوصول إلى العلم النافع، يأتي هذا التطبيق الذي أُعدَّ بعون الله وتوفيقه، وبجهدٍ تقنيٍّ يهدف إلى إتاحة هذا الكتاب المبارك في صورة رقمية ميسَّرة، تساعد القارئ على تصفح مجلداته، والرجوع إلى مباحثه، والاستفادة من محتواه بسهولة ويسر."],
+  ["p", "وقد جُعل هذا العمل خدمةً للكتاب وقُرَّائه، ووسيلةً لتقريب الوصول إلى مادته العلمية، لا بديلًا عن الرجوع إلى النسخ المعتمدة، ولا عن التلقي عن أهل العلم الراسخين. كما ينبغي لطالب العلم أن يتحرّى الدقة في النقل، وأن يراعي سياق الكلام وموضعه، وألا ينسب إلى المؤلف ما لم يثبت عنه."],
+  ["p", "ونؤكد أن الفتاوى والمسائل الواردة في هذا الكتاب تُقرأ في سياقها العلمي، مع مراعاة أصول الاستدلال، وملابسات المسائل، وما يحتاج إليه فهمها من علم باللغة والشرع وأقوال أهل العلم."],
+  ["p", "ونسأل الله تعالى أن يجعل هذا العمل خالصًا لوجهه الكريم، نافعًا لعباده، وأن يبارك في الجهود المبذولة لخدمة العلم الشرعي، وأن يرحم شيخ الإسلام ابن تيمية، ويجزيه عن الإسلام والمسلمين خير الجزاء، وأن يرزقنا العلم النافع والعمل الصالح."],
+  ["p", "وما توفيقنا إلا بالله، عليه توكلنا وإليه أنبنا."],
+  ["g", "نِبراس كود | Nibras Code"],
+];
+const introHTML = () => `<div class="intro"><div class="fr-basm">بسم الله الرحمن الرحيم</div>${INTRO.map(([k, x]) => (k === "h" ? `<h2 class="in-h">${esc(x)}</h2>` : k === "s" ? `<h3 class="in-s">${esc(x)}</h3>` : k === "g" ? `<p class="in-g">${esc(x)}</p>` : `<p>${esc(x)}</p>`)).join("")}</div>`;
+// ---- ayə səhifə sərhədində: əsas mətndə açıq qalan «{» növbəti səhifədən «}»-ə qədər tamamlanır; növbəti səhifənin başındakı qalıq solğun göstərilir
+const splitMain = (s) => { const L = s.split("\n"); const i = L.findIndex((l) => FN_SEP.test(l)); return i < 0 ? [s, ""] : [L.slice(0, i).join("\n"), "\n" + L.slice(i).join("\n")]; };
+const openAyah = (s) => { const a = s.lastIndexOf("{"); return a >= 0 && s.indexOf("}", a) < 0; };
+function headCarry(s) { // səhifənin başında «}» ilə bitən ayə qalığı (əvvəlində «{» yoxdursa)
+  const c = s.indexOf("}"); if (c < 0 || c > 1200) return null;
+  const o = s.indexOf("{"); if (o >= 0 && o < c) return null;
+  const frag = s.slice(0, c + 1); return frag.includes("\n") ? null : frag;
+}
+function withCarry(p, prev, next) {
+  let [main, notes] = splitMain(p.text);
+  if (prev && prev.vol === p.vol && openAyah(splitMain(prev.text)[0])) { const f = headCarry(main); if (f) main = "\u0003" + f + "\u0004" + main.slice(f.length); }
+  if (next && next.vol === p.vol && openAyah(main)) { const f = headCarry(splitMain(next.text)[0]); if (f) main = main.replace(/\s+$/, "") + " \u0005" + f + "\u0006"; }
+  return { ...p, text: main + notes };
+}
+const carryTags = (h) => h.replace(/\u0003/g, '<span class="ay-was" title="تتمة الآية من الصفحة السابقة">… ').replace(/\u0004/g, "</span>").replace(/\u0005/g, '<span class="ay-cont" title="تتمة الآية من الصفحة التالية">').replace(/\u0006/g, "</span>");
+// ---- vərəqlər: hər cild = [giriş, səhifələr…]; s → {intro: cild} və ya {d}
+const slotOf = (m, d) => d + m.pv[d]; // cild n əvvəlində n giriş səhifəsi var
+function slotInfo(m, s) {
+  for (const v of m.vols) { const st = v.first + v.n - 1; if (s === st) return { intro: v.n, vs: st }; if (s > st && s <= st + v.count) return { d: s - v.n, vs: st }; }
+  return null;
+}
+const slotHash = (m, s, hq) => { const x = slotInfo(m, s); if (!x) return null; const q = hq ? "q=" + encodeURIComponent(hq) : ""; return x.intro ? `#/p/${m.vols[x.intro - 1].first + 1}?i=1${q ? "&" + q : ""}` : `#/p/${x.d + 1}${q ? "?" + q : ""}`; };
+const spreadMode = () => innerWidth >= 640 && (innerWidth > innerHeight || innerWidth >= 740);
+async function pageHTML(m, s, set, noPrev, noNext) {
+  const x = slotInfo(m, s);
+  if (!x) return `<article class="paper blank"></article>`;
+  if (x.intro) { const v = m.vols[x.intro - 1]; return `<article class="paper"><div class="phead"><span class="rh ar">${esc(v.title)}</span><span class="rf ar">الجزء ${arNum(v.n)}</span></div><div class="pbody ar">${shown(introHTML())}</div><div class="pfoot"></div></article>`; }
+  let [p, pr, nx] = await Promise.all([page(x.d), page(x.d - 1).catch(() => null), page(x.d + 1).catch(() => null)]);
+  p = withCarry(p, noPrev ? null : pr, noNext ? null : nx);
+  let foot = arNum(p.page);
+  const lm = p.ap && /^\((\S{1,3})\)\n/.exec(p.text);
+  if (lm) (foot = `(${lm[1]})`), (p = { ...p, text: p.text.slice(lm[0].length) });
+  const body = carryTags((p.startTitle ? `<div class="bab">${esc(p.startTitle)}</div>` : "") + (textHTML(p, set) || `<p class="muted">—</p>`));
+  return `<article class="paper"><div class="phead"><span class="rh ar">${esc(p.title)}</span><span class="rf ar">${esc(ref(p))}</span></div><div class="pbody ar">${shown(body)}</div><div class="pfoot">${foot}</div></article>`;
+}
 let readerSeq = 0;
-async function viewReader(P, hq) {
-  const my = ++readerSeq; // köhnə (gec bitən) render yeni səhifənin üstünə yazmasın
+let lastSlot = -1;
+async function viewReader(P, hq, isIntro) {
+  const my = ++readerSeq;
   const stale = () => my !== readerSeq || !location.hash.startsWith("#/p/");
   let m;
   try { m = await meta(); } catch { return failed(); }
   if (stale()) return;
   P = Math.min(Math.max(1, P), m.N);
   const set = hq ? new Set(tokens(hq)) : null;
+  const S = m.N + m.vols.length;
+  let s = slotOf(m, P - 1) - (isIntro && m.vols[m.pv[P - 1] - 1].first === P - 1 ? 1 : 0);
+  const spread = spreadMode();
+  const info = slotInfo(m, s);
+  if (spread) s = info.vs + ((s - info.vs) & ~1); // cütlər cildin girişindən başlayır: sağda giriş/tək, solda növbəti
+  const step = spread ? 2 : 1;
   $("#crumbs").hidden = true;
   app.innerHTML = `<div class="rbar"><a class="ibtn" href="#/v/${m.pv[P - 1]}" id="rback" aria-label="${esc(t("toc"))}">${ICON.toc}<span class="lbl">${esc(t("toc"))}</span></a>
       <div class="rttl"><b class="ar" id="rvol"></b><span class="ar" id="rhead"></span></div>
       <button class="ibtn" id="fdown" title="${esc(t("fontDown"))}">A−</button><button class="ibtn" id="fup" title="${esc(t("fontUp"))}">A+</button></div>
-    <article class="paper" id="paper"><div class="phead"><span class="rh ar" id="ph"></span><span class="rf ar" id="pr"></span></div><div class="pbody ar" id="pb"></div><div class="pfoot" id="pf"></div></article>
+    <div class="book ${spread ? "spread" : "single"}" id="paper"></div>
     <nav class="rnav" dir="ltr"><button class="btn ghost" id="bNext">← ${esc(t("next"))}</button>
       <form class="rjump" id="rj" dir="rtl"><select id="rjv" aria-label="${esc(t("vol"))}">${m.vols.map((v) => `<option value="${v.n}">${esc(t("vol"))} ${fmt(v.n)}</option>`).join("")}</select><input id="rjp" type="number" min="1" inputmode="numeric" aria-label="${esc(t("page"))}"><button class="btn ghost sm" type="submit">${esc(t("go"))}</button></form>
       <button class="btn ghost" id="bPrev">${esc(t("prev"))} →</button></nav>`;
@@ -468,51 +525,50 @@ async function viewReader(P, hq) {
   applyFs();
   $("#fup").onclick = () => ((fsz = Math.min(34, fsz + 1)), applyFs(), store.set("ft:fs", fsz));
   $("#fdown").onclick = () => ((fsz = Math.max(15, fsz - 1)), applyFs(), store.set("ft:fs", fsz));
-  // naviqasiya səhifə mətni yüklənməmişdən əvvəl bağlanır (yeni hissə yüklənərkən də düymə/ox/sürüşdürmə işləsin)
   const go = (k) => {
-    const n = P + k;
-    if (n >= 1 && n <= m.N) location.hash = "#/p/" + n + (hq ? "?q=" + encodeURIComponent(hq) : "");
+    let n = s + k * step;
+    if (spread && k < 0) { const pi = slotInfo(m, s - 1); if (pi) n = pi.vs + ((s - 1 - pi.vs) & ~1); }
+    if (n >= 0 && n < S) { const h = slotHash(m, n, hq); if (h) location.hash = h; }
   };
-  // ərəb kitabı: növbəti səhifə soldadır
   $("#bNext").onclick = () => go(1);
   $("#bPrev").onclick = () => go(-1);
-  $("#bNext").disabled = P >= m.N;
-  $("#bPrev").disabled = P <= 1;
+  $("#bNext").disabled = s + step >= S;
+  $("#bPrev").disabled = s <= 0;
   onkey = (e) => {
     if (e.target.closest("input, select, textarea")) return;
     if (e.key === "ArrowLeft") go(1);
     else if (e.key === "ArrowRight") go(-1);
   };
   prefetch(P);
-  let p;
-  try { p = await page(P - 1); } catch { return stale() ? undefined : failed(); }
+  const slots = spread ? [s, s + 1] : [s];
+  const second = spread ? slotInfo(m, s + 1) : null;
+  if (second && second.vs !== info.vs) slots[1] = -1; // cild sonu: sol səhifə boş
+  let html;
+  try { html = await Promise.all(slots.map((x, i) => (x < 0 ? `<article class="paper blank"></article>` : pageHTML(m, x, set, spread && i === 1, spread && i === 0 && slots[1] >= 0)))); } catch { return stale() ? undefined : failed(); }
   if (stale()) return;
-  document.title = `${ref(p)} — ${t("title")}`;
+  const dir = lastSlot < 0 || lastSlot === s ? "" : s > lastSlot ? "turn-next" : "turn-prev";
+  lastSlot = s;
+  const book = $("#paper");
+  book.innerHTML = html.join("");
+  if (dir) book.classList.add(dir);
+  const fi = slotInfo(m, s);
+  const d0 = fi.intro ? m.vols[fi.intro - 1].first : fi.d;
+  const p = await page(d0);
+  document.title = `${fi.intro ? "مقدمة نبراس كود — " : ref(p) + " — "}${t("title")}`;
   $("#rvol").textContent = `الجزء ${arNum(p.vol)}: ${p.volTitle}`;
-  $("#rhead").textContent = p.title !== p.volTitle ? p.title : "";
+  $("#rhead").textContent = fi.intro ? "مقدمة نِبراس كود" : p.title !== p.volTitle ? p.title : "";
   $("#rback").href = "#/v/" + p.vol;
-  $("#ph").textContent = p.title;
-  $("#pr").textContent = ref(p);
-  // ملحق səhifələri (c.3): ilk sətir çapdakı hərfli səhifə nömrəsidir — (ا)، (ب)… — mətndən çıxarılıb səhifə altında göstərilir
-  let foot = arNum(p.page);
-  const lm = p.ap && /^\((\S{1,3})\)\n/.exec(p.text);
-  if (lm) (foot = `(${lm[1]})`), (p = { ...p, text: p.text.slice(lm[0].length) });
-  $("#pb").innerHTML = shown((p.startTitle ? `<div class="bab">${esc(p.startTitle)}</div>` : "") + (textHTML(p, set) || `<p class="muted">—</p>`));
-  $("#pf").textContent = foot;
   $("#rjv").value = p.vol;
-  $("#rjp").value = p.ap ? "" : p.page;
-  store.set("ft:last", { p: P, at: Date.now() });
-  $("#rj").onsubmit = (e) => {
-    e.preventDefault();
-    location.hash = `#/j/${$("#rjv").value}/${Number($("#rjp").value) || 1}`;
-  };
-  const mk = $("#pb mark");
+  $("#rjp").value = fi.intro || p.ap ? "" : p.page;
+  store.set("ft:last", { p: d0 + 1, at: Date.now() });
+  $("#rj").onsubmit = (e) => { e.preventDefault(); location.hash = `#/j/${$("#rjv").value}/${Number($("#rjp").value) || 1}`; };
+  const mk = $("#paper mark");
   if (mk) mk.scrollIntoView({ block: "center" });
-  // qonşu hissələr əvvəlcədən: həm növbəti/əvvəlki səhifə, həm də hissə sərhədinə yaxınlaşanda növbəti hissə
-  prefetch(P + 8);
-  prefetch(P - 2);
-  prefetch(P - 10);
+  prefetch(P + 8); prefetch(P - 2); prefetch(P - 10);
 }
+let rsT = 0, rsMode = null;
+addEventListener("resize", () => { clearTimeout(rsT); rsT = setTimeout(() => { if (document.body.classList.contains("reading") && rsMode !== null && rsMode !== spreadMode()) route(); rsMode = spreadMode(); }, 200); });
+rsMode = spreadMode();
 let onkey = null;
 addEventListener("keydown", (e) => document.body.classList.contains("reading") && onkey && onkey(e));
 let tx = null;
