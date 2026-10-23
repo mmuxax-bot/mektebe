@@ -597,6 +597,40 @@ function toast(msg) {
 
 chrome();
 route();
+// ---- daxili ərəbcə sual analizi (xarici AI yoxdur)
+const Q_LEAD = /^(?:\s*(?:ما|ماذا|من|هل|كيف|لماذا|لم|متى|أين|اين|أي|اي|كم)\s+)?(?:(?:هو|هي|حكم|قول|رأي|راي|مذهب|موقف|كلام|تعريف|معنى|معني|الدليل على|دليل|حقيقة|بيان|فضل|صفة|شروط|شرط)\s+)?(?:(?:شيخ الإسلام|شيخ الاسلام|ابن تيمية|ابن تيميه|الشيخ|المؤلف)\s+)?(?:(?:في|فى|عن|على|من)\s+)?/;
+const STOP = new Set(["ما","ماذا","من","هل","كيف","لماذا","لم","متى","اين","أين","اي","أي","كم","هو","هي","في","فى","عن","على","الى","إلى","او","أو","ثم","قد","ان","إن","أن","كان","يكون","هذا","هذه","ذلك","تلك","التي","الذي","الذين","مع","بين","عند","كل","بعض","غير","شيخ","الإسلام","الاسلام","ابن","تيمية","تيميه","قول","رأي","حكم","يقول","قال","يجوز","يصح","الشيخ","المسألة","مسألة","مسالة","بالنسبة"]);
+const SYN = { // tez-tez işlənən fiqh/əqidə terminləri: əlavə axtarış variantları
+  "الصلاة": ["الصلوات"], "الوضوء": ["الطهارة"], "الصيام": ["الصوم"], "الصوم": ["الصيام"], "الزكاة": ["الصدقة"], "الحج": ["المناسك"],
+  "التوسل": ["الوسيلة"], "الاستغاثة": ["الاستعانة"], "البدعة": ["البدع","المحدثات"], "الشرك": ["الإشراك"], "التوحيد": ["الإلهية","الألوهية"],
+  "الصفات": ["صفات الله","الأسماء والصفات"], "الاستواء": ["العرش"], "القدر": ["القضاء"], "الإيمان": ["الإسلام"], "الكفر": ["التكفير"],
+  "الربا": ["المعاملات"], "الطلاق": ["الطلاق الثلاث"], "الغناء": ["السماع"], "السماع": ["الغناء"], "القبور": ["زيارة القبور"], "الزيارة": ["زيارة القبور"],
+  "الصوفية": ["التصوف"], "الجهاد": ["القتال"], "الخوارج": ["الحرورية"], "الرافضة": ["الشيعة"], "الشفاعة": ["الشفاعة"], "الولاية": ["الأولياء","أولياء الله"],
+};
+function analyzeQ(raw) {
+  let q = raw.replace(/[؟?!.،,:؛]/g, " ").replace(/\s+/g, " ").trim();
+  const quoted = (raw.match(/["«“]([^"»”]{2,})["»”]/) || [])[1];
+  if (quoted) return { main: quoted.trim(), alts: [], phrase: true };
+  q = q.replace(Q_LEAD, "");
+  const words = q.split(" ").filter((w) => w && !STOP.has(w) && !STOP.has(w.replace(/^ال/, "")));
+  const main = (words.length ? words : q.split(" ")).join(" ");
+  const alts = [];
+  for (const w of words) { const s = SYN[w] || SYN["ال" + w]; if (s) for (const x of s) alts.push(main.replace(w, x)); }
+  return { main, alts: alts.slice(0, 3), phrase: false };
+}
+// cavab: ən uyğun parçalardan seçilmiş cümlələr (yalnız kitab mətni) + cild/səhifə
+function bestSentences(text, set, n = 2) {
+  const main = text.split(/\n\s*[_ـ\-–—]{5,}\s*\n/)[0];
+  const parts = main.split(/(?<=[.؟!؛:])\s+|\n+/).filter((s) => s.trim().length > 25);
+  const sc = parts.map((s, i) => { const tk = tokens(s); let h = 0; const seen = new Set(); for (const x of tk) if (set.has(x) && !seen.has(x)) (seen.add(x), h++); return [i, h + Math.min(tk.length, 60) / 600]; });
+  sc.sort((a, b) => b[1] - a[1]);
+  if (!sc.length || sc[0][1] < 1) return "";
+  const i = sc[0][0];
+  let s = parts[i];
+  if (n > 1 && parts[i + 1] && s.length < 220) s += " " + parts[i + 1];
+  return s.length > 520 ? s.slice(0, 520).replace(/\s\S*$/, "") + " …" : s;
+}
+const hl = (s, set) => { let o = "", i = 0; for (const h of tokenSpans(s)) if (set.has(h.t)) (o += esc(s.slice(i, h.start)) + "<mark>" + esc(s.slice(h.start, h.end)) + "</mark>", (i = h.end)); return o + esc(s.slice(i)); };
 // ---------------------------------------------------------------- kitab daxili AI köməkçi (yalnız ərəbcə)
 function aiFab() {
   if ($("#aifab")) return;
@@ -619,25 +653,25 @@ function aiFab() {
     if (!/[\u0621-\u064A]{2,}/.test(q)) return (o.innerHTML = `<p class="muted">اكتب بالعربية من فضلك.</p>`);
     o.innerHTML = `<p class="muted">جارٍ البحث…</p>`;
     let r;
-    try { r = await ask({ q: q.replace(/["«»“”]/g, " "), vol }); } catch { return (o.innerHTML = `<p class="muted">تعذّر البحث، حاول مرة أخرى.</p>`); }
-    if (!r.list.length) return (o.innerHTML = `<p class="muted">لا نتائج.</p>`);
+    const A = analyzeQ(q);
+    try {
+      r = await ask({ q: A.main, vol });
+      if (r.list.length < 3) for (const alt of A.alts) { const r2 = await ask({ q: alt, vol }); if (r2.list.length > r.list.length) r = r2; }
+      if (!r.list.length && A.main.split(" ").length > 2) r = await ask({ q: A.main.split(" ").slice(0, 2).join(" "), vol });
+    } catch { return (o.innerHTML = `<p class="muted">تعذّر البحث، حاول مرة أخرى.</p>`); }
+    if (!r.list.length) return (o.innerHTML = `<p class="muted">لم أجد نتائج؛ جرّب كلمات أخرى أو صيغة أقصر.</p>`);
     const set = new Set(r.terms);
     const top = await Promise.all(r.list.slice(0, 20).map((d) => page(d)));
     const fx = r.fixed && r.fixed.length ? `<p class="muted">صُحّح: ${r.fixed.map(([a, b]) => `${esc(a)} ← ${esc(b)}`).join("، ")}</p>` : "";
-    o.innerHTML = `${fx}<div class="aians" id="aians"><button class="btn ghost sm" id="aiask" type="button">✦ جواب مختصر من النصوص</button></div>
+    o.innerHTML = `${fx}<div class="aians" id="aians"><button class="btn ghost sm" id="aiask" type="button" hidden>✦</button></div>
       <p class="rcount">${arNum(r.total)} نتيجة${r.exact ? ` · ${arNum(r.exact)} مطابقة تامة` : ""}</p>
-      ${top.map((p) => `<a class="hit" href="#/p/${p.d + 1}?q=${encodeURIComponent(q)}"><div class="h1"><b>${esc(ref(p))}</b><span>${esc(p.title)}</span></div><div class="s ar">${shown(snippet(p.text, set))}</div></a>`).join("")}`;
-    $("#aiask").onclick = async () => {
-      const box = $("#aians");
-      box.innerHTML = `<p class="muted">جارٍ إعداد الجواب من المقاطع…</p>`;
-      const ps = top.slice(0, 5).map((p) => ({ v: p.vol, p: (p.ap ? "ملحق " : "") + p.page, t: p.text.replace(/\s+/g, " ").slice(0, 1400) }));
-      try {
-        const res = await fetch("/api/fqa", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q, passages: ps }) });
-        const j = await res.json();
-        if (!res.ok || !j.answer) throw 0;
-        box.innerHTML = `<div class="aitext">${esc(j.answer).replace(/\n/g, "<br>")}</div><p class="muted small">الجواب مبني على المقاطع المعروضة أدناه فقط؛ راجع النص في موضعه.</p>`;
-      } catch { box.innerHTML = `<p class="muted">تعذّر إعداد الجواب الآن؛ النتائج أدناه.</p>`; }
+      ${top.map((p) => `<a class="hit" href="#/p/${p.d + 1}?q=${encodeURIComponent(A.main)}"><div class="h1"><b>${esc(ref(p))}</b><span>${esc(p.title)}</span></div><div class="s ar">${shown(snippet(p.text, set))}</div></a>`).join("")}`;
+    $("#aiask").onclick = () => {
+      const picks = [];
+      for (const p of top) { if (picks.length >= 3) break; const t = bestSentences(p.text, set); if (t) picks.push([p, t]); }
+      $("#aians").innerHTML = picks.length ? `<div class="aitext"><p><b>أقرب ما وجدتُه في الكتاب لسؤالك «${esc(q)}»:</b></p>${picks.map(([p, t2]) => `<p>«${shown(hl(t2, set))}» <a href="#/p/${p.d + 1}?q=${encodeURIComponent(A.main)}" class="cite">(${esc(ref(p))})</a></p>`).join("")}</div><p class="muted small">النصوص منقولة حرفيًّا من الكتاب ومرتبة حسب قربها من السؤال؛ افتح الصفحة لقراءة السياق كاملًا.</p>` : `<p class="muted">لم أجد مقطعًا صريحًا؛ راجع النتائج أدناه.</p>`;
     };
+    $("#aiask").click();
   };
 }
 aiFab();

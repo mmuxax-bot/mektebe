@@ -15,7 +15,6 @@ const ROUTES = {
   translate: () => import("./_ep-translate.js"),
   image: () => import("./_ep-image.js"),
   stats: () => import("./_ep-stats.js"),
-  fqa: () => import("./_ep-fqa.js"),
 };
 // Açıq oxu məlumatı (kitab/Quran) hamıya açıqdır; AI və hesab marşrutları yalnız bu saytlardan çağırıla bilər.
 const PUBLIC = new Set(["books", "page", "toc", "search", "quran", "tafsir"]);

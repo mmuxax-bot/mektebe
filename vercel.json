@@ -5,7 +5,7 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/api/:route(books|page|toc|search|quran|tafsir|chat|chats|translate|image|stats|fqa)",
+      "source": "/api/:route(books|page|toc|search|quran|tafsir|chat|chats|translate|image|stats)",
       "destination": "/api/index?__route=:route"
     },
     {
