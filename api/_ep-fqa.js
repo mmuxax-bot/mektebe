@@ -6,6 +6,7 @@ export const config = { maxDuration: 30 };
 const ORDER = ["groq", "cerebras", "gemini", "sambanova", "openrouter", "github", "mistral", "deepseek", "nvidia", "xai", "hf"];
 const SYSTEM = "أنت مساعد بحث داخل كتاب «مجموع الفتاوى» لابن تيمية. أجب بالعربية الفصحى فقط وباختصار (من 2 إلى 5 جمل). اعتمد حصرًا على المقاطع المرقمة المعطاة، ولا تضف شيئًا من خارجها، ولا تخترع نصوصًا أو أرقامًا. بعد كل معلومة اذكر مرجعها بصيغة (ج X، ص Y) كما هو مكتوب في رأس المقطع. إن لم تجد الجواب في المقاطع فقل: «لم أجد جوابًا صريحًا في المقاطع المعروضة». لا تذكر أنك نموذج.";
 
+const okAr = (t) => { const ar = (t.match(/[\u0621-\u064A]/g) || []).length, la = (t.match(/[A-Za-z]/g) || []).length; return t.length > 15 && ar > 10 && ar > la * 3; };
 async function gemini(msg) {
   const key = env("GEMINI_API_KEY");
   if (!key) return null;
@@ -24,14 +25,14 @@ async function gemini(msg) {
 async function orFree(msg) {
   const key = env("OPENROUTER_API_KEY");
   if (!key) return null;
-  for (const m of ["google/gemma-4-31b-it:free", "openrouter/free", "nvidia/nemotron-3-super-120b-a12b:free"]) {
+  for (const m of ["google/gemma-4-31b-it:free", "google/gemma-4-26b-a4b-it:free", "nvidia/nemotron-3-ultra-550b-a55b:free", "nvidia/nemotron-3-super-120b-a12b:free"]) {
     try {
       const r = await fetch("https://openrouter.ai/api/v1/chat/completions", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "HTTP-Referer": "https://library.nibrascode.com", "X-Title": "Nibras Library" }, signal: AbortSignal.timeout(20000),
         body: JSON.stringify({ model: m, temperature: 0.2, max_tokens: 700, messages: [{ role: "system", content: SYSTEM }, { role: "user", content: msg }] }) });
       if (!r.ok) continue;
       const j = await r.json();
       const t = String(j.choices?.[0]?.message?.content || "").replace(/<think>[\s\S]*?<\/think>/g, "").trim();
-      if (t) return t;
+      if (okAr(t)) return t;
     } catch {}
   }
   return null;
