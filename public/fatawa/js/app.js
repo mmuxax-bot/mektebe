@@ -497,6 +497,8 @@ async function pageHTML(m, s, set, noPrev, noNext) {
   const body = carryTags((p.startTitle ? `<div class="bab">${esc(p.startTitle)}</div>` : "") + (textHTML(p, set) || `<p class="muted">—</p>`));
   return `<article class="paper"><div class="phead"><span class="rh ar">${esc(p.title)}</span><span class="rf ar">${esc(ref(p))}</span></div><div class="pbody ar">${shown(body)}</div><div class="pfoot">${foot}</div></article>`;
 }
+const applyPaper = () => { const v = store.get("ft:paper", "white"); if (v === "white") delete document.documentElement.dataset.paper; else document.documentElement.dataset.paper = v; };
+applyPaper();
 let readerSeq = 0;
 let lastSlot = -1;
 async function viewReader(P, hq, isIntro) {
@@ -516,6 +518,7 @@ async function viewReader(P, hq, isIntro) {
   $("#crumbs").hidden = true;
   app.innerHTML = `<div class="rbar"><a class="ibtn" href="#/v/${m.pv[P - 1]}" id="rback" aria-label="${esc(t("toc"))}">${ICON.toc}<span class="lbl">${esc(t("toc"))}</span></a>
       <div class="rttl"><b class="ar" id="rvol"></b><span class="ar" id="rhead"></span></div>
+      <div class="pcol" role="group" aria-label="لون الصفحة"><button class="pc pc-w" data-p="white" title="أبيض" aria-label="أبيض"></button><button class="pc pc-d" data-p="dark" title="ليلي" aria-label="ليلي"></button><button class="pc pc-s" data-p="sepia" title="سيبيا" aria-label="سيبيا"></button></div>
       <button class="ibtn" id="fdown" title="${esc(t("fontDown"))}">A−</button><button class="ibtn" id="fup" title="${esc(t("fontUp"))}">A+</button></div>
     <div class="book ${spread ? "spread" : "single"}" id="paper"></div>
     <nav class="rnav" dir="ltr"><button class="btn ghost" id="bNext">← ${esc(t("next"))}</button>
@@ -523,6 +526,9 @@ async function viewReader(P, hq, isIntro) {
       <button class="btn ghost" id="bPrev">${esc(t("prev"))} →</button></nav>`;
   const applyFs = () => document.documentElement.style.setProperty("--rfs", fsz + "px");
   applyFs();
+  const markPc = () => app.querySelectorAll(".pc").forEach((b) => b.classList.toggle("on", b.dataset.p === (store.get("ft:paper", "white"))));
+  app.querySelectorAll(".pc").forEach((b) => (b.onclick = () => { store.set("ft:paper", b.dataset.p); applyPaper(); markPc(); }));
+  markPc();
   $("#fup").onclick = () => ((fsz = Math.min(34, fsz + 1)), applyFs(), store.set("ft:fs", fsz));
   $("#fdown").onclick = () => ((fsz = Math.max(15, fsz - 1)), applyFs(), store.set("ft:fs", fsz));
   const go = (k) => {
@@ -591,4 +597,49 @@ function toast(msg) {
 
 chrome();
 route();
+// ---------------------------------------------------------------- kitab daxili AI köməkçi (yalnız ərəbcə)
+function aiFab() {
+  if ($("#aifab")) return;
+  document.body.insertAdjacentHTML("beforeend", `<button class="aifab" id="aifab" type="button" aria-label="المساعد الذكي" title="المساعد الذكي — البحث في المجلدات الخمسة والثلاثين"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/><path d="M11 7.5v7M7.5 11h7" stroke-width="1.5"/></svg></button>
+  <div class="aip" id="aip" hidden dir="rtl" lang="ar" role="dialog" aria-label="المساعد الذكي"><div class="aip-in">
+    <div class="aip-h"><b>المساعد الذكي — مجموع الفتاوى</b><button class="ibtn" id="aix" type="button" aria-label="إغلاق">✕</button></div>
+    <form id="aif" class="aip-f"><input id="aiq" type="search" dir="rtl" lang="ar" autocomplete="off" enterkeyhint="search" placeholder="اكتب سؤالك أو كلمات البحث بالعربية… (ضع العبارة بين علامتي تنصيص للبحث الحرفي)">
+      <select id="aiv" aria-label="المجلد"><option value="0">كل المجلدات</option></select><button class="btn" type="submit">ابحث</button></form>
+    <div id="aio" class="aip-o"><p class="muted">ابحث في المجلدات الخمسة والثلاثين: تُطبَّع الحركات والهمزات والتاء المربوطة والألف المقصورة، ويُصحَّح الخطأ الإملائي اليسير.</p></div>
+  </div></div>`);
+  const P = $("#aip");
+  meta().then((m) => ($("#aiv").innerHTML += m.vols.map((v) => `<option value="${v.n}">المجلد ${arNum(v.n)}</option>`).join(""))).catch(() => {});
+  $("#aifab").onclick = () => { P.hidden = false; ask({ warm: 1 }).catch(() => {}); setTimeout(() => $("#aiq").focus(), 50); };
+  $("#aix").onclick = () => (P.hidden = true);
+  P.onclick = (e) => { if (e.target === P) P.hidden = true; if (e.target.closest("a.hit")) P.hidden = true; };
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && !P.hidden) P.hidden = true; });
+  $("#aif").onsubmit = async (e) => {
+    e.preventDefault();
+    const q = $("#aiq").value.trim(), vol = Number($("#aiv").value) || 0, o = $("#aio");
+    if (!/[\u0621-\u064A]{2,}/.test(q)) return (o.innerHTML = `<p class="muted">اكتب بالعربية من فضلك.</p>`);
+    o.innerHTML = `<p class="muted">جارٍ البحث…</p>`;
+    let r;
+    try { r = await ask({ q: q.replace(/["«»“”]/g, " "), vol }); } catch { return (o.innerHTML = `<p class="muted">تعذّر البحث، حاول مرة أخرى.</p>`); }
+    if (!r.list.length) return (o.innerHTML = `<p class="muted">لا نتائج.</p>`);
+    const set = new Set(r.terms);
+    const top = await Promise.all(r.list.slice(0, 20).map((d) => page(d)));
+    const fx = r.fixed && r.fixed.length ? `<p class="muted">صُحّح: ${r.fixed.map(([a, b]) => `${esc(a)} ← ${esc(b)}`).join("، ")}</p>` : "";
+    o.innerHTML = `${fx}<div class="aians" id="aians"><button class="btn ghost sm" id="aiask" type="button">✦ جواب مختصر من النصوص</button></div>
+      <p class="rcount">${arNum(r.total)} نتيجة${r.exact ? ` · ${arNum(r.exact)} مطابقة تامة` : ""}</p>
+      ${top.map((p) => `<a class="hit" href="#/p/${p.d + 1}?q=${encodeURIComponent(q)}"><div class="h1"><b>${esc(ref(p))}</b><span>${esc(p.title)}</span></div><div class="s ar">${shown(snippet(p.text, set))}</div></a>`).join("")}`;
+    $("#aiask").onclick = async () => {
+      const box = $("#aians");
+      box.innerHTML = `<p class="muted">جارٍ إعداد الجواب من المقاطع…</p>`;
+      const ps = top.slice(0, 5).map((p) => ({ v: p.vol, p: (p.ap ? "ملحق " : "") + p.page, t: p.text.replace(/\s+/g, " ").slice(0, 1400) }));
+      try {
+        const res = await fetch("/api/fqa", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q, passages: ps }) });
+        const j = await res.json();
+        if (!res.ok || !j.answer) throw 0;
+        box.innerHTML = `<div class="aitext">${esc(j.answer).replace(/\n/g, "<br>")}</div><p class="muted small">الجواب مبني على المقاطع المعروضة أدناه فقط؛ راجع النص في موضعه.</p>`;
+      } catch { box.innerHTML = `<p class="muted">تعذّر إعداد الجواب الآن؛ النتائج أدناه.</p>`; }
+    };
+  };
+}
+aiFab();
+
 window.__fatawa = { ask }; // sınaq üçün

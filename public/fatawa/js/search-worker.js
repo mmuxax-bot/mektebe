@@ -93,11 +93,37 @@ function titleTokens(idx, tid) {
   if (!s) idx.titleToks.set(tid, (s = new Set(tokens(idx.titles[tid]))));
   return s;
 }
+function ed1(a, b) { // Levenshtein ≤ 1
+  if (a === b) return true;
+  const la = a.length, lb = b.length;
+  if (Math.abs(la - lb) > 1) return false;
+  let i = 0, j = 0, e = 0;
+  while (i < la && j < lb) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++e > 1) return false;
+    if (la > lb) i++; else if (lb > la) j++; else { i++; j++; }
+  }
+  return e + (la - i) + (lb - j) <= 1;
+}
+function nearest(idx, t) { // yazı səhvinə dözümlü: lüğətdə ən çox işlənən 1 hərf fərqli söz
+  if (t.length < 3) return null;
+  let best = null, bdf = 0;
+  for (let i = 0; i < idx.vocab.length; i++) {
+    const w = idx.vocab[i];
+    if (Math.abs(w.length - t.length) > 1 || !ed1(w, t)) continue;
+    const df = idx.post[i + 1] - idx.post[i];
+    if (df > bdf) (bdf = df), (best = w);
+  }
+  return best;
+}
 async function search(phrase, vol) {
   const idx = await load();
   const terms = tokens(phrase);
   const out = { terms, list: [], exact: 0, total: 0 };
   if (!terms.length) return out;
+  const fixed = [];
+  for (let i = 0; i < terms.length; i++) if (!idx.vmap.has(terms[i])) { const f = nearest(idx, terms[i]); if (f) (fixed.push([terms[i], f]), (terms[i] = f)); }
+  out.fixed = fixed;
   let ids = terms.map((t) => idx.vmap.get(t));
   const unknown = ids.filter((x) => x == null).length;
   if (unknown && (terms.length < 5 || unknown * 2 >= terms.length)) return out;

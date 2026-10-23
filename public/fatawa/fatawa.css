@@ -397,3 +397,37 @@ body.reading .wrap:has(.book.spread) { max-width: 1400px; }
 .intro .in-s { text-align: center; font-size: 1.05em; color: #5a3a12; font-weight: 600; margin: 0 0 0.9em; }
 .intro .in-g { text-align: center; font-weight: 700; color: #5a3a12; margin-top: 1em; }
 @media (max-height: 500px) and (orientation: landscape) { .book.spread .pbody { font-size: calc(var(--rfs, 21px) * 0.78); line-height: 1.85; } }
+
+/* səhifə rəngi: ağ (standart) / gecə / sepiya */
+.pcol { display: inline-flex; gap: 5px; align-items: center; padding: 0 4px; }
+.pc { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; }
+.pc.on { border-color: var(--gold2, #d4af5f); box-shadow: 0 0 0 2px rgba(212, 175, 95, 0.35); }
+.pc-w { background: #fffdf7; } .pc-d { background: #16181d; } .pc-s { background: #f1e0bb; }
+html[data-paper="dark"] { --paper: #1b1d22; --paper2: #121318; --ink: #e4dccb; --ink2: #d9b86c; }
+html[data-paper="dark"] .pbody .bab, html[data-paper="dark"] .pbody .fr-basm, html[data-paper="dark"] .intro .in-s, html[data-paper="dark"] .intro .in-g { color: #e2c27a; background-color: rgba(226, 194, 122, 0.06); }
+html[data-paper="dark"] .pbody .fr-kitab, html[data-paper="dark"] .intro .in-h { color: #f0d48c; }
+html[data-paper="dark"] .pbody .fn { color: #b9b1a1; border-top-color: rgba(226, 194, 122, 0.25); }
+html[data-paper="dark"] .phead { border-bottom-color: rgba(226, 194, 122, 0.2); }
+html[data-paper="dark"] .pbody mark { background: #5a4a17; color: #fff3cf; }
+html[data-paper="dark"] .book.spread .paper:first-child { background: linear-gradient(90deg, #08090b, var(--paper) 7%, var(--paper) 96%, var(--paper2)); }
+html[data-paper="dark"] .book.spread .paper:last-child { background: linear-gradient(90deg, var(--paper2), var(--paper) 4%, var(--paper) 93%, #08090b); }
+html[data-paper="sepia"] { --paper: #f1e0bb; --paper2: #e3cc9c; --ink: #3b2a14; --ink2: #7a4b14; }
+@media (max-width: 520px) { .pc { width: 22px; height: 22px; } .pcol { gap: 3px; padding: 0; } .rbar .lbl { display: none; } }
+
+/* AI köməkçi düyməsi və paneli */
+.aifab { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); z-index: 70; width: 56px; height: 56px; border-radius: 50%; border: 1px solid rgba(240, 217, 150, 0.6); cursor: pointer; color: #2a1d06; background: linear-gradient(180deg, #f3dc93, #c99a45); box-shadow: 0 10px 26px -8px rgba(0, 0, 0, 0.6); display: grid; place-items: center; }
+.aifab svg { width: 26px; height: 26px; }
+.aip { position: fixed; inset: 0; z-index: 80; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: flex-end; }
+.aip[hidden] { display: none; }
+.aip-in { width: min(760px, 100%); max-height: 88vh; display: flex; flex-direction: column; background: var(--bg2, #10131a); color: var(--text); border: 1px solid var(--line); border-radius: 18px 18px 0 0; padding: 12px 14px; }
+@media (min-width: 760px) { .aip { align-items: center; } .aip-in { border-radius: 18px; } }
+.aip-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-bottom: 8px; font-size: 16px; color: var(--gold2); }
+.aip-f { display: flex; gap: 8px; flex-wrap: wrap; }
+.aip-f input { flex: 1 1 260px; min-width: 0; padding: 11px 12px; font-size: 16px; }
+.aip-f select { padding: 10px; }
+.aip-o { overflow: auto; margin-top: 10px; -webkit-overflow-scrolling: touch; }
+.aip-o .hit { display: block; }
+.aians { margin: 6px 0 10px; }
+.aitext { line-height: 1.9; font-size: 17px; padding: 10px 12px; border-radius: 12px; background: var(--card2); border: 1px solid var(--line); }
+.small { font-size: 12px; }
+body.reading .wrap { padding-bottom: 90px; }
