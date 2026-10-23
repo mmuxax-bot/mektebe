@@ -21,6 +21,21 @@ async function gemini(msg) {
   }
   return null;
 }
+async function orFree(msg) {
+  const key = env("OPENROUTER_API_KEY");
+  if (!key) return null;
+  for (const m of ["google/gemma-4-31b-it:free", "openrouter/free", "nvidia/nemotron-3-super-120b-a12b:free"]) {
+    try {
+      const r = await fetch("https://openrouter.ai/api/v1/chat/completions", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "HTTP-Referer": "https://library.nibrascode.com", "X-Title": "Nibras Library" }, signal: AbortSignal.timeout(20000),
+        body: JSON.stringify({ model: m, temperature: 0.2, max_tokens: 700, messages: [{ role: "system", content: SYSTEM }, { role: "user", content: msg }] }) });
+      if (!r.ok) continue;
+      const j = await r.json();
+      const t = String(j.choices?.[0]?.message?.content || "").replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+      if (t) return t;
+    } catch {}
+  }
+  return null;
+}
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST" });
   let b = req.body;
@@ -31,6 +46,8 @@ export default async function handler(req, res) {
   const msg = `السؤال: ${q}\n\nالمقاطع:\n` + ps.map((x, i) => `[${i + 1}] (ج ${x.v}، ص ${x.p})\n${x.t}`).join("\n\n");
   const g = await gemini(msg);
   if (g) return res.status(200).json({ answer: g, by: "gemini" });
+  const o = await orFree(msg);
+  if (o) return res.status(200).json({ answer: o, by: "openrouter" });
   const names = ORDER.filter((n) => configuredProviders().includes(n));
   const cfg = { system: SYSTEM, tokens: () => 450, timeout: (base) => AbortSignal.timeout(Math.min(base || 12000, 12000)), temperature: 0.2 };
   const errs = [];
