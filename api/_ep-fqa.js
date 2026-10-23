@@ -16,11 +16,13 @@ export default async function handler(req, res) {
   const msg = `السؤال: ${q}\n\nالمقاطع:\n` + ps.map((x, i) => `[${i + 1}] (ج ${x.v}، ص ${x.p})\n${x.t}`).join("\n\n");
   const names = ORDER.filter((n) => configuredProviders().includes(n));
   const cfg = { system: SYSTEM, tokens: () => 450, timeout: (base) => AbortSignal.timeout(Math.min(base || 12000, 12000)), temperature: 0.2 };
+  const errs = [];
   for (const n of names) {
     try {
       const r = await aiConfig.run(cfg, () => askProvider(n, [{ role: "user", text: msg }], msg));
       if (r && r.ok && r.reply) return res.status(200).json({ answer: String(r.reply).trim(), by: n });
-    } catch {}
+      errs.push(n + ':' + String((r && (r.detail || (r.skipped && 'skip'))) || '').slice(0, 80));
+    } catch (e) { errs.push(n + ':ex ' + String(e && e.message).slice(0, 80)); }
   }
-  return res.status(503).json({ error: "no-ai" });
+  return res.status(503).json({ error: "no-ai", n: names.length, errs });
 }
