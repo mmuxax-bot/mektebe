@@ -325,7 +325,7 @@ async function viewVolume(n) {
       <div class="vbig">${fmt(n)}</div>
       <div><p class="muted kicker">${esc(t("vol"))} ${fmt(n)} / ${fmt(m.vols.length)}</p><h1 class="ar">الجزء ${arNum(n)}: ${esc(v.title)}</h1>
       <div class="stats"><span>${esc(t("pagesN", { n: fmt(v.count) }))}</span><span>${esc(t("headsN", { n: fmt(items.length) }))}</span></div>
-      <div class="acts"><a class="btn" href="#/p/${v.first + 1}?i=1">${esc(t("readVol"))}</a>
+      <div class="acts">${(() => { const lv = store.get("ft:lv:" + n, null); return lv && lv.p ? `<a class="btn" id="rdgo" href="#/p/${lv.p}${lv.i ? "?i=1" : ""}">${esc(t("readVol"))} ↩</a><a class="btn ghost sm" href="#/p/${v.first + 1}?i=1">من البداية</a>` : `<a class="btn" id="rdgo" href="#/p/${v.first + 1}?i=1">${esc(t("readVol"))}</a>`; })()}
         ${prev ? `<a class="btn ghost sm" href="#/v/${prev.n}">→ ${esc(t("prevVol"))}</a>` : ""}${next ? `<a class="btn ghost sm" href="#/v/${next.n}">${esc(t("nextVol"))} ←</a>` : ""}</div></div>
     </section>
     <section class="tocbox">
@@ -575,6 +575,7 @@ async function viewReader(P, hq, isIntro) {
   $("#rjv").value = p.vol;
   $("#rjp").value = fi.intro || p.ap ? "" : p.page;
   store.set("ft:last", { p: d0 + 1, at: Date.now() });
+  store.set("ft:lv:" + p.vol, { p: d0 + 1, i: fi.intro ? 1 : 0, at: Date.now() });
   $("#rj").onsubmit = (e) => { e.preventDefault(); location.hash = `#/j/${$("#rjv").value}/${Number($("#rjp").value) || 1}`; };
   const mk = $("#paper mark");
   if (mk) mk.scrollIntoView({ block: "center" });
