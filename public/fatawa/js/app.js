@@ -699,39 +699,40 @@ function aiFab() {
   if ($("#aifab")) return;
   document.body.insertAdjacentHTML("beforeend", `<button class="aifab" id="aifab" type="button" aria-label="المساعد الذكي" title="المساعد الذكي — البحث في المجلدات الخمسة والثلاثين"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/><path d="M11 7.5v7M7.5 11h7" stroke-width="1.5"/></svg></button>
   <div class="aip" id="aip" hidden dir="rtl" lang="ar" role="dialog" aria-label="المساعد الذكي"><div class="aip-in">
-    <div class="aip-h"><b>المساعد الذكي — مجموع الفتاوى</b><button class="ibtn" id="aix" type="button" aria-label="إغلاق">✕</button></div>
-    <form id="aif" class="aip-f"><input id="aiq" type="search" dir="rtl" lang="ar" autocomplete="off" enterkeyhint="search" placeholder="اكتب سؤالك أو كلمات البحث بالعربية… (ضع العبارة بين علامتي تنصيص للبحث الحرفي)">
-      <select id="aiv" aria-label="المجلد"><option value="0">كل المجلدات</option></select><button class="btn" type="submit">ابحث</button></form>
-    <div id="aio" class="aip-o"><p class="muted">ابحث في المجلدات الخمسة والثلاثين: تُطبَّع الحركات والهمزات والتاء المربوطة والألف المقصورة، ويُصحَّح الخطأ الإملائي اليسير.</p></div>
+    <div class="aip-h"><div class="aip-t"><span class="aip-seal" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.2 2.6 3.4-.4.4 3.4 2.6 2.2-2.6 2.2-.4 3.4-3.4-.4L12 21.5l-2.2-2.6-3.4.4-.4-3.4L3.4 12.3 6 10.1l.4-3.4 3.4.4z"/><circle cx="11.4" cy="11.4" r="3.2"/><path d="m15.6 15.6-1.9-1.9"/></svg></span><span><b>المساعد الذكي</b><small>البحث في مجموع الفتاوى · ٣٥ مجلدًا</small></span></div><button class="aip-x" id="aix" type="button" aria-label="إغلاق"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <form id="aif" class="aip-f"><div class="aip-q"><svg class="aip-qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="aiq" type="search" dir="rtl" lang="ar" autocomplete="off" enterkeyhint="search" placeholder="اكتب سؤالك أو كلمات البحث بالعربية… (ضع العبارة بين علامتي تنصيص للبحث الحرفي)"><button class="aip-clr" id="aiclr" type="button" aria-label="مسح" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></button></div>
+      <select id="aiv" aria-label="المجلد"><option value="0">كل المجلدات</option></select><button class="btn aip-go" type="submit">ابحث</button></form>
+    <div id="aio" class="aip-o"><div class="aip-empty"><span class="aip-orn" aria-hidden="true">۞</span><p>ابحث في المجلدات الخمسة والثلاثين: تُطبَّع الحركات والهمزات والتاء المربوطة والألف المقصورة، ويُصحَّح الخطأ الإملائي اليسير.</p></div></div>
   </div></div>`);
   const P = $("#aip");
   meta().then((m) => ($("#aiv").innerHTML += m.vols.map((v) => `<option value="${v.n}">المجلد ${arNum(v.n)}</option>`).join(""))).catch(() => {});
   $("#aifab").onclick = () => { P.hidden = false; ask({ warm: 1 }).catch(() => {}); setTimeout(() => $("#aiq").focus(), 50); };
   $("#aix").onclick = () => (P.hidden = true);
+  const qi = $("#aiq"), clr = $("#aiclr"); qi.addEventListener("input", () => (clr.hidden = !qi.value)); clr.onclick = () => { qi.value = ""; clr.hidden = true; qi.focus(); };
   P.onclick = (e) => { if (e.target === P) P.hidden = true; if (e.target.closest("a.hit,a.cite")) P.hidden = true; };
   addEventListener("keydown", (e) => { if (e.key === "Escape" && !P.hidden) P.hidden = true; });
   $("#aif").onsubmit = async (e) => {
     e.preventDefault();
     const q = $("#aiq").value.trim(), vol = Number($("#aiv").value) || 0, o = $("#aio");
-    if (!/[\u0621-\u064A]{2,}/.test(q)) return (o.innerHTML = `<p class="muted">اكتب بالعربية من فضلك.</p>`);
-    o.innerHTML = `<p class="muted">جارٍ البحث…</p>`;
+    if (!/[\u0621-\u064A]{2,}/.test(q)) return (o.innerHTML = `<div class="aip-empty"><span class="aip-orn" aria-hidden="true">۞</span><p>اكتب بالعربية من فضلك.</p></div>`);
+    o.innerHTML = `<div class="aip-load" aria-live="polite"><span class="sr">جارٍ البحث…</span>${'<div class="aip-sk"><i></i><i></i><i></i></div>'.repeat(3)}</div>`;
     let r;
     const A = analyzeQ(q);
     try {
       r = A.phrase ? await ask({ q: A.main, vol }) : await ask({ q: A.main, vol, sem: 1, extra: A.extra });
       if (r.list.length < 3) for (const alt of A.alts) { const r2 = await ask({ q: alt, vol }); if (r2.list.length > r.list.length) r = r2; }
       if (!r.list.length && A.main.split(" ").length > 2) r = await ask({ q: A.main.split(" ").slice(0, 2).join(" "), vol });
-    } catch { return (o.innerHTML = `<p class="muted">تعذّر البحث، حاول مرة أخرى.</p>`); }
-    if (!r.list.length) return (o.innerHTML = `<p class="muted">لم أجد نتائج؛ جرّب كلمات أخرى أو صيغة أقصر.</p>`);
+    } catch { return (o.innerHTML = `<div class="aip-empty"><span class="aip-orn" aria-hidden="true">۞</span><p>تعذّر البحث، حاول مرة أخرى.</p></div>`); }
+    if (!r.list.length) return (o.innerHTML = `<div class="aip-empty"><span class="aip-orn" aria-hidden="true">۞</span><p><b>لا نتائج</b>لم أجد نتائج؛ جرّب كلمات أخرى أو صيغة أقصر.</p></div>`);
     const set = new Set(r.terms);
     const top = await Promise.all(r.list.slice(0, 10).map((d) => page(d)));
     const fx = r.fixed && r.fixed.length ? `<p class="muted">صُحّح: ${r.fixed.map(([a, b]) => `${esc(a)} ← ${esc(b)}`).join("، ")}</p>` : "";
     o.innerHTML = `${fx}<div class="aians" id="aians"><button class="btn ghost sm" id="aiask" type="button" hidden>✦</button></div>
-      <p class="rcount">${arNum(r.total)} نتيجة${r.exact ? ` · ${arNum(r.exact)} مطابقة تامة` : ""}</p>
+      <p class="rcount aip-rc">${arNum(r.total)} نتيجة${r.exact ? ` · ${arNum(r.exact)} مطابقة تامة` : ""}</p>
       <div id="aih"></div>`;
     const PER = 10, NP = Math.ceil(r.list.length / PER);
-    const hitHtml = (p) => `<a class="hit" href="#/p/${p.d + 1}?q=${encodeURIComponent(A.main)}"><div class="h1"><b>${esc(ref(p))}</b><span>${esc(p.title)}</span></div><div class="s ar">${shown(snippet(p.text, set))}</div></a>`;
-    const pager = (k) => NP < 2 ? "" : `<div class="aipg"><button class="btn ghost sm" data-g="${k - 1}" ${k ? "" : "disabled"}>→ السابق</button><span>صفحة ${arNum(k + 1)} من ${arNum(NP)} · ${arNum(r.list.length)} نتيجة</span><button class="btn ghost sm" data-g="${k + 1}" ${k + 1 < NP ? "" : "disabled"}>التالي ←</button></div>`;
+    const hitHtml = (p) => `<a class="hit aih" href="#/p/${p.d + 1}?q=${encodeURIComponent(A.main)}"><div class="h1"><b class="aip-chip">${esc(ref(p))}</b><span>${esc(p.title)}</span></div><div class="s ar">${shown(snippet(p.text, set))}</div></a>`;
+    const pager = (k) => NP < 2 ? "" : `<div class="aipg"><button class="aipb" type="button" data-g="${k - 1}" ${k ? "" : "disabled"}>→ السابق</button><span>صفحة ${arNum(k + 1)} من ${arNum(NP)} · ${arNum(r.list.length)} نتيجة</span><button class="aipb" type="button" data-g="${k + 1}" ${k + 1 < NP ? "" : "disabled"}>التالي ←</button></div>`;
     const go = async (k) => {
       const h = $("#aih"); if (!h) return;
       const ps = k ? await Promise.all(r.list.slice(k * PER, k * PER + PER).map((d) => page(d))) : top;

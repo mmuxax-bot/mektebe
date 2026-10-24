@@ -460,3 +460,82 @@ body.pf-open { overflow: hidden; }
 .pzoom { top: auto; bottom: 8px; inset-inline-end: auto; }
 .book.spread > .paper:first-child .pzoom { right: 10px; left: auto; }
 .book.spread > .paper:last-child .pzoom { left: 10px; right: auto; }
+
+/* ===== AI axtarış paneli — premium görünüş (yalnız vizual) ===== */
+.aip { --pa: var(--paper, #f5ecd6); --pi: var(--ink, #2a2116); --pg: #a77a2a; --pe: #1f6b55; --pl: rgba(167, 122, 42, 0.28);
+  background: rgba(8, 10, 16, 0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: aipFade .22s ease both; }
+html[data-paper="dark"] .aip { --pg: #d9b86c; --pe: #4fb393; --pl: rgba(217, 184, 108, 0.26); }
+html[data-paper="sepia"] .aip { --pg: #8f5f1c; --pe: #2f6b4f; }
+@keyframes aipFade { from { opacity: 0; } }
+@keyframes aipUp { from { opacity: 0; transform: translateY(26px) scale(.985); } }
+@keyframes aipShim { to { background-position: -200% 0; } }
+.aip .aip-in { position: relative; background: linear-gradient(180deg, color-mix(in srgb, var(--pa) 96%, #fff 4%), var(--pa)); color: var(--pi);
+  border: 1px solid var(--pl); border-bottom: 0; padding: 16px 16px 10px; max-height: 90vh; max-height: 90dvh; overflow: hidden;
+  box-shadow: 0 -18px 50px -20px rgba(0,0,0,.55), inset 0 0 0 4px color-mix(in srgb, var(--pa) 100%, transparent), inset 0 0 0 5px var(--pl);
+  animation: aipUp .32s cubic-bezier(.2,.8,.2,1) both; font-family: var(--ar); padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+@media (min-width: 760px) { .aip .aip-in { border-bottom: 1px solid var(--pl); box-shadow: 0 30px 80px -24px rgba(0,0,0,.6), inset 0 0 0 4px var(--pa), inset 0 0 0 5px var(--pl); } }
+.aip .aip-in::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: linear-gradient(90deg, transparent, var(--pg), var(--pe), var(--pg), transparent); opacity: .8; }
+.aip .aip-h { color: var(--pi); padding: 2px 2px 12px; margin-bottom: 12px; border-bottom: 1px solid var(--pl); }
+.aip-t { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.aip-t > span:last-child { display: flex; flex-direction: column; min-width: 0; }
+.aip-t b { font-size: 21px; color: var(--pg); line-height: 1.3; }
+.aip-t small { font-family: var(--ui); font-size: 12px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aip-seal { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--pg);
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--pg) 22%, transparent), transparent 70%); border: 1px solid var(--pl); }
+.aip-seal svg { width: 24px; height: 24px; }
+.aip-x { flex: none; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--pl); background: transparent; color: var(--pi); cursor: pointer; display: grid; place-items: center; transition: background .2s, transform .2s; }
+.aip-x:hover { background: color-mix(in srgb, var(--pg) 14%, transparent); transform: rotate(90deg); }
+.aip-x svg { width: 17px; height: 17px; }
+.aip .aip-f { gap: 8px; align-items: stretch; }
+.aip-q { position: relative; flex: 1 1 260px; min-width: 0; display: flex; }
+.aip .aip-q input { flex: 1; width: 100%; min-width: 0; height: 48px; padding: 0 44px 0 40px; font-family: var(--ar); font-size: 17px; color: var(--pi);
+  background: color-mix(in srgb, var(--pa) 70%, #fff 30%); border: 1px solid var(--pl); border-radius: 14px; outline: none;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.08); transition: border-color .2s, box-shadow .2s; -webkit-appearance: none; appearance: none; }
+html[data-paper="dark"] .aip .aip-q input { background: color-mix(in srgb, var(--pa) 85%, #000 15%); }
+.aip .aip-q input::placeholder { color: var(--pi); opacity: .45; font-size: 14px; }
+.aip .aip-q input::-webkit-search-cancel-button { display: none; }
+.aip .aip-q input:focus { border-color: var(--pg); box-shadow: 0 0 0 4px color-mix(in srgb, var(--pg) 18%, transparent); }
+.aip-qi { position: absolute; right: 14px; top: 50%; width: 19px; height: 19px; transform: translateY(-50%); color: var(--pg); pointer-events: none; }
+.aip-clr { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border-radius: 50%; border: 0; cursor: pointer; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--pi) 12%, transparent); color: var(--pi); }
+.aip-clr[hidden] { display: none; }
+.aip-clr svg { width: 13px; height: 13px; }
+.aip .aip-f select { height: 48px; padding: 0 12px; border-radius: 14px; border: 1px solid var(--pl); background: color-mix(in srgb, var(--pa) 70%, #fff 30%); color: var(--pi); font-family: var(--ar); font-size: 15px; }
+html[data-paper="dark"] .aip .aip-f select { background: color-mix(in srgb, var(--pa) 85%, #000 15%); }
+.aip .aip-go { height: 48px; padding: 0 24px; border-radius: 14px; border: 0; font-family: var(--ar); font-size: 17px; font-weight: 700; color: #fff8e6;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pe) 85%, #fff 15%), var(--pe)); box-shadow: 0 6px 16px -8px var(--pe), inset 0 1px 0 rgba(255,255,255,.25); transition: transform .15s, filter .2s; }
+.aip .aip-go:hover { filter: brightness(1.08); } .aip .aip-go:active { transform: translateY(1px); }
+.aip .aip-o { margin-top: 12px; padding: 2px 2px 6px; scrollbar-width: thin; scrollbar-color: var(--pl) transparent; overscroll-behavior: contain; }
+.aip .muted { color: color-mix(in srgb, var(--pi) 60%, transparent); }
+.aip-empty { text-align: center; padding: 26px 14px 20px; color: color-mix(in srgb, var(--pi) 70%, transparent); font-size: 16px; line-height: 1.9; }
+.aip-empty b { display: block; color: var(--pg); font-size: 19px; }
+.aip-empty p { margin: 6px auto 0; max-width: 520px; }
+.aip-orn { display: block; font-size: 34px; color: var(--pg); opacity: .75; line-height: 1; }
+.aip-load { padding: 4px 0; }
+.aip-sk { padding: 14px; margin-bottom: 10px; border-radius: 14px; border: 1px solid var(--pl); }
+.aip-sk i { display: block; height: 12px; border-radius: 6px; margin: 8px 0; background: linear-gradient(90deg, var(--pl) 25%, color-mix(in srgb, var(--pg) 10%, transparent) 50%, var(--pl) 75%); background-size: 200% 100%; animation: aipShim 1.2s linear infinite; }
+.aip-sk i:first-child { width: 35%; } .aip-sk i:last-child { width: 70%; }
+.aip .aip-rc { font-family: var(--ui); font-size: 13px; color: color-mix(in srgb, var(--pi) 65%, transparent); margin: 4px 2px 8px; }
+.aip .aitext { background: color-mix(in srgb, var(--pe) 7%, var(--pa)); border: 1px solid color-mix(in srgb, var(--pe) 30%, transparent); border-right: 3px solid var(--pe); color: var(--pi); border-radius: 14px; }
+.aip .aitext .cite { color: var(--pe); font-weight: 700; }
+.aip .small { color: color-mix(in srgb, var(--pi) 55%, transparent); }
+.aip .aih { background: color-mix(in srgb, var(--pa) 80%, #fff 20%); color: var(--pi); border: 1px solid var(--pl); border-radius: 16px; padding: 14px 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 18px -14px rgba(0,0,0,.4); transition: transform .18s, box-shadow .18s, border-color .18s; }
+html[data-paper="dark"] .aip .aih { background: color-mix(in srgb, var(--pa) 88%, #fff 12%); }
+.aip .aih:hover { transform: translateY(-2px); border-color: var(--pg); box-shadow: 0 14px 28px -16px rgba(0,0,0,.5); }
+.aip .aih .h1 { align-items: center; color: color-mix(in srgb, var(--pi) 65%, transparent); font-size: 14px; }
+.aip .aih .h1 span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aip-chip { flex: none; font-family: var(--ui); font-size: 12px !important; font-weight: 600; padding: 4px 10px; border-radius: 999px; color: var(--pe) !important; background: color-mix(in srgb, var(--pe) 11%, transparent); border: 1px solid color-mix(in srgb, var(--pe) 30%, transparent); }
+.aip .aih .s { font-size: 18px; line-height: 1.95; color: var(--pi); margin-top: 8px; overflow-wrap: anywhere; }
+.aip mark { background: color-mix(in srgb, var(--pg) 28%, transparent); color: inherit; padding: 0 2px; border-radius: 4px; box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--pg) 70%, transparent); }
+.aip .aipg { margin: 6px 0 12px; font-family: var(--ui); font-size: 13px; color: color-mix(in srgb, var(--pi) 70%, transparent); }
+.aip .aipg span { text-align: center; }
+.aipb { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--pl); background: color-mix(in srgb, var(--pa) 70%, #fff 30%); color: var(--pi); font-family: var(--ar); font-size: 15px; cursor: pointer; white-space: nowrap; transition: background .2s, border-color .2s; }
+html[data-paper="dark"] .aipb { background: transparent; }
+.aipb:hover { border-color: var(--pg); background: color-mix(in srgb, var(--pg) 14%, transparent); }
+.aip .aipg .aipb[disabled] { opacity: .35; }
+.aifab { transition: transform .2s, box-shadow .2s; box-shadow: 0 10px 26px -8px rgba(0,0,0,.6), 0 0 0 4px rgba(212,175,95,.18), inset 0 1px 0 rgba(255,255,255,.5); }
+.aifab:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 14px 30px -8px rgba(0,0,0,.6), 0 0 0 6px rgba(212,175,95,.22), inset 0 1px 0 rgba(255,255,255,.5); }
+@media (max-width: 520px) { .aip .aip-in { padding: 14px 12px 10px; } .aip-t b { font-size: 19px; } .aip .aip-f select { flex: 1; } .aip .aip-go { flex: 1; } .aip .aipg { flex-wrap: wrap; justify-content: center; } .aip .aipg span { order: -1; width: 100%; } .aip .aih .s { font-size: 17px; } }
+@media (max-height: 480px) { .aip .aip-h { padding-bottom: 6px; margin-bottom: 8px; } .aip-seal { display: none; } .aip .aip-in { max-height: 96dvh; } }
+@media (prefers-reduced-motion: reduce) { .aip, .aip .aip-in, .aip-sk i { animation: none; } }
