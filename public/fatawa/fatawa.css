@@ -370,7 +370,7 @@ body.is-set .wrap + footer, body.is-set > footer { display: none; }
 .pnum { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-size: 13px; color: #2a1d06; background: linear-gradient(180deg, #f3dc93, #d4af5f); flex: none; }
 .pother { text-align: center; margin: 4px 0 0; }
 /* oxucu: üfüqi sürüşdürmə yalnız səhifə çevirmə üçündür (brauzerin «geri» jesti və üfüqi sürüşmə ilə toqquşmasın) */
-body.reading .paper { touch-action: pan-y pinch-zoom; }
+body.reading .paper, body.reading .book, .pf-page { touch-action: pan-x pan-y pinch-zoom; }
 
 /* kitab görünüşü: tək səhifə / iki səhifəli açıq kitab (RTL: sağ səhifə birinci) */
 .book { display: grid; gap: 0; perspective: 1800px; }

@@ -608,9 +608,11 @@ rsMode = spreadMode();
 let onkey = null;
 addEventListener("keydown", (e) => document.body.classList.contains("reading") && onkey && onkey(e));
 let tx = null;
-addEventListener("touchstart", (e) => (tx = document.body.classList.contains("reading") && e.touches.length === 1 && e.target.closest("#paper") ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : null), { passive: true });
+const zoomed = () => (window.visualViewport ? visualViewport.scale : 1) > 1.04;
+addEventListener("touchstart", (e) => (tx = document.body.classList.contains("reading") && e.touches.length === 1 && !zoomed() && !e.target.closest("#pfocus") && e.target.closest("#paper") ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : null), { passive: true });
+addEventListener("touchmove", (e) => { if (e.touches.length > 1) tx = null; }, { passive: true });
 addEventListener("touchend", (e) => {
-  if (!tx) return;
+  if (!tx || zoomed() || e.touches.length) return (tx = null);
   const dx = e.changedTouches[0].clientX - tx.x;
   const dy = e.changedTouches[0].clientY - tx.y;
   if (Math.abs(dx) > 60 && Math.abs(dy) < Math.abs(dx) * 0.5 && Date.now() - tx.t < 700) $(dx > 0 ? "#bNext" : "#bPrev")?.click();
