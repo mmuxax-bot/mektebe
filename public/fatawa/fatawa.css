@@ -539,3 +539,5 @@ html[data-paper="dark"] .aipb { background: transparent; }
 @media (max-width: 520px) { .aip .aip-in { padding: 14px 12px 10px; } .aip-t b { font-size: 19px; } .aip .aip-f select { flex: 1; } .aip .aip-go { flex: 1; } .aip .aipg { flex-wrap: wrap; justify-content: center; } .aip .aipg span { order: -1; width: 100%; } .aip .aih .s { font-size: 17px; } }
 @media (max-height: 480px) { .aip .aip-h { padding-bottom: 6px; margin-bottom: 8px; } .aip-seal { display: none; } .aip .aip-in { max-height: 96dvh; } }
 @media (prefers-reduced-motion: reduce) { .aip, .aip .aip-in, .aip-sk i { animation: none; } }
+@supports not (color: color-mix(in srgb, red, blue)) { .aip .aip-in { background: var(--pa); } .aip .aih, .aip .aip-q input, .aip .aip-f select, .aipb { background: var(--pa); } .aip .aip-go { background: var(--pe); } }
+.aip .aip-in { background-color: var(--pa); }
