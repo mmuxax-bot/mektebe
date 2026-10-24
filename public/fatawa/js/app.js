@@ -531,7 +531,7 @@ async function viewReader(P, hq, isIntro) {
   const markPc = () => app.querySelectorAll(".pc").forEach((b) => b.classList.toggle("on", b.dataset.p === (store.get("ft:paper", "white"))));
   app.querySelectorAll(".pc").forEach((b) => (b.onclick = () => { store.set("ft:paper", b.dataset.p); applyPaper(); markPc(); }));
   markPc();
-  { const pb = $("#pcbtn"), pl = $("#pcol"); pb.onclick = (e) => { e.stopPropagation(); pl.hidden = !pl.hidden; pb.setAttribute("aria-expanded", !pl.hidden); }; pl.onclick = (e) => e.stopPropagation(); document.addEventListener("click", () => (pl.hidden = true)); }
+  { const pb = $("#pcbtn"), pl = $("#pcol"); pb.onclick = (e) => { e.stopPropagation(); pl.hidden = !pl.hidden; pb.setAttribute("aria-expanded", !pl.hidden); }; pl.onclick = (e) => { e.stopPropagation(); if (e.target.closest(".pc")) pl.hidden = true; }; document.addEventListener("click", () => (pl.hidden = true)); }
   $("#fup").onclick = () => ((fsz = Math.min(34, fsz + 1)), applyFs(), store.set("ft:fs", fsz));
   $("#fdown").onclick = () => ((fsz = Math.max(15, fsz - 1)), applyFs(), store.set("ft:fs", fsz));
   const go = (k) => {
