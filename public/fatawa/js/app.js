@@ -497,6 +497,22 @@ async function pageHTML(m, s, set, noPrev, noNext) {
   const body = carryTags((p.startTitle ? `<div class="bab">${esc(p.startTitle)}</div>` : "") + (textHTML(p, set) || `<p class="muted">—</p>`));
   return `<article class="paper"><div class="phead"><span class="rh ar">${esc(p.title)}</span><span class="rf ar">${esc(ref(p))}</span></div><div class="pbody ar">${shown(body)}</div><div class="pfoot">${foot}</div></article>`;
 }
+// iki səhifədə qısa səhifəni şaquli tənzimlə (çap səhifəsi dəyişmir, sətir aralığı bir az artır) — alt boşluq qalmasın
+function fillPages(book) {
+  if (!book || !book.classList.contains("spread")) return;
+  const bs = [...book.querySelectorAll(".paper:not(.blank) .pbody")];
+  bs.forEach((b) => (b.style.lineHeight = ""));
+  for (let it = 0; it < 3; it++) bs.forEach((b) => {
+    const kids = [...b.children].filter((e) => e.offsetParent); if (!kids.length) return;
+    const cs = getComputedStyle(b), top = b.getBoundingClientRect().top + parseFloat(cs.paddingTop), bot = b.getBoundingClientRect().bottom - parseFloat(cs.paddingBottom);
+    const used = kids[kids.length - 1].getBoundingClientRect().bottom - top, gap = bot - top - used;
+    if (gap < 2 || used < 40) return;
+    const cur = parseFloat(cs.lineHeight) / parseFloat(cs.fontSize), base = 2, f = Math.min(base * 1.32, cur * (1 + gap / used * 0.97));
+    b.style.lineHeight = f.toFixed(3);
+  });
+}
+let fillT = 0;
+addEventListener("resize", () => { clearTimeout(fillT); fillT = setTimeout(() => fillPages($("#paper")), 250); });
 const PAPERS = [["white", "w", "أبيض"], ["ivory", "ivory", "عاجي"], ["sepia", "s", "سيبيا"], ["green", "green", "أخضر مريح للعين"], ["stone", "stone", "رمادي حجري"], ["dark", "d", "ليلي"], ["navy", "navy", "ليلي أزرق"], ["brown", "brown", "بني داكن"]];
 const DARKP = new Set(["dark", "navy", "brown"]);
 const applyPaper = () => { const v = store.get("ft:paper", "white"), h = document.documentElement; if (v === "white") delete h.dataset.paper; else h.dataset.paper = v; if (DARKP.has(v)) h.dataset.dk = ""; else delete h.dataset.dk; };
@@ -526,7 +542,7 @@ async function viewReader(P, hq, isIntro) {
     <nav class="rnav" dir="ltr"><button class="btn ghost" id="bNext">← ${esc(t("next"))}</button>
       <form class="rjump" id="rj" dir="rtl"><select id="rjv" aria-label="${esc(t("vol"))}">${m.vols.map((v) => `<option value="${v.n}">${esc(t("vol"))} ${fmt(v.n)}</option>`).join("")}</select><input id="rjp" type="number" min="1" inputmode="numeric" aria-label="${esc(t("page"))}"><button class="btn ghost sm" type="submit">${esc(t("go"))}</button></form>
       <button class="btn ghost" id="bPrev">${esc(t("prev"))} →</button></nav>`;
-  const applyFs = () => document.documentElement.style.setProperty("--rfs", fsz + "px");
+  const applyFs = () => (document.documentElement.style.setProperty("--rfs", fsz + "px"), fillPages($("#paper")));
   applyFs();
   const markPc = () => app.querySelectorAll(".pc").forEach((b) => b.classList.toggle("on", b.dataset.p === (store.get("ft:paper", "white"))));
   app.querySelectorAll(".pc").forEach((b) => (b.onclick = () => { store.set("ft:paper", b.dataset.p); applyPaper(); markPc(); }));
@@ -560,6 +576,7 @@ async function viewReader(P, hq, isIntro) {
   const book = $("#paper");
   book.innerHTML = html.join("");
   if (dir) book.classList.add(dir);
+  fillPages(book); document.fonts?.ready.then(() => fillPages(book));
   if (spread) book.querySelectorAll(".paper:not(.blank)").forEach((pg) => {
     pg.insertAdjacentHTML("afterbegin", `<button class="pzoom" type="button" aria-label="تكبير هذه الصفحة" title="تكبير هذه الصفحة">⤢</button>`);
     pg.ondblclick = (e) => { if (!e.target.closest("a,button")) focusPage(pg); };
