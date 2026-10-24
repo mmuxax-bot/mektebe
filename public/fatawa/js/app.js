@@ -502,14 +502,15 @@ function fillPages(book) {
   if (!book || !book.classList.contains("spread")) return;
   const bs = [...book.querySelectorAll(".paper:not(.blank) .pbody")];
   bs.forEach((b) => (b.style.lineHeight = ""));
-  for (let it = 0; it < 3; it++) bs.forEach((b) => {
-    const kids = [...b.children].filter((e) => e.offsetParent); if (!kids.length) return;
-    const cs = getComputedStyle(b), top = b.getBoundingClientRect().top + parseFloat(cs.paddingTop), bot = b.getBoundingClientRect().bottom - parseFloat(cs.paddingBottom);
-    const used = kids[kids.length - 1].getBoundingClientRect().bottom - top, gap = bot - top - used;
-    if (gap < 2 || used < 40) return;
-    const cur = parseFloat(cs.lineHeight) / parseFloat(cs.fontSize), base = 2, f = Math.min(base * 1.32, cur * (1 + gap / used * 0.97));
-    b.style.lineHeight = f.toFixed(3);
-  });
+  for (let it = 0; it < 3; it++) {
+    const ms = bs.map((b) => {
+      const kids = [...b.children].filter((e) => e.offsetParent); if (!kids.length) return null;
+      const cs = getComputedStyle(b), r = b.getBoundingClientRect(), top = r.top + parseFloat(cs.paddingTop), bot = r.bottom - parseFloat(cs.paddingBottom), lk = kids[kids.length - 1];
+      const used = lk.getBoundingClientRect().bottom + parseFloat(getComputedStyle(lk).marginBottom) - top;
+      return { b, used, gap: bot - top - used, cur: parseFloat(cs.lineHeight) / parseFloat(cs.fontSize), lh: parseFloat(cs.lineHeight) };
+    });
+    ms.forEach((x) => { if (!x || x.gap < 3 || x.used < 40) return; x.b.style.lineHeight = Math.min(2.64, x.cur * (1 + (x.gap / x.used) * 0.97)).toFixed(3); });
+  }
 }
 let fillT = 0;
 addEventListener("resize", () => { clearTimeout(fillT); fillT = setTimeout(() => fillPages($("#paper")), 250); });
